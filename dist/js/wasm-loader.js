@@ -407,6 +407,41 @@ export function callChoice(session, possibilities, repeats) {
   };
 }
 
+export function callLottery(session, tickets, prizes, bought) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_lottery_f64(tickets, prizes, bought);
+  session.invocations += 1;
+  const ready = status === 0;
+  const count = ready ? session.exports.ath_lottery_sample_count() : 0;
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      bought: session.exports.ath_lottery_sample_bought(index),
+      expected: session.exports.ath_lottery_sample_expected(index),
+      chance: session.exports.ath_lottery_sample_chance(index),
+      kind: session.exports.ath_lottery_sample_kind(index),
+    });
+  }
+  return {
+    status,
+    expected: ready ? session.exports.ath_lottery_expected() : null,
+    none: ready ? session.exports.ath_lottery_none() : null,
+    noneRepresentable: ready && session.exports.ath_lottery_none_representable() === 1,
+    noneExactZero: ready && session.exports.ath_lottery_none_exact_zero() === 1,
+    noneLog10: ready ? session.exports.ath_lottery_none_log10() : null,
+    atLeast: ready ? session.exports.ath_lottery_at_least() : null,
+    atLeastExact: ready && session.exports.ath_lottery_at_least_exact() === 1,
+    fractionValid: ready && session.exports.ath_lottery_fraction_valid() === 1,
+    fractionNum: ready ? session.exports.ath_lottery_fraction_num() : null,
+    fractionDen: ready ? session.exports.ath_lottery_fraction_den() : null,
+    xMax: ready ? session.exports.ath_lottery_x_max() : null,
+    expectedMax: ready ? session.exports.ath_lottery_expected_max() : null,
+    samples,
+  };
+}
+
 export function callAddition(session, left, right) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");

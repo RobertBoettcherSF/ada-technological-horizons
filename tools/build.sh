@@ -85,6 +85,10 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/choice_tests" \
   "$ROOT/tests/native/choice_tests.adb" \
   -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
 "$ROOT/build/native/choice_tests" | tee "$ROOT/build/native/choice-fixtures.txt"
+gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/lottery_tests" \
+  "$ROOT/tests/native/lottery_tests.adb" \
+  -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
+"$ROOT/build/native/lottery_tests" | tee "$ROOT/build/native/lottery-fixtures.txt"
 
 compile_wasm() {
   local Source="$1"
@@ -99,12 +103,14 @@ compile_wasm "$ROOT/ada/core/ath_growth.adb" ath_growth.o
 compile_wasm "$ROOT/ada/core/ath_delay.adb" ath_delay.o
 compile_wasm "$ROOT/ada/core/ath_throughput.adb" ath_throughput.o
 compile_wasm "$ROOT/ada/core/ath_choice.adb" ath_choice.o
+compile_wasm "$ROOT/ada/core/ath_lottery.adb" ath_lottery.o
 compile_wasm "$ROOT/ada/browser/ath_addition_exports.adb" ath_addition_exports.o
 compile_wasm "$ROOT/ada/browser/ath_lifetime_exports.adb" ath_lifetime_exports.o
 compile_wasm "$ROOT/ada/browser/ath_growth_exports.adb" ath_growth_exports.o
 compile_wasm "$ROOT/ada/browser/ath_delay_exports.adb" ath_delay_exports.o
 compile_wasm "$ROOT/ada/browser/ath_throughput_exports.adb" ath_throughput_exports.o
 compile_wasm "$ROOT/ada/browser/ath_choice_exports.adb" ath_choice_exports.o
+compile_wasm "$ROOT/ada/browser/ath_lottery_exports.adb" ath_lottery_exports.o
 compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
 (
   cd "$ROOT/build/wasm"
@@ -114,8 +120,8 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
     -o b~ath_browser.o
   "$TOOLCHAIN/bin/llvm-gcc" --target=wasm32 -o ath_addition.wasm \
-    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o \
-    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o \
+    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o ath_lottery.o \
+    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o ath_lottery_exports.o \
     ath_browser.o b~ath_browser.o \
     -L"$TOOLCHAIN/lib/rts-native/adalib" -lgnat \
     -nostdlib \
@@ -226,6 +232,24 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_choice_sample_count \
     -Wl,--export=ath_choice_sample_repeat \
     -Wl,--export=ath_choice_sample_bits \
+    -Wl,--export=ath_lottery_f64 \
+    -Wl,--export=ath_lottery_expected \
+    -Wl,--export=ath_lottery_none \
+    -Wl,--export=ath_lottery_none_representable \
+    -Wl,--export=ath_lottery_none_exact_zero \
+    -Wl,--export=ath_lottery_none_log10 \
+    -Wl,--export=ath_lottery_at_least \
+    -Wl,--export=ath_lottery_at_least_exact \
+    -Wl,--export=ath_lottery_fraction_valid \
+    -Wl,--export=ath_lottery_fraction_num \
+    -Wl,--export=ath_lottery_fraction_den \
+    -Wl,--export=ath_lottery_x_max \
+    -Wl,--export=ath_lottery_expected_max \
+    -Wl,--export=ath_lottery_sample_count \
+    -Wl,--export=ath_lottery_sample_bought \
+    -Wl,--export=ath_lottery_sample_expected \
+    -Wl,--export=ath_lottery_sample_chance \
+    -Wl,--export=ath_lottery_sample_kind \
     -Wl,--export-memory
 )
 
@@ -241,7 +265,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.19",
+  version: "0.1.20",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -252,7 +276,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

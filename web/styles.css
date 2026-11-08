@@ -510,6 +510,27 @@ button.collapse {
 .legend-swatch .series-choice { stroke: var(--lime); stroke-width: 2.5; }
 #choice-plot .choice-mark,
 .legend-swatch .choice-mark { fill: var(--ink); stroke: none; }
+.lottery-charts {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 860px) {
+  .lottery-charts { grid-template-columns: 1fr 1fr; }
+}
+#lottery-card .preset-row button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+#lottery-card .throughput-plot-frame { overflow: hidden; }
+#lottery-card .throughput-x-ticks span:last-child { text-align: right; }
+#lottery-expected-plot .series-lottery,
+.legend-swatch .series-lottery { stroke: var(--lime); stroke-width: 2.5; }
+#lottery-chance-plot .series-lottery-chance,
+.legend-swatch .series-lottery-chance { stroke: var(--cyan); stroke-width: 2.5; }
+#lottery-expected-plot .lottery-mark,
+#lottery-chance-plot .lottery-mark,
+.legend-swatch .lottery-mark { fill: var(--ink); stroke: none; }
 .growth-curve .series-baseline {
   stroke: var(--cyan);
   stroke-dasharray: 3 1.6;

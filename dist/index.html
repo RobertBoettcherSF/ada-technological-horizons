@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.19">
+  <meta name="ath-release" content="0.1.20">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.19</p>
+        <p class="release-pill" id="header-version">0.1.20</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -243,6 +243,93 @@
           <tbody id="growth-samples"></tbody>
         </table>
       </div>
+    </section>
+
+    <section id="lottery-card" class="lifetime-card" aria-labelledby="lottery-title">
+      <p class="kicker" data-i18n="lottery.path">Intellectronics · Return to Earth</p>
+      <h2 id="lottery-title" data-i18n="lottery.title">How many prizes does a lottery return when some tickets are blank?</h2>
+      <p data-i18n="lottery.lead">A lottery has a fixed pile of tickets. Some tickets win a prize, and the rest are blank. You buy some tickets, and each ticket can be bought only once. The page gives the average number of prizes over many repeats, and the chance that this one purchase wins nothing.</p>
+      <form id="lottery-form">
+        <div class="growth-fields">
+          <div>
+            <label for="lottery-m" data-i18n="lottery.tickets">Tickets in the lottery</label>
+            <input id="lottery-m" data-lottery="tickets" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="10">
+          </div>
+          <div>
+            <label for="lottery-w" data-i18n="lottery.prizes">Tickets with a prize</label>
+            <input id="lottery-w" data-lottery="prizes" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2">
+          </div>
+          <div>
+            <label for="lottery-k" data-i18n="lottery.bought">Tickets you buy</label>
+            <input id="lottery-k" data-lottery="bought" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="3">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="lottery-preset-small" data-lottery-preset="small" aria-pressed="true" data-i18n="lottery.preset.small">Small example — 10 tickets, 2 prizes, buy 3</button>
+          <button type="button" class="secondary" id="lottery-preset-book" data-lottery-preset="book" aria-pressed="false" data-i18n="lottery.preset.book">Book sizes — 1,000,000 tickets, 1,000 prizes, buy 500,000</button>
+        </div>
+        <p id="lottery-preset-help" class="note" data-i18n="lottery.presetHelp">Small example fills a teaching lottery. It is not a quotation. Book sizes fill one million tickets, one thousand prizes, and buying half of the tickets. Changing a number clears the selected button.</p>
+        <p id="lottery-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="lottery.expectedLabel">Expected prizes</p>
+            <output id="lottery-expected" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="lottery.noneLabel">Chance of winning nothing</p>
+            <output id="lottery-none" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="lottery.someLabel">Chance of at least one prize</p>
+            <output id="lottery-some" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+        </div>
+        <p class="note" data-i18n="lottery.averageNote">Expected prizes is the average over many repeats of the same lottery. One draw can win more, or fewer, or nothing.</p>
+        <p id="lottery-status" role="status" aria-live="polite"></p>
+        <div class="lottery-charts">
+          <div>
+            <h3 id="lottery-expected-label" data-i18n="lottery.chartExpected">Expected prizes</h3>
+            <div class="throughput-plot-wrap">
+              <p id="lottery-expected-y-label" class="axis-name" data-i18n="lottery.axisExpected">Expected prizes</p>
+              <div id="lottery-expected-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="lottery-expected-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="lottery-expected-label" aria-describedby="lottery-expected-legend"></svg>
+              </div>
+              <div id="lottery-expected-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="lottery.axisBought">Tickets you buy</p>
+            </div>
+            <ul id="lottery-expected-legend" class="plot-legend"></ul>
+          </div>
+          <div>
+            <h3 id="lottery-chance-label" data-i18n="lottery.chartChance">Chance of winning nothing</h3>
+            <div class="throughput-plot-wrap">
+              <p id="lottery-chance-y-label" class="axis-name" data-i18n="lottery.axisChance">Chance of winning nothing</p>
+              <div id="lottery-chance-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="lottery-chance-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="lottery-chance-label" aria-describedby="lottery-chance-legend"></svg>
+              </div>
+              <div id="lottery-chance-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="lottery.axisBought">Tickets you buy</p>
+            </div>
+            <ul id="lottery-chance-legend" class="plot-legend"></ul>
+          </div>
+        </div>
+        <p class="note" data-i18n="lottery.chartNote">The left chart counts prizes. The right chart is a chance from 0 to 1. A point on the zero line is a chance of exactly zero. A smaller positive chance is left off that line; read the number above the chart.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="lottery-reset" class="secondary" data-i18n="lottery.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="lottery-sources">
+        <summary data-i18n="lottery.sources">Technical and math details</summary>
+        <p class="note" data-i18n="lottery.formula">Expected prizes = tickets bought × prizes / tickets in the lottery. The chance of winning nothing is the number of ways to choose every bought ticket from the blank tickets, divided by the number of ways to choose from all the tickets. If the bought tickets must include a prize, that chance is exactly zero.</p>
+        <p class="note" data-i18n="lottery.limitation">This counts the lottery analogy in Return to Earth. It does not show that research directions are chosen uniformly at random, and it is not a prediction of discoveries. The small example is not a quotation. The million tickets, the thousand prizes, and buying half are the sizes named for that analogy.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="lottery.exactExpected">Expected prizes</dt><dd id="lottery-exact-expected"></dd></div>
+          <div><dt data-i18n="lottery.exactNone">Chance of winning nothing</dt><dd id="lottery-exact-none"></dd></div>
+          <div><dt data-i18n="lottery.exactLog">Base-10 log of that chance</dt><dd id="lottery-exact-log"></dd></div>
+        </dl>
+      </details>
     </section>
 
     <section id="delay-card" class="lifetime-card" aria-labelledby="delay-title">

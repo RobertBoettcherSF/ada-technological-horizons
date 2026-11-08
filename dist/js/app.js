@@ -29,8 +29,10 @@ import {
   resetGrowth,
   resetLifetime,
   resetChoice,
+  resetLottery,
   resetThroughput,
   setChoiceInput,
+  setLotteryInput,
   setDelayInput,
   setDemoInput,
   setGrowthInput,
@@ -40,7 +42,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callExplore, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callLottery, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -131,6 +133,7 @@ function applyI18n() {
 const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
+  { cardId: "lottery-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "delay-card", sectionId: "phantomology/teletaxy-and-phantomultiplication" },
   { cardId: "throughput-card", sectionId: "a-lampoon-of-evolution/constructing-life" },
   { cardId: "choice-card", sectionId: "creating-worlds/cultivating-information" },
@@ -412,7 +415,11 @@ function renderCard(entry) {
     body.append(h("p", {}, [h("a", { href: "#lifetime-card", dataset: { i18n: "lifetime.open" } })]));
   }
   if (entry.id === "intellectronics/return-to-earth") {
-    body.append(h("p", {}, [h("a", { href: "#growth-card", dataset: { i18n: "growth.open" } })]));
+    body.append(h("p", {}, [
+      h("a", { href: "#growth-card", dataset: { i18n: "growth.open" } }),
+      " ",
+      h("a", { href: "#lottery-card", dataset: { i18n: "lottery.open" } }),
+    ]));
   }
   if (entry.id === "phantomology/teletaxy-and-phantomultiplication") {
     body.append(h("p", {}, [h("a", { href: "#delay-card", dataset: { i18n: "delay.open" } })]));
@@ -450,6 +457,7 @@ function renderResults() {
     updateDelay();
     updateThroughput();
     updateChoice();
+    updateLottery();
     applyVisibility();
     return;
   }
@@ -495,6 +503,7 @@ function renderResults() {
   updateDelay();
   updateThroughput();
   updateChoice();
+  updateLottery();
   applyVisibility();
 }
 
@@ -1794,6 +1803,267 @@ function updateChoice() {
   updateDiagnostics();
 }
 
+const LOTTERY_PRESETS = {
+  small: { tickets: "10", prizes: "2", bought: "3" },
+  book: { tickets: "1000000", prizes: "1000", bought: "500000" },
+};
+
+function fillLottery(template, values) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
+}
+
+function powerOfTen(log10) {
+  let exponent = Math.floor(log10);
+  let mantissa = 10 ** (log10 - exponent);
+  if (!Number.isFinite(mantissa) || mantissa === 0) {
+    return `10^${formatReadable(log10, state.lang)}`;
+  }
+  if (mantissa >= 10) {
+    mantissa /= 10;
+    exponent += 1;
+  } else if (mantissa < 1) {
+    mantissa *= 10;
+    exponent -= 1;
+  }
+  const sign = exponent < 0 ? "−" : "";
+  return `${formatReadable(mantissa, state.lang)} × 10^${sign}${formatReadable(Math.abs(exponent), state.lang)}`;
+}
+
+function lotteryChanceText(outcome, which) {
+  if (outcome.fractionValid) {
+    const numerator = which === "none"
+      ? outcome.fractionNum
+      : outcome.fractionDen - outcome.fractionNum;
+    return `${formatCanonical(numerator)}/${formatCanonical(outcome.fractionDen)}`;
+  }
+  if (outcome.noneExactZero) return which === "none" ? "0" : "1";
+  if (outcome.none === 1) return which === "none" ? "1" : "0";
+  if (!outcome.noneRepresentable) {
+    return which === "none" ? powerOfTen(outcome.noneLog10) : t(state.lang, "lottery.oneMinusTiny");
+  }
+  if (which === "none" && outcome.none < 1e-4) return powerOfTen(outcome.noneLog10);
+  if (which === "some" && outcome.none > 0 && outcome.none < 1e-6) return t(state.lang, "lottery.oneMinusTiny");
+  return formatReadable(which === "none" ? outcome.none : outcome.atLeast, state.lang);
+}
+
+function lotterySummary(outcome) {
+  const values = {
+    m: formatReadable(Number(state.lottery.tickets), state.lang),
+    w: formatReadable(Number(state.lottery.prizes), state.lang),
+    k: formatReadable(Number(state.lottery.bought), state.lang),
+    expected: formatReadable(outcome.expected, state.lang),
+    none: lotteryChanceText(outcome, "none"),
+    some: lotteryChanceText(outcome, "some"),
+  };
+  const bought = Number(state.lottery.bought);
+  const prizes = Number(state.lottery.prizes);
+  let key = "lottery.summary.general";
+  if (state.lottery.preset === "book") key = "lottery.summary.book";
+  else if (bought === 0) key = "lottery.summary.noneBought";
+  else if (prizes === 0) key = "lottery.summary.noPrizes";
+  else if (outcome.noneExactZero) key = "lottery.summary.must";
+  return fillLottery(t(state.lang, key), values);
+}
+
+function lotteryMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "demo.empty";
+  if (code === "malformed") return "demo.malformed";
+  if (code === 0) return "lottery.ok";
+  if (code === 1) return "demo.nonFinite";
+  if (code === 2) return "lottery.notInteger";
+  if (code === 3) return "lottery.notPositive";
+  if (code === 4) return "lottery.badPrizes";
+  if (code === 5) return "lottery.badBought";
+  if (code === 6) return "lottery.range";
+  return "demo.loadFailed";
+}
+
+function clearLotteryView() {
+  for (const id of ["lottery-expected", "lottery-none", "lottery-some", "lottery-note", "lottery-exact-expected", "lottery-exact-none", "lottery-exact-log"]) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = "";
+  }
+  for (const id of ["lottery-expected-plot", "lottery-chance-plot", "lottery-expected-legend", "lottery-chance-legend", "lottery-expected-x-ticks", "lottery-chance-x-ticks", "lottery-expected-y-ticks", "lottery-chance-y-ticks"]) {
+    document.getElementById(id)?.replaceChildren();
+  }
+}
+
+function appendLotteryLine(plot, samples, xOf, yOf) {
+  let points = [];
+  const flush = () => {
+    if (points.length === 0) return;
+    const line = document.createElementNS(SVG_NS, "polyline");
+    line.setAttribute("fill", "none");
+    line.setAttribute("points", points.join(" "));
+    plot.append(line);
+    points = [];
+    return line;
+  };
+  for (const sample of samples) {
+    if (sample.skip) {
+      flush();
+      continue;
+    }
+    points.push(`${xOf(sample.x)},${yOf(sample.y)}`);
+  }
+  return flush();
+}
+
+function renderLottery(outcome) {
+  document.getElementById("lottery-expected").textContent = formatReadable(outcome.expected, state.lang);
+  document.getElementById("lottery-none").textContent = lotteryChanceText(outcome, "none");
+  document.getElementById("lottery-some").textContent = lotteryChanceText(outcome, "some");
+  document.getElementById("lottery-exact-expected").textContent = formatCanonical(outcome.expected);
+  document.getElementById("lottery-exact-none").textContent = outcome.noneExactZero
+    ? "0"
+    : outcome.fractionValid
+      ? `${formatCanonical(outcome.fractionNum)}/${formatCanonical(outcome.fractionDen)}`
+      : outcome.noneRepresentable
+        ? formatCanonical(outcome.none)
+        : "";
+  document.getElementById("lottery-exact-log").textContent = outcome.noneExactZero
+    ? ""
+    : formatCanonical(outcome.noneLog10);
+  const note = document.getElementById("lottery-note");
+  if (note) note.textContent = lotterySummary(outcome);
+  for (const name of ["small", "book"]) {
+    document.getElementById(`lottery-preset-${name}`)?.setAttribute("aria-pressed", state.lottery.preset === name ? "true" : "false");
+  }
+  const xMax = outcome.xMax;
+  const xOf = (value) => (xMax === 0 ? 0 : (value / xMax) * 100);
+  const bought = Number(state.lottery.bought);
+  const expectedPlot = document.getElementById("lottery-expected-plot");
+  const chancePlot = document.getElementById("lottery-chance-plot");
+  if (!expectedPlot || !chancePlot || !outcome.samples.length) return;
+  const yMax = outcome.expectedMax;
+  const yOfExpected = (value) => (yMax === 0 ? 100 : 100 - (value / yMax) * 100);
+  const expectedLine = appendLotteryLine(
+    expectedPlot,
+    outcome.samples.map((sample) => ({ x: sample.bought, y: sample.expected })),
+    xOf,
+    yOfExpected,
+  );
+  expectedLine?.setAttribute("class", "series-lottery");
+  const expectedMark = document.createElementNS(SVG_NS, "circle");
+  expectedMark.setAttribute("class", "lottery-mark");
+  expectedMark.setAttribute("cx", String(xOf(bought)));
+  expectedMark.setAttribute("cy", String(yOfExpected(outcome.expected)));
+  expectedMark.setAttribute("r", "1.8");
+  expectedPlot.append(expectedMark);
+  const chanceSamples = outcome.samples.map((sample) => ({
+    x: sample.bought,
+    y: sample.chance,
+    skip: sample.kind === 2 || (sample.kind === 0 && sample.chance > 0 && sample.chance < 1.0e-3),
+  }));
+  let segmentClass = false;
+  const drawChance = () => {
+    let points = [];
+    const flush = () => {
+      if (points.length === 0) return;
+      const line = document.createElementNS(SVG_NS, "polyline");
+      line.setAttribute("class", "series-lottery-chance");
+      line.setAttribute("fill", "none");
+      line.setAttribute("points", points.join(" "));
+      chancePlot.append(line);
+      points = [];
+      segmentClass = true;
+    };
+    for (const sample of chanceSamples) {
+      if (sample.skip) {
+        flush();
+        continue;
+      }
+      points.push(`${xOf(sample.x)},${100 - sample.y * 100}`);
+    }
+    flush();
+  };
+  drawChance();
+  if (!segmentClass && outcome.samples.length) {
+    const axis = document.createElementNS(SVG_NS, "polyline");
+    axis.setAttribute("class", "series-lottery-chance");
+    axis.setAttribute("fill", "none");
+    axis.setAttribute("points", "0,100 100,100");
+    chancePlot.append(axis);
+  }
+  const userTooSmall = (!outcome.noneRepresentable && !outcome.noneExactZero)
+    || (outcome.noneRepresentable && outcome.none > 0 && outcome.none < 1.0e-3);
+  if (!userTooSmall) {
+    const chanceMark = document.createElementNS(SVG_NS, "circle");
+    chanceMark.setAttribute("class", "lottery-mark");
+    chanceMark.setAttribute("cx", String(xOf(bought)));
+    chanceMark.setAttribute("cy", String(100 - (outcome.noneExactZero ? 0 : outcome.none) * 100));
+    chanceMark.setAttribute("r", "1.8");
+    chancePlot.append(chanceMark);
+  }
+  const expectedLegend = document.getElementById("lottery-expected-legend");
+  const chanceLegend = document.getElementById("lottery-chance-legend");
+  expectedLegend?.append(legendEntry("series-lottery", t(state.lang, "lottery.seriesExpected"), { role: "series" }));
+  expectedLegend?.append(legendEntry("", t(state.lang, "lottery.marker"), { role: "marker", mark: true, markClass: "lottery-mark" }));
+  chanceLegend?.append(legendEntry("series-lottery-chance", t(state.lang, "lottery.seriesChance"), { role: "series" }));
+  chanceLegend?.append(legendEntry("", t(state.lang, "lottery.marker"), { role: "marker", mark: true, markClass: "lottery-mark" }));
+  const placeTicks = (host, values, yOf) => {
+    if (!host) return;
+    for (const value of values) {
+      const tick = document.createElement("span");
+      tick.textContent = formatReadable(value, state.lang);
+      if (yOf) {
+        const y = yOf(value);
+        tick.style.top = `${y}%`;
+        tick.style.transform = y <= 0 ? "translateY(0)" : y >= 100 ? "translateY(-100%)" : "translateY(-50%)";
+      }
+      host.append(tick);
+    }
+  };
+  const xValues = [0, xMax].filter((value, index, all) => all.indexOf(value) === index);
+  placeTicks(document.getElementById("lottery-expected-x-ticks"), xValues);
+  placeTicks(document.getElementById("lottery-chance-x-ticks"), xValues);
+  const expectedTicks = [yMax, outcome.expected, 0].filter((value, index, all) => all.indexOf(value) === index);
+  placeTicks(document.getElementById("lottery-expected-y-ticks"), expectedTicks, yOfExpected);
+  placeTicks(document.getElementById("lottery-chance-y-ticks"), [1, 0], (value) => 100 - value * 100);
+}
+
+function syncLotteryForm() {
+  document.getElementById("lottery-m").value = state.lottery.tickets;
+  document.getElementById("lottery-w").value = state.lottery.prizes;
+  document.getElementById("lottery-k").value = state.lottery.bought;
+}
+
+function updateLottery() {
+  const statusNode = document.getElementById("lottery-status");
+  if (!statusNode) return;
+  clearLotteryView();
+  let code = "loading";
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const tickets = interpretOperand(state.lottery.tickets);
+    const prizes = interpretOperand(state.lottery.prizes);
+    const bought = interpretOperand(state.lottery.bought);
+    if (tickets.kind === "empty" || prizes.kind === "empty" || bought.kind === "empty") code = "empty";
+    else if (tickets.kind !== "value" || prizes.kind !== "value" || bought.kind !== "value") code = "malformed";
+    else {
+      const outcome = callLottery(session, tickets.value, prizes.value, bought.value);
+      code = outcome.status;
+      if (outcome.status === 0) {
+        try {
+          renderLottery(outcome);
+        } catch (error) {
+          clearLotteryView();
+          code = "load-failed";
+          console.error(error);
+        }
+      }
+    }
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, lotteryMessage(code));
+  updateDiagnostics();
+}
+
 function debugReport() {
   const comment = document.getElementById("debug-expectation")?.value ?? "";
   const textOf = (id) => document.getElementById(id)?.textContent ?? "";
@@ -1857,6 +2127,16 @@ function debugReport() {
     `Link time: ${textOf("throughput-link-time")}`,
     `Status: ${textOf("throughput-status")}`,
     `Note: ${textOf("throughput-note")}`,
+    "",
+    "Lottery",
+    `Tickets: ${valueOf("lottery-m")}`,
+    `Prizes: ${valueOf("lottery-w")}`,
+    `Bought: ${valueOf("lottery-k")}`,
+    `Preset: ${state.lottery.preset}`,
+    `Expected prizes: ${textOf("lottery-expected")}`,
+    `Chance of nothing: ${textOf("lottery-none")}`,
+    `Chance of at least one: ${textOf("lottery-some")}`,
+    `Status: ${textOf("lottery-status")}`,
     "",
     "Choices",
     `Possibilities: ${valueOf("choice-n")}`,
@@ -1935,6 +2215,7 @@ async function boot() {
   updateDelay();
   updateThroughput();
   updateChoice();
+  updateLottery();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -1957,6 +2238,7 @@ async function boot() {
   updateDelay();
   updateThroughput();
   updateChoice();
+  updateLottery();
 }
 
 function simulateFailure() {
@@ -1970,6 +2252,7 @@ function simulateFailure() {
   updateDelay();
   updateThroughput();
   updateChoice();
+  updateLottery();
 }
 
 function bind() {
@@ -2223,6 +2506,34 @@ function bind() {
       document.getElementById(`years-${index + 1}`).value = state.lifetime.durations[index];
     }
     updateLifetime();
+  });
+  document.getElementById("lottery-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.lottery) return;
+    state = setLotteryInput(state, field.dataset.lottery, field.value);
+    state = setLotteryInput(state, "preset", "custom");
+    updateLottery();
+  });
+  document.getElementById("lottery-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateLottery();
+  });
+  document.getElementById("lottery-reset").addEventListener("click", () => {
+    state = resetLottery(state);
+    syncLotteryForm();
+    updateLottery();
+  });
+  document.getElementById("lottery-form").addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest("[data-lottery-preset]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const preset = LOTTERY_PRESETS[button.dataset.lotteryPreset];
+    if (!preset) return;
+    state = setLotteryInput(state, "tickets", preset.tickets);
+    state = setLotteryInput(state, "prizes", preset.prizes);
+    state = setLotteryInput(state, "bought", preset.bought);
+    state = setLotteryInput(state, "preset", button.dataset.lotteryPreset);
+    syncLotteryForm();
+    updateLottery();
   });
   document.getElementById("choice-form").addEventListener("input", (event) => {
     const field = event.target;

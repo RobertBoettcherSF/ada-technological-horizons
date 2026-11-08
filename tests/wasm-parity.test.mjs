@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -448,6 +448,47 @@ test("choice exports keep finite information when the count overflows", async (t
   assert.equal(callChoice(session, 1, 5).totalBits, 0);
   assert.equal(callChoice(session, 2, 0).combinations, 1);
   assert.equal(callChoice(session, 0, 1).status, 3);
+});
+
+test("lottery exports keep the hypergeometric chance off zero when it underflows", async (t) => {
+  if (!fs.existsSync(wasmPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const small = callLottery(session, 10, 2, 3);
+  assert.equal(small.status, 0);
+  assert.ok(Math.abs(small.expected - 0.6) < 1e-9);
+  assert.equal(small.fractionNum, 7);
+  assert.equal(small.fractionDen, 15);
+  assert.equal(small.samples.length, 11);
+  assert.equal(small.samples[9].kind, 1);
+  const book = callLottery(session, 1_000_000, 1_000, 500_000);
+  assert.equal(book.expected, 500);
+  assert.ok(Math.abs(book.noneLog10 + 301.247142832478) < 1e-6);
+  assert.equal(book.noneExactZero, false);
+  assert.equal(book.noneRepresentable, true);
+  const tiny = callLottery(session, 1_000_000, 5_000, 500_000);
+  assert.equal(tiny.expected, 2500);
+  assert.equal(tiny.noneRepresentable, false);
+  assert.equal(tiny.noneExactZero, false);
+  assert.ok(Math.abs(tiny.noneLog10 + 1510.604868167756) < 1e-4);
+  assert.equal(callLottery(session, 10, 2, 0).fractionNum, 1);
+  assert.equal(callLottery(session, 10, 2, 10).noneExactZero, true);
+  assert.equal(callLottery(session, 10, 11, 1).status, 4);
+  assert.equal(callLottery(session, 0, 0, 0).status, 3);
+  assert.equal(callLottery(session, 0, 0, 0).samples.length, 0);
 });
 
 test("a failed module load does not invent a sum", async () => {

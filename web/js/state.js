@@ -6,6 +6,13 @@ export const DELAY_DEFAULTS = {
   unit: "2",
 };
 
+export const LOTTERY_DEFAULTS = {
+  tickets: "10",
+  prizes: "2",
+  bought: "3",
+  preset: "small",
+};
+
 export const CHOICE_DEFAULTS = {
   possibilities: "2",
   repeats: "8",
@@ -64,6 +71,7 @@ export function createState() {
     delay: { ...DELAY_DEFAULTS },
     throughput: { ...THROUGHPUT_DEFAULTS },
     choice: { ...CHOICE_DEFAULTS },
+    lottery: { ...LOTTERY_DEFAULTS },
   };
 }
 
@@ -127,6 +135,14 @@ export function setChoiceInput(state, field, value) {
 
 export function resetChoice(state) {
   return { ...state, choice: { ...CHOICE_DEFAULTS } };
+}
+
+export function setLotteryInput(state, field, value) {
+  return { ...state, lottery: { ...state.lottery, [field]: value } };
+}
+
+export function resetLottery(state) {
+  return { ...state, lottery: { ...LOTTERY_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {
