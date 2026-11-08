@@ -54,6 +54,59 @@ async function shotElement(page, label, name, selector) {
   await page.locator(selector).screenshot({ path: path.join(shots, name) });
 }
 
+async function assertLegendMatches(page) {
+  const curves = await page.locator("#throughput-plot polyline").evaluateAll((nodes) => nodes.map((node) => {
+    const style = getComputedStyle(node);
+    return {
+      kind: node.dataset.kind,
+      series: [...node.classList].find((name) => name.startsWith("series-") && name !== "series-chosen"),
+      chosen: node.classList.contains("series-chosen"),
+      stroke: style.stroke,
+      dash: style.strokeDasharray,
+      width: style.strokeWidth,
+    };
+  }));
+  const entries = await page.locator("#throughput-legend li[data-kind]").evaluateAll((nodes) => nodes.map((node) => {
+    const line = node.querySelector("line");
+    const style = getComputedStyle(line);
+    return {
+      kind: node.dataset.kind,
+      role: node.dataset.role,
+      series: [...line.classList].find((name) => name.startsWith("series-") && name !== "series-chosen"),
+      chosen: line.classList.contains("series-chosen"),
+      stroke: style.stroke,
+      dash: style.strokeDasharray,
+      width: style.strokeWidth,
+      text: node.textContent,
+    };
+  }));
+  assert.equal(entries.length, curves.length);
+  for (const curve of curves) {
+    const entry = entries.find((item) => item.kind === curve.kind);
+    assert.ok(entry, curve.kind);
+    assert.equal(entry.series, curve.series);
+    assert.equal(entry.stroke, curve.stroke);
+    assert.equal(entry.dash, curve.dash);
+    assert.equal(entry.width, curve.width);
+    assert.equal(entry.chosen, curve.chosen);
+    assert.equal(entry.role, curve.chosen ? "chosen" : "reference");
+    assert.match(entry.text, curve.chosen ? /\(.*\)/ : /reference|Referenz|referencia|référence/);
+  }
+  const targetCount = await page.locator("#throughput-plot .target-line").count();
+  assert.equal(await page.locator("#throughput-legend li[data-role='target']").count(), targetCount > 0 ? 1 : 0);
+  if (targetCount > 0) {
+    const plotStroke = await page.locator("#throughput-plot .target-line").evaluate((node) => getComputedStyle(node).stroke);
+    const legendStroke = await page.locator("#throughput-legend .target-line").evaluate((node) => getComputedStyle(node).stroke);
+    const plotDash = await page.locator("#throughput-plot .target-line").evaluate((node) => getComputedStyle(node).strokeDasharray);
+    const legendDash = await page.locator("#throughput-legend .target-line").evaluate((node) => getComputedStyle(node).strokeDasharray);
+    assert.equal(legendStroke, plotStroke);
+    assert.equal(legendDash, plotDash);
+    assert.match(await page.locator("#throughput-legend li[data-role='target']").innerText(), /\d/);
+  }
+  const marks = await page.locator("#throughput-plot .target-mark").count();
+  assert.equal(await page.locator("#throughput-legend li[data-role='reached']").count(), marks > 0 ? 1 : 0);
+}
+
 async function exercise(page, label) {
   await page.goto(page.url() === "about:blank" ? page.context()._base : page.context()._base, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
@@ -114,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.15/);
+  assert.match(report, /Release: 0\.1\.16/);
   assert.match(report, /Preset: historical/);
   assert.match(report, /The selected rate should lead the chart/);
   assert.match(report, /Headline: 6500/);
@@ -381,6 +434,11 @@ async function exercise(page, label) {
   assert.deepEqual(curves, ["25", "1000"]);
   assert.equal(await page.locator("#throughput-plot .target-line").count(), 1);
   assert.equal(await page.locator("#throughput-plot .target-mark").count(), 2);
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (chosen)");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), "Bacterial figure (reference)");
+  assert.match(await page.locator("#throughput-legend li[data-role='target']").innerText(), /Target — 10000 bits/);
+  assert.equal(await page.locator("#throughput-legend li[data-role='reached']").innerText(), "Target reached");
   assert.equal(await page.locator("#throughput-preset-page").textContent(), "Lem’s example (default)");
   assert.match(await page.locator("#throughput-preset-help").textContent(), /10,000 bits, 25 bits\/s and 400 s/);
   assert.equal(await page.locator("#throughput-x-label").textContent(), t("en-GB", "throughput.axisTime"));
@@ -394,6 +452,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
   assert.match(await page.locator("#throughput-scale-note").textContent(), /not the 40-to-1/);
   assert.equal(await page.locator("#throughput-plot").getAttribute("data-scale"), "log");
+  await assertLegendMatches(page);
   const logPoints = await page.locator("#throughput-plot polyline").first().getAttribute("points");
   assert.doesNotMatch(logPoints, /^0,100/);
   await page.click("#throughput-linear");
@@ -409,6 +468,10 @@ async function exercise(page, label) {
   assert.match(await page.locator("#throughput-compare").textContent(), /1000000000 bits\/s/);
   assert.match(await page.locator("#throughput-compare").textContent(), /25 bits\/s — 400 s/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial/);
+  assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /Bacterial/);
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='3']").getAttribute("data-role"), "chosen");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").getAttribute("data-role"), "reference");
   assert.equal(await page.locator("#throughput-compare li").nth(1).getAttribute("data-inside"), "false");
   assert.match(await page.locator("#throughput-compare li").nth(1).textContent(), /after this chart/);
   assert.equal(await page.locator("#throughput-compare li").first().getAttribute("data-inside"), "true");
@@ -424,12 +487,21 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-ratio-label").textContent(), "Bacterial figure ÷ this rate");
   assert.equal(await page.locator("#throughput-preset-human").getAttribute("aria-pressed"), "true");
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind]").count(), 1);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").getAttribute("data-role"), "chosen");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").count(), 0);
   await page.click("#throughput-preset-bacterial");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "at most 10 s");
   assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
   assert.equal(await page.locator("#throughput-compare li").first().textContent(), "Bacterial figure (chosen) — at least 1000 bits/s — at most 10 s");
   assert.match(await page.locator("#throughput-compare li").nth(1).textContent(), /Human figure — 25 bits\/s/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /1000BASE-T/);
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), "Bacterial figure (chosen)");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (reference)");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='3']").count(), 0);
+  await shotElement(page, label, "throughput-bacterial-legend.png", "#throughput-chart-block");
   await page.click("#throughput-preset-link");
   await page.waitForFunction(() => document.querySelector("#throughput-compare li")?.textContent?.includes("1000000000"));
   assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
@@ -438,6 +510,8 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.scale === "log");
   assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
   assert.equal(await page.locator("#throughput-compare li").nth(1).getAttribute("data-inside"), "true");
+  await assertLegendMatches(page);
+  assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /Bacterial/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial/);
   await page.click("#throughput-linear");
   await page.click("#throughput-preset-page");
@@ -455,6 +529,10 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-preset-page").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#throughput-preset-link").getAttribute("aria-pressed"), "false");
   assert.match(await page.locator("#throughput-note").textContent(), /your assumption/);
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='0']").innerText(), "Your rate (chosen)");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").getAttribute("data-role"), "reference");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").count(), 0);
   await page.click("#throughput-preset-bacterial");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "at most 10 s");
   assert.equal(await page.locator("#throughput-total").textContent(), "at least 400000 bits");
@@ -473,15 +551,20 @@ async function exercise(page, label) {
   await page.click("#throughput-log");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.scale === "log");
   assert.equal(await page.locator("#throughput-plot polyline").count(), 1);
+  await assertLegendMatches(page);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='0']").count(), 0);
+  assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /Bacterial/);
   await page.fill("#throughput-quantity", "0");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.ready === "false");
   assert.equal(await page.locator("#throughput-plot polyline").count(), 0);
+  assert.equal(await page.locator("#throughput-legend li").count(), 0);
   assert.match(await page.locator("#throughput-plot-empty").textContent(), /Zero is not drawn/);
   await page.click("#throughput-linear");
   await page.fill("#throughput-rate", "-1");
   await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "2");
   assert.equal(await page.locator("#throughput-time").textContent(), "");
   assert.equal(await page.locator("#throughput-compare li").count(), 0);
+  assert.equal(await page.locator("#throughput-legend li").count(), 0);
   await page.fill("#throughput-quantity", "");
   await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "empty");
   await page.click("#throughput-reset");
@@ -571,7 +654,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.15");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.16");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -729,6 +812,10 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-time-label").textContent(), t("de", "throughput.timeLabel"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("de", "throughput.preset.page"));
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), `${t("de", "throughput.humanBar")} (${t("de", "throughput.chosen")})`);
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), `${t("de", "throughput.bacterialBar")} (${t("de", "throughput.reference")})`);
+  assert.match(await page.locator("#throughput-legend li[data-role='target']").innerText(), new RegExp(t("de", "throughput.legendTarget")));
+  assert.equal(await page.locator("#throughput-legend li[data-role='reached']").innerText(), t("de", "throughput.legendReached"));
   assert.equal(await page.locator("#throughput-preset-help").textContent(), t("de", "throughput.presetHelp"));
   assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
   assert.equal(await page.locator("#delay-events li").nth(2).textContent(), `${t("de", "delay.roundTrip")} — 2000 Jahre`);
@@ -806,6 +893,7 @@ async function exercise(page, label) {
   await page.selectOption("#language", "fr");
   assert.equal(await page.locator(".credit").first().textContent(), t("fr", "app.credit"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("fr", "throughput.preset.page"));
+  assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), `${t("fr", "throughput.bacterialBar")} (${t("fr", "throughput.reference")})`);
   assert.equal(
     await page.locator("#delay-events li").nth(2).textContent(),
     `${t("fr", "delay.roundTrip")} — ${await page.locator("#delay-round").textContent()}`,
@@ -813,6 +901,7 @@ async function exercise(page, label) {
   await page.selectOption("#language", "es");
   assert.equal(await page.locator("#clear-filters").textContent(), t("es", "catalogue.clear"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("es", "throughput.preset.page"));
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), `${t("es", "throughput.humanBar")} (${t("es", "throughput.chosen")})`);
   assert.equal(
     await page.locator("#delay-events li").nth(2).textContent(),
     `${t("es", "delay.roundTrip")} — ${await page.locator("#delay-round").textContent()}`,
@@ -843,6 +932,12 @@ async function exercise(page, label) {
   assert.ok((await overflow(page)) <= 1, "narrow growth");
   await page.locator("#throughput-card").scrollIntoViewIfNeeded();
   await shot(page, label, "throughput-narrow.png");
+  await page.click("#throughput-preset-bacterial");
+  await page.waitForFunction(() => document.querySelector("#throughput-legend li[data-kind='2']")?.dataset.role === "chosen");
+  await shotElement(page, label, "throughput-bacterial-legend-narrow.png", "#throughput-chart-block");
+  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (reference)");
+  await page.click("#throughput-preset-page");
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
   await shotElement(page, label, "throughput-default-plot-narrow.png", "#throughput-plot-wrap");
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   await page.click("#throughput-preset-link");

@@ -426,16 +426,48 @@ button.collapse {
 #throughput-x-label { grid-column: 3; grid-row: 3; }
 .throughput-plot polyline,
 .throughput-plot .target-line,
-.throughput-plot .target-mark {
+.throughput-plot .target-mark,
+.legend-swatch line,
+.legend-swatch circle {
   vector-effect: non-scaling-stroke;
 }
-.throughput-plot .series-human { stroke: var(--lime); stroke-width: 2; }
-.throughput-plot .series-bacterial { stroke: var(--cyan); stroke-width: 2; }
-.throughput-plot .series-link { stroke: #d7dde8; stroke-width: 2; }
-.throughput-plot .series-custom { stroke: #f2d48a; stroke-width: 2; }
-.throughput-plot .series-chosen { stroke-width: 3.5; }
-.throughput-plot .target-line { stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 4 3; }
-.throughput-plot .target-mark { fill: var(--ink); stroke: none; }
+.throughput-plot .series-human,
+.legend-swatch .series-human { stroke: var(--lime); stroke-width: 2.5; }
+.throughput-plot .series-bacterial,
+.legend-swatch .series-bacterial { stroke: var(--cyan); stroke-width: 2.5; stroke-dasharray: 1.4 3.2; stroke-linecap: round; }
+.throughput-plot .series-link,
+.legend-swatch .series-link { stroke: #d7dde8; stroke-width: 2.5; stroke-dasharray: 7 3.5; }
+.throughput-plot .series-custom,
+.legend-swatch .series-custom { stroke: #f2d48a; stroke-width: 2.5; stroke-dasharray: 7 2.4 1.4 2.4; }
+.throughput-plot .series-chosen,
+.legend-swatch .series-chosen { stroke-width: 4; }
+.throughput-plot .target-line,
+.legend-swatch .target-line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.throughput-plot .target-mark,
+.legend-swatch .target-mark { fill: var(--ink); stroke: none; }
+.plot-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.plot-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.4rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+.legend-swatch {
+  width: 2.4rem;
+  height: 0.85rem;
+  flex: 0 0 auto;
+  overflow: visible;
+}
 .growth-curve .series-baseline {
   stroke: var(--cyan);
   stroke-dasharray: 3 1.6;

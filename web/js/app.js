@@ -1141,6 +1141,53 @@ const THROUGHPUT_KIND = {
   3: "throughput.linkBar",
 };
 
+const THROUGHPUT_SERIES = {
+  0: "series-custom",
+  1: "series-human",
+  2: "series-bacterial",
+  3: "series-link",
+};
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function throughputChosen(outcome, row) {
+  return outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
+}
+
+function seriesSwatch(className, mark = false) {
+  const swatch = document.createElementNS(SVG_NS, "svg");
+  swatch.setAttribute("class", "legend-swatch");
+  swatch.setAttribute("viewBox", "0 0 36 10");
+  swatch.setAttribute("aria-hidden", "true");
+  if (mark) {
+    const dot = document.createElementNS(SVG_NS, "circle");
+    dot.setAttribute("class", "target-mark");
+    dot.setAttribute("cx", "18");
+    dot.setAttribute("cy", "5");
+    dot.setAttribute("r", "2.6");
+    swatch.append(dot);
+  } else {
+    const line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("class", className);
+    line.setAttribute("x1", "1");
+    line.setAttribute("x2", "35");
+    line.setAttribute("y1", "5");
+    line.setAttribute("y2", "5");
+    swatch.append(line);
+  }
+  return swatch;
+}
+
+function legendEntry(className, text, data) {
+  const item = document.createElement("li");
+  if (data.kind != null) item.dataset.kind = String(data.kind);
+  if (data.role) item.dataset.role = data.role;
+  const label = document.createElement("span");
+  label.textContent = text;
+  item.append(seriesSwatch(className, data.mark === true), label);
+  return item;
+}
+
 function clearThroughputView() {
   for (const id of ["throughput-time", "throughput-total", "throughput-ratio", "throughput-exact-quantity", "throughput-exact-rate", "throughput-exact-time", "throughput-exact-total", "throughput-link-rate", "throughput-link-time", "throughput-exact-link"]) {
     const node = document.getElementById(id);
@@ -1148,6 +1195,9 @@ function clearThroughputView() {
   }
   document.getElementById("throughput-plot")?.replaceChildren();
   document.getElementById("throughput-compare")?.replaceChildren();
+  const legend = document.getElementById("throughput-legend");
+  legend?.replaceChildren();
+  if (legend) legend.hidden = true;
   const note = document.getElementById("throughput-note");
   if (note) note.textContent = "";
 }
@@ -1231,6 +1281,9 @@ function renderThroughput(outcome) {
   yTicks?.replaceChildren();
   if (plot) plot.dataset.scale = logarithmic ? "log" : "linear";
   if (plot) plot.dataset.ready = outcome.plotReady ? "true" : "false";
+  const legend = document.getElementById("throughput-legend");
+  legend?.replaceChildren();
+  if (legend) legend.hidden = true;
   const emptyNote = document.getElementById("throughput-plot-empty");
   if (emptyNote) {
     emptyNote.hidden = outcome.plotReady;
@@ -1238,9 +1291,8 @@ function renderThroughput(outcome) {
       ? t(state.lang, "throughput.logEmpty")
       : t(state.lang, "throughput.plotEmpty");
   }
-  const klassFor = { 0: "series-custom", 1: "series-human", 2: "series-bacterial", 3: "series-link" };
   for (const row of rows) {
-    const chosen = outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
+    const chosen = throughputChosen(outcome, row);
     const name = t(state.lang, THROUGHPUT_KIND[row.kind]);
     const marked = chosen ? `${name} (${t(state.lang, "throughput.chosen")})` : name;
     const when = row.seconds === null
@@ -1254,7 +1306,7 @@ function renderThroughput(outcome) {
     list.append(item);
   }
   if (!plot || !outcome.plotReady || !rows.length) return;
-  const svg = "http://www.w3.org/2000/svg";
+  const svg = SVG_NS;
   const xOf = (time) => {
     if (logarithmic) {
       const span = Math.log10(outcome.xMax) - Math.log10(outcome.xMin);
@@ -1274,6 +1326,7 @@ function renderThroughput(outcome) {
     return 100 - ((info - outcome.yMin) / (outcome.yMax - outcome.yMin)) * 100;
   };
   const targetY = outcome.quantityBits > 0 ? yOf(outcome.quantityBits) : null;
+  let targetDrawn = false;
   if (targetY !== null && targetY >= 0 && targetY <= 100) {
     const line = document.createElementNS(svg, "line");
     line.setAttribute("class", "target-line");
@@ -1282,9 +1335,11 @@ function renderThroughput(outcome) {
     line.setAttribute("y1", String(targetY));
     line.setAttribute("y2", String(targetY));
     plot.append(line);
+    targetDrawn = true;
   }
+  const plotted = [];
   rows.forEach((row, index) => {
-    const chosen = outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
+    const chosen = throughputChosen(outcome, row);
     const points = (row.samples || []).flatMap((sample) => {
       const x = xOf(sample.time);
       const y = yOf(sample.info);
@@ -1292,15 +1347,17 @@ function renderThroughput(outcome) {
       return [`${x},${y}`];
     });
     if (!points.length) return;
+    const series = THROUGHPUT_SERIES[row.kind] || "series-custom";
+    plotted.push({ row, chosen, series });
     const polyline = document.createElementNS(svg, "polyline");
-    polyline.setAttribute("class", `${klassFor[row.kind] || "series-custom"}${chosen ? " series-chosen" : ""}`);
+    polyline.setAttribute("class", `${series}${chosen ? " series-chosen" : ""}`);
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("data-kind", String(row.kind));
     polyline.setAttribute("data-rate", formatCanonical(row.rate));
     polyline.setAttribute("data-inside", row.inside ? "true" : "false");
     polyline.setAttribute("points", points.join(" "));
     plot.append(polyline);
-    if (row.inside && row.seconds !== null && targetY !== null) {
+    if (row.inside && row.seconds !== null && targetY !== null && xOf(row.seconds) !== null) {
       const mark = document.createElementNS(svg, "circle");
       mark.setAttribute("class", "target-mark");
       mark.setAttribute("data-kind", String(row.kind));
@@ -1308,9 +1365,32 @@ function renderThroughput(outcome) {
       mark.setAttribute("cy", String(targetY));
       mark.setAttribute("r", "1.6");
       plot.append(mark);
+      plotted[plotted.length - 1].reached = true;
     }
     void index;
   });
+  if (legend) {
+    for (const entry of plotted) {
+      const name = t(state.lang, THROUGHPUT_KIND[entry.row.kind]);
+      const status = t(state.lang, entry.chosen ? "throughput.chosen" : "throughput.reference");
+      legend.append(legendEntry(
+        `${entry.series}${entry.chosen ? " series-chosen" : ""}`,
+        `${name} (${status})`,
+        { kind: entry.row.kind, role: entry.chosen ? "chosen" : "reference" },
+      ));
+    }
+    if (targetDrawn && outcome.quantityBits > 0) {
+      legend.append(legendEntry(
+        "target-line",
+        `${t(state.lang, "throughput.legendTarget")} — ${bitsLabel(outcome.quantityBits)}`,
+        { role: "target" },
+      ));
+    }
+    if (plotted.some((entry) => entry.reached)) {
+      legend.append(legendEntry("", t(state.lang, "throughput.legendReached"), { role: "reached", mark: true }));
+    }
+    legend.hidden = legend.childElementCount === 0;
+  }
   const xLabels = [outcome.xMin, outcome.xMax].filter((value, index, all) => all.indexOf(value) === index);
   for (const value of xLabels) {
     const tick = document.createElement("span");
