@@ -267,11 +267,13 @@ export function callThroughput(
   duration,
   durationUnit,
   mode = 0,
+  scale = 0,
 ) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");
   }
   session.exports.ath_throughput_set_mode(mode);
+  session.exports.ath_throughput_set_scale(scale);
   const status = session.exports.ath_throughput_f64(
     quantity,
     quantityUnit,
@@ -316,7 +318,26 @@ export function callThroughput(
       : null,
     linearRows: readRows(session, 0, session.exports.ath_throughput_linear_count()),
     logRows: readRows(session, 1, session.exports.ath_throughput_log_count()),
+    plotReady: session.exports.ath_throughput_plot_ready() === 1,
+    logEmpty: session.exports.ath_throughput_log_empty() === 1,
+    xMin: session.exports.ath_throughput_x_min(),
+    xMax: session.exports.ath_throughput_x_max(),
+    yMin: session.exports.ath_throughput_y_min(),
+    yMax: session.exports.ath_throughput_y_max(),
   };
+}
+
+function readSamples(session, row) {
+  const count = session.exports.ath_throughput_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    if (session.exports.ath_throughput_sample_ok(row, index) !== 1) continue;
+    samples.push({
+      time: session.exports.ath_throughput_sample_time(row, index),
+      info: session.exports.ath_throughput_sample_info(row, index),
+    });
+  }
+  return samples;
 }
 
 function readRows(session, which, count) {
@@ -330,6 +351,8 @@ function readRows(session, which, count) {
         : null,
       share: session.exports.ath_throughput_row_share(which, index),
       lower: session.exports.ath_throughput_row_lower(which, index) === 1,
+      inside: which === 0 && session.exports.ath_throughput_crossing_inside(index) === 1,
+      samples: which === 0 ? readSamples(session, index) : [],
     });
   }
   return rows;

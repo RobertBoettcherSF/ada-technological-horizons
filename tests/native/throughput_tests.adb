@@ -287,8 +287,92 @@ begin
         or else Ath_Throughput_Exports.Ath_Throughput_Link_Log /= 1.0
         or else Ath_Throughput_Exports.Ath_Throughput_Link_Time
           /= 10_000.0 / 1_000_000_000.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Plot_Ready /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Log_Empty /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_X_Min /= 0.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (2) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Sample_Ok (1, 1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Sample_Info (1, 1) /= 0.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Sample_Info
+          (1, Ath_Throughput_Exports.Ath_Throughput_Sample_Count)
+          /= 25.0 * Ath_Throughput_Exports.Ath_Throughput_Sample_Time
+            (1, Ath_Throughput_Exports.Ath_Throughput_Sample_Count)
       then
          Fail ("export-page");
+      end if;
+      if Ath_Throughput_Exports.Ath_Throughput_Set_Scale (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_X_Min <= 0.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Plot_Ready /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Log_Empty /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (2) /= 1
+      then
+         Fail ("export-log-domain");
+      end if;
+      declare
+         Row, Index : Interfaces.Integer_32;
+      begin
+         Row := 1;
+         while Row <= 2 loop
+            Index := 1;
+            while Index <= Ath_Throughput_Exports.Ath_Throughput_Sample_Count loop
+               if Ath_Throughput_Exports.Ath_Throughput_Sample_Ok (Row, Index) /= 1
+                 or else Ath_Throughput_Exports.Ath_Throughput_Sample_Info (Row, Index) <= 0.0
+                 or else Ath_Throughput_Exports.Ath_Throughput_Sample_Time (Row, Index) <= 0.0
+               then
+                  Fail ("export-log-positive");
+               end if;
+               Index := Index + 1;
+            end loop;
+            Row := Row + 1;
+         end loop;
+      end;
+      if Ath_Throughput_Exports.Ath_Throughput_Set_Mode (3) /= 3
+        or else Ath_Throughput_Exports.Ath_Throughput_Set_Scale (0) /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (2) /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_X_Min /= 0.0
+      then
+         Fail ("export-link-linear");
+      end if;
+      if Ath_Throughput_Exports.Ath_Throughput_Set_Scale (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_X_Min <= 0.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Crossing_Inside (2) /= 1
+      then
+         Fail ("export-link-log");
+      end if;
+      declare
+         Row, Index : Interfaces.Integer_32;
+      begin
+         Row := 1;
+         while Row <= 2 loop
+            Index := 1;
+            while Index <= Ath_Throughput_Exports.Ath_Throughput_Sample_Count loop
+               if Ath_Throughput_Exports.Ath_Throughput_Sample_Ok (Row, Index) = 1
+                 and then Ath_Throughput_Exports.Ath_Throughput_Sample_Info (Row, Index) <= 0.0
+               then
+                  Fail ("export-link-log-zero");
+               end if;
+               Index := Index + 1;
+            end loop;
+            Row := Row + 1;
+         end loop;
+      end;
+      Export_Status := Ath_Throughput_Exports.Ath_Throughput_F64
+        (0.0, 0.0, 25.0, 0.0, 0.0, 400.0, 0.0);
+      if Export_Status /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_Set_Scale (1) /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Log_Empty /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Plot_Ready /= 0
+      then
+         Fail ("export-log-zero-quantity");
+      end if;
+      if Ath_Throughput_Exports.Ath_Throughput_Set_Mode (0) /= 0
+        or else Ath_Throughput_Exports.Ath_Throughput_Set_Scale (0) /= 0
+      then
+         Fail ("export-restore");
       end if;
       Export_Status := Ath_Throughput_Exports.Ath_Throughput_F64
         (10_000.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);

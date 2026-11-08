@@ -433,4 +433,167 @@ package body Ath_Throughput is
       Apply_Shares (Linear_Rows, Linear_Count, False);
       Apply_Shares (Log_Rows, Log_Count, True);
    end Build_Comparison;
+
+   procedure Clear_Samples
+     (Times, Infos : out Sample_Matrix;
+      Sample_Ok : out Sample_Flag_Matrix;
+      Inside : out Inside_Flags) is
+   begin
+      Times := (others => (others => 0.0));
+      Infos := (others => (others => 0.0));
+      Sample_Ok := (others => (others => False));
+      Inside := (others => False);
+   end Clear_Samples;
+
+   procedure Transmit_Samples
+     (Quantity_Bits : Long_Float;
+      Count         : Interfaces.Integer_32;
+      Rows          : Comparison_Table;
+      Logarithmic   : Boolean;
+      X_Min, X_Max, Y_Min, Y_Max : out Long_Float;
+      Plot_Ready    : out Boolean;
+      Log_Empty     : out Boolean;
+      Times, Infos  : out Sample_Matrix;
+      Sample_Ok     : out Sample_Flag_Matrix;
+      Inside        : out Inside_Flags)
+   is
+      Span : constant Long_Float := Long_Float (Sample_Count - 1);
+      Chosen_Time : Long_Float := 0.0;
+      Chosen_Valid : Boolean := False;
+      Slowest : Long_Float := 0.0;
+      Fastest : Long_Float := 0.0;
+      Have_Crossing : Boolean := False;
+      Lowest_Info : Long_Float := 0.0;
+   begin
+      X_Min := 0.0;
+      X_Max := 0.0;
+      Y_Min := 0.0;
+      Y_Max := 0.0;
+      Plot_Ready := False;
+      Log_Empty := False;
+      Clear_Samples (Times, Infos, Sample_Ok, Inside);
+      if Count < 1 or else not Is_Finite (Quantity_Bits) or else Quantity_Bits < 0.0 then
+         return;
+      end if;
+      if Quantity_Bits = 0.0 then
+         Log_Empty := Logarithmic;
+         if Logarithmic then
+            return;
+         end if;
+         X_Max := 1.0;
+         Y_Max := 1.0;
+         Plot_Ready := True;
+         return;
+      end if;
+
+      if Rows (1).Time_Valid and then Rows (1).Seconds > 0.0 then
+         Chosen_Valid := True;
+         Chosen_Time := Rows (1).Seconds;
+      end if;
+      for Index in 1 .. Integer (Count) loop
+         if Rows (Index).Time_Valid and then Rows (Index).Seconds > 0.0
+           and then Is_Finite (Rows (Index).Seconds)
+         then
+            if not Have_Crossing or else Rows (Index).Seconds < Fastest then
+               Fastest := Rows (Index).Seconds;
+            end if;
+            if Rows (Index).Seconds > Slowest then
+               Slowest := Rows (Index).Seconds;
+            end if;
+            Have_Crossing := True;
+         end if;
+      end loop;
+
+      if Logarithmic then
+         if not Have_Crossing then
+            Log_Empty := True;
+            return;
+         end if;
+         X_Min := Fastest / 10.0;
+         X_Max := Slowest * 10.0;
+         Lowest_Info := Long_Float'Last;
+         for Index in 1 .. Integer (Count) loop
+            if Rows (Index).Rate > 0.0 then
+               declare
+                  Edge : constant Long_Float := Rows (Index).Rate * X_Min;
+               begin
+                  if Is_Finite (Edge) and then Edge > 0.0 and then Edge < Lowest_Info then
+                     Lowest_Info := Edge;
+                  end if;
+               end;
+            end if;
+         end loop;
+         if Lowest_Info = Long_Float'Last or else Lowest_Info <= 0.0 then
+            Log_Empty := True;
+            return;
+         end if;
+         Y_Min := Lowest_Info / 10.0;
+         Y_Max := Quantity_Bits * 10.0;
+         if not Is_Finite (X_Min) or else not Is_Finite (X_Max)
+           or else not Is_Finite (Y_Min) or else not Is_Finite (Y_Max)
+           or else X_Min <= 0.0 or else Y_Min <= 0.0 or else X_Max <= X_Min
+         then
+            Log_Empty := True;
+            return;
+         end if;
+      else
+         Y_Min := 0.0;
+         Y_Max := Quantity_Bits * 1.25;
+         X_Min := 0.0;
+         if Chosen_Valid then
+            X_Max := Chosen_Time * 1.25;
+         elsif Have_Crossing then
+            X_Max := Slowest * 1.25;
+         else
+            return;
+         end if;
+         if not Is_Finite (X_Max) or else not Is_Finite (Y_Max) or else X_Max <= 0.0 then
+            return;
+         end if;
+      end if;
+
+      for Row_Index in 1 .. Integer (Count) loop
+         if Rows (Row_Index).Time_Valid and then Rows (Row_Index).Seconds >= X_Min
+           and then Rows (Row_Index).Seconds <= X_Max
+         then
+            Inside (Row_Index) := True;
+         end if;
+         for Sample_Index in 1 .. Sample_Count loop
+            declare
+               Fraction : constant Long_Float :=
+                 Long_Float (Sample_Index - 1) / Span;
+               Time_Value : Long_Float;
+               Info_Value : Long_Float;
+            begin
+               if Logarithmic then
+                  Time_Value := Ada.Numerics.Long_Elementary_Functions.Exp
+                    (Ada.Numerics.Long_Elementary_Functions.Log (X_Min)
+                     + Fraction
+                       * (Ada.Numerics.Long_Elementary_Functions.Log (X_Max)
+                          - Ada.Numerics.Long_Elementary_Functions.Log (X_Min)));
+               else
+                  Time_Value := X_Max * Fraction;
+               end if;
+               if Rows (Row_Index).Rate > 0.0 and then Time_Value >= 0.0 then
+                  Info_Value := Rows (Row_Index).Rate * Time_Value;
+               elsif not Logarithmic and then Rows (Row_Index).Rate = 0.0
+                 and then Time_Value >= 0.0
+               then
+                  Info_Value := 0.0;
+               else
+                  Info_Value := -1.0;
+               end if;
+               if Is_Finite (Time_Value) and then Is_Finite (Info_Value)
+                 and then Info_Value >= 0.0
+                 and then (not Logarithmic or else Info_Value > 0.0)
+               then
+                  Times (Row_Index) (Sample_Index) := Time_Value;
+                  Infos (Row_Index) (Sample_Index) := Info_Value;
+                  Sample_Ok (Row_Index, Sample_Index) := True;
+               end if;
+            end;
+         end loop;
+      end loop;
+      Plot_Ready := True;
+   end Transmit_Samples;
 end Ath_Throughput;

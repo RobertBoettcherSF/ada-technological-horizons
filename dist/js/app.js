@@ -1146,7 +1146,7 @@ function clearThroughputView() {
     const node = document.getElementById(id);
     if (node) node.textContent = "";
   }
-  document.getElementById("throughput-bars")?.replaceChildren();
+  document.getElementById("throughput-plot")?.replaceChildren();
   document.getElementById("throughput-compare")?.replaceChildren();
   const note = document.getElementById("throughput-note");
   if (note) note.textContent = "";
@@ -1191,13 +1191,10 @@ function renderThroughput(outcome) {
   document.getElementById("throughput-exact-rate").textContent = outcome.rateBits === null ? "" : formatCanonical(outcome.rateBits);
   document.getElementById("throughput-exact-time").textContent = outcome.time === null ? "" : formatCanonical(outcome.time);
   document.getElementById("throughput-exact-total").textContent = outcome.total === null ? "" : formatCanonical(outcome.total);
-  const bars = document.getElementById("throughput-bars");
   const list = document.getElementById("throughput-compare");
   const scaleNote = document.getElementById("throughput-scale-note");
-  bars.replaceChildren();
   list.replaceChildren();
   const logarithmic = state.throughput.scale === "log";
-  bars.dataset.scale = logarithmic ? "log" : "linear";
   document.getElementById("throughput-linear")?.setAttribute("aria-pressed", logarithmic ? "false" : "true");
   document.getElementById("throughput-log")?.setAttribute("aria-pressed", logarithmic ? "true" : "false");
   if (scaleNote) {
@@ -1225,9 +1222,23 @@ function renderThroughput(outcome) {
     document.getElementById("throughput-link-time").textContent = timeLabel(outcome.linkTime, false);
     document.getElementById("throughput-exact-link").textContent = formatCanonical(outcome.linkTime);
   }
-  const rows = logarithmic ? outcome.logRows : outcome.linearRows;
-  if (!rows) return;
-  const klassFor = { 0: "chosen", 1: "", 2: "bound", 3: "link" };
+  const rows = outcome.linearRows || [];
+  const plot = document.getElementById("throughput-plot");
+  const xTicks = document.getElementById("throughput-x-ticks");
+  const yTicks = document.getElementById("throughput-y-ticks");
+  plot?.replaceChildren();
+  xTicks?.replaceChildren();
+  yTicks?.replaceChildren();
+  if (plot) plot.dataset.scale = logarithmic ? "log" : "linear";
+  if (plot) plot.dataset.ready = outcome.plotReady ? "true" : "false";
+  const emptyNote = document.getElementById("throughput-plot-empty");
+  if (emptyNote) {
+    emptyNote.hidden = outcome.plotReady;
+    emptyNote.textContent = outcome.logEmpty
+      ? t(state.lang, "throughput.logEmpty")
+      : t(state.lang, "throughput.plotEmpty");
+  }
+  const klassFor = { 0: "series-custom", 1: "series-human", 2: "series-bacterial", 3: "series-link" };
   for (const row of rows) {
     const chosen = outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
     const name = t(state.lang, THROUGHPUT_KIND[row.kind]);
@@ -1235,23 +1246,86 @@ function renderThroughput(outcome) {
     const when = row.seconds === null
       ? t(state.lang, "throughput.unreachableValue")
       : timeLabel(row.seconds, row.lower && row.seconds > 0);
+    const place = row.seconds !== null && !row.inside ? ` — ${t(state.lang, "throughput.afterChart")}` : "";
     const item = document.createElement("li");
-    item.textContent = `${marked} — ${rateLabel(row.rate, row.lower)} — ${when}`;
+    item.dataset.inside = row.inside ? "true" : "false";
+    item.dataset.kind = String(row.kind);
+    item.textContent = `${marked} — ${rateLabel(row.rate, row.lower)} — ${when}${place}`;
     list.append(item);
-    const wrap = document.createElement("div");
-    wrap.className = "bar-row";
-    const label = document.createElement("span");
-    label.textContent = marked;
-    const track = document.createElement("div");
-    track.className = "bar-track";
-    const fill = document.createElement("span");
-    const klass = klassFor[row.kind] || "";
-    fill.className = klass ? `bar-fill ${klass}` : "bar-fill";
-    fill.dataset.share = formatCanonical(row.share);
-    fill.style.width = `${row.share * 100}%`;
-    track.append(fill);
-    wrap.append(label, track);
-    bars.append(wrap);
+  }
+  if (!plot || !outcome.plotReady || !rows.length) return;
+  const svg = "http://www.w3.org/2000/svg";
+  const xOf = (time) => {
+    if (logarithmic) {
+      const span = Math.log10(outcome.xMax) - Math.log10(outcome.xMin);
+      if (!Number.isFinite(span) || span === 0 || time <= 0) return null;
+      return ((Math.log10(time) - Math.log10(outcome.xMin)) / span) * 100;
+    }
+    if (outcome.xMax === outcome.xMin) return 0;
+    return ((time - outcome.xMin) / (outcome.xMax - outcome.xMin)) * 100;
+  };
+  const yOf = (info) => {
+    if (logarithmic) {
+      const span = Math.log10(outcome.yMax) - Math.log10(outcome.yMin);
+      if (!Number.isFinite(span) || span === 0 || info <= 0) return null;
+      return 100 - ((Math.log10(info) - Math.log10(outcome.yMin)) / span) * 100;
+    }
+    if (outcome.yMax === outcome.yMin) return 100;
+    return 100 - ((info - outcome.yMin) / (outcome.yMax - outcome.yMin)) * 100;
+  };
+  const targetY = outcome.quantityBits > 0 ? yOf(outcome.quantityBits) : null;
+  if (targetY !== null && targetY >= 0 && targetY <= 100) {
+    const line = document.createElementNS(svg, "line");
+    line.setAttribute("class", "target-line");
+    line.setAttribute("x1", "0");
+    line.setAttribute("x2", "100");
+    line.setAttribute("y1", String(targetY));
+    line.setAttribute("y2", String(targetY));
+    plot.append(line);
+  }
+  rows.forEach((row, index) => {
+    const chosen = outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
+    const points = (row.samples || []).flatMap((sample) => {
+      const x = xOf(sample.time);
+      const y = yOf(sample.info);
+      if (x === null || y === null) return [];
+      return [`${x},${y}`];
+    });
+    if (!points.length) return;
+    const polyline = document.createElementNS(svg, "polyline");
+    polyline.setAttribute("class", `${klassFor[row.kind] || "series-custom"}${chosen ? " series-chosen" : ""}`);
+    polyline.setAttribute("fill", "none");
+    polyline.setAttribute("data-kind", String(row.kind));
+    polyline.setAttribute("data-rate", formatCanonical(row.rate));
+    polyline.setAttribute("data-inside", row.inside ? "true" : "false");
+    polyline.setAttribute("points", points.join(" "));
+    plot.append(polyline);
+    if (row.inside && row.seconds !== null && targetY !== null) {
+      const mark = document.createElementNS(svg, "circle");
+      mark.setAttribute("class", "target-mark");
+      mark.setAttribute("data-kind", String(row.kind));
+      mark.setAttribute("cx", String(xOf(row.seconds)));
+      mark.setAttribute("cy", String(targetY));
+      mark.setAttribute("r", "1.6");
+      plot.append(mark);
+    }
+    void index;
+  });
+  const xLabels = [outcome.xMin, outcome.xMax].filter((value, index, all) => all.indexOf(value) === index);
+  for (const value of xLabels) {
+    const tick = document.createElement("span");
+    tick.textContent = timeLabel(value, false);
+    xTicks?.append(tick);
+  }
+  const yLabels = [outcome.yMax, outcome.quantityBits, outcome.yMin].filter((value, index, all) => Number.isFinite(value) && (logarithmic ? value > 0 : value >= 0) && all.indexOf(value) === index);
+  for (const value of yLabels) {
+    const y = yOf(value);
+    if (y === null) continue;
+    const tick = document.createElement("span");
+    tick.textContent = bitsLabel(value);
+    tick.style.top = `${y}%`;
+    tick.style.transform = y <= 0 ? "translateY(0)" : y >= 100 ? "translateY(-100%)" : "translateY(-50%)";
+    yTicks?.append(tick);
   }
 }
 
@@ -1305,6 +1379,7 @@ function updateThroughput() {
         parsed.duration,
         parsed.durationUnit,
         presetMode[state.throughput.preset] ?? 4,
+        state.throughput.scale === "log" ? 1 : 0,
       );
       code = outcome.status;
       if (outcome.status === 0 || outcome.status === 5 || outcome.status === 6) {

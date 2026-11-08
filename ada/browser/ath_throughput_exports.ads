@@ -7,6 +7,10 @@ package Ath_Throughput_Exports is
      (Mode : Interfaces.Integer_32) return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_throughput_set_mode";
 
+   function Ath_Throughput_Set_Scale
+     (Scale : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_set_scale";
+
    function Ath_Throughput_F64
      (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit : Long_Float)
       return Interfaces.Integer_32
@@ -150,4 +154,41 @@ package Ath_Throughput_Exports is
    function Ath_Throughput_Row_Time_Valid
      (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_throughput_row_time_valid";
+
+   function Ath_Throughput_Plot_Ready return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_plot_ready";
+
+   function Ath_Throughput_Log_Empty return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_log_empty";
+
+   function Ath_Throughput_X_Min return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_x_min";
+
+   function Ath_Throughput_X_Max return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_x_max";
+
+   function Ath_Throughput_Y_Min return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_y_min";
+
+   function Ath_Throughput_Y_Max return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_y_max";
+
+   function Ath_Throughput_Sample_Count return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_sample_count";
+
+   function Ath_Throughput_Sample_Time
+     (Row, Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_sample_time";
+
+   function Ath_Throughput_Sample_Info
+     (Row, Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_sample_info";
+
+   function Ath_Throughput_Sample_Ok
+     (Row, Index : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_sample_ok";
+
+   function Ath_Throughput_Crossing_Inside
+     (Row : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_crossing_inside";
 end Ath_Throughput_Exports;

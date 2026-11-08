@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.15** plots information transmitted against time. Lem’s example restores 10,000 bits at 25 bits/s for 400 seconds. On a log chart, zero is left off rather than drawn as a tiny positive value.
+
 Version **0.1.14** gives each information-rate choice its own chart. Historical example restores 10,000 bits at 25 bits/s for 400 seconds. The line rate is shown with the human figure only. Debug still saves a local report.
 
 Version **0.1.13** makes that rate chart follow the rate you chose, and Debug / F9 opens a dialog that saves a local report. Nothing is uploaded.
@@ -83,7 +85,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.14`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.15`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

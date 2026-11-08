@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.14">
+  <meta name="ath-release" content="0.1.15">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.14</p>
+        <p class="release-pill" id="header-version">0.1.15</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -339,11 +339,12 @@
           </div>
         </div>
         <div class="button-row preset-row">
-          <button type="button" class="secondary" id="throughput-preset-page" data-throughput-preset="1" data-i18n="throughput.preset.page">Historical example</button>
+          <button type="button" class="secondary" id="throughput-preset-page" data-throughput-preset="1" data-i18n="throughput.preset.page">Lem’s example (default)</button>
           <button type="button" class="secondary" id="throughput-preset-human" data-throughput-preset="2" data-i18n="throughput.preset.human">Human figure, about 25 bits/s</button>
           <button type="button" class="secondary" id="throughput-preset-bacterial" data-throughput-preset="3" data-i18n="throughput.preset.bacterial">Bacterial figure, at least 1,000 bits/s</button>
           <button type="button" class="secondary" id="throughput-preset-link" data-throughput-preset="4" data-i18n="throughput.preset.link">1000BASE-T line rate</button>
         </div>
+        <p id="throughput-preset-help" class="note" data-i18n="throughput.presetHelp">Lem’s example restores 10,000 bits, 25 bits/s and 400 s, and draws the human and bacterial curves.</p>
         <p id="throughput-note" class="note"></p>
         <div id="throughput-live" class="live-result growth-metrics">
           <div>
@@ -360,17 +361,24 @@
           </div>
         </div>
         <p id="throughput-status" role="status" aria-live="polite"></p>
-        <h3 id="throughput-scale-label" data-i18n="throughput.compare">Information rates</h3>
+        <h3 id="throughput-scale-label" data-i18n="throughput.compare">Information transmitted</h3>
         <div class="button-row" role="group" aria-labelledby="throughput-scale-label">
           <button type="button" id="throughput-linear" aria-pressed="true" data-i18n="throughput.linear">Linear</button>
           <button type="button" id="throughput-log" class="secondary" aria-pressed="false" data-i18n="throughput.log">Logarithmic</button>
         </div>
-        <p id="throughput-scale-note" class="note" data-i18n="throughput.linearNote">Linear scale. The bacterial bar is 40 times the human bar.</p>
-        <div id="throughput-bars" class="bars" data-scale="linear" aria-hidden="true"></div>
+        <p id="throughput-scale-note" class="note" data-i18n="throughput.linearNote">Linear scales. Information grows in proportion to time. The slope is the rate.</p>
+        <p id="throughput-plot-empty" class="note" hidden></p>
+        <div id="throughput-plot-wrap" class="throughput-plot-wrap">
+          <p id="throughput-y-label" class="axis-name" data-i18n="throughput.axisInfo">Information transmitted (bits)</p>
+          <div id="throughput-y-ticks" class="throughput-y-ticks"></div>
+          <svg id="throughput-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="throughput-scale-label" aria-describedby="throughput-scale-note throughput-compare"></svg>
+          <div id="throughput-x-ticks" class="throughput-x-ticks"></div>
+          <p id="throughput-x-label" class="axis-name" data-i18n="throughput.axisTime">Time (unit on each tick)</p>
+        </div>
         <ul id="throughput-compare"></ul>
         <div id="throughput-link" class="link-reference">
           <h3 data-i18n="throughput.linkTitle">Digital link, nominal line rate</h3>
-          <p data-i18n="throughput.linkLead">This is the nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T. It is not framed payload, not a measured processing speed, and not machine understanding. The time below is an ideal constant rate for the quantity above. When this rate is chosen, the chart compares it with the historical figures.</p>
+          <p data-i18n="throughput.linkLead">This is the nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T. It is not framed payload, not a measured processing speed, and not machine understanding. The time is an ideal constant rate for the quantity above. When this rate is chosen, the chart compares it with the human figure only.</p>
           <p class="field-label" data-i18n="throughput.linkRateLabel">Nominal line rate</p>
           <output id="throughput-link-rate"></output>
           <p class="field-label" data-i18n="throughput.linkTimeLabel">Time for this quantity at that rate</p>

@@ -141,4 +141,27 @@ package Ath_Throughput is
       Ratio_Valid                     : out Boolean;
       Linear_Count, Log_Count         : out Interfaces.Integer_32;
       Linear_Rows, Log_Rows           : out Comparison_Table);
+
+   Sample_Count : constant := 33;
+
+   type Sample_Vector is array (1 .. Sample_Count) of Long_Float;
+   type Sample_Matrix is array (1 .. Max_Comparison_Rows) of Sample_Vector;
+   type Sample_Flag_Matrix is array (1 .. Max_Comparison_Rows, 1 .. Sample_Count) of Boolean;
+   type Inside_Flags is array (1 .. Max_Comparison_Rows) of Boolean;
+
+   --  Samples of I = rate * time for the rows already chosen. Linear time
+   --  runs from zero to just past the chosen crossing, so that crossing is
+   --  on the chart. Logarithmic time and information stay positive: zero is
+   --  omitted rather than replaced with a stand-in.
+   procedure Transmit_Samples
+     (Quantity_Bits : Long_Float;
+      Count         : Interfaces.Integer_32;
+      Rows          : Comparison_Table;
+      Logarithmic   : Boolean;
+      X_Min, X_Max, Y_Min, Y_Max : out Long_Float;
+      Plot_Ready    : out Boolean;
+      Log_Empty     : out Boolean;
+      Times, Infos  : out Sample_Matrix;
+      Sample_Ok     : out Sample_Flag_Matrix;
+      Inside        : out Inside_Flags);
 end Ath_Throughput;

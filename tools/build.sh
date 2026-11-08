@@ -150,6 +150,7 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_delay_preset_unit \
     -Wl,--export=ath_delay_leg_time \
     -Wl,--export=ath_throughput_set_mode \
+    -Wl,--export=ath_throughput_set_scale \
     -Wl,--export=ath_throughput_f64 \
     -Wl,--export=ath_throughput_time_valid \
     -Wl,--export=ath_throughput_time \
@@ -193,6 +194,17 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_throughput_row_share \
     -Wl,--export=ath_throughput_row_lower \
     -Wl,--export=ath_throughput_row_time_valid \
+    -Wl,--export=ath_throughput_plot_ready \
+    -Wl,--export=ath_throughput_log_empty \
+    -Wl,--export=ath_throughput_x_min \
+    -Wl,--export=ath_throughput_x_max \
+    -Wl,--export=ath_throughput_y_min \
+    -Wl,--export=ath_throughput_y_max \
+    -Wl,--export=ath_throughput_sample_count \
+    -Wl,--export=ath_throughput_sample_time \
+    -Wl,--export=ath_throughput_sample_info \
+    -Wl,--export=ath_throughput_sample_ok \
+    -Wl,--export=ath_throughput_crossing_inside \
     -Wl,--export-memory
 )
 
@@ -208,7 +220,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.14",
+  version: "0.1.15",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -219,7 +231,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

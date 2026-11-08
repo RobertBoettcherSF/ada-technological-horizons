@@ -25,6 +25,32 @@ package body Ath_Throughput_Exports is
    Stored_Log_Count : Interfaces.Integer_32 := 0;
    Stored_Linear : Ath_Throughput.Comparison_Table;
    Stored_Log : Ath_Throughput.Comparison_Table;
+   Stored_Logarithmic : Boolean := False;
+   Stored_X_Min : Long_Float := 0.0;
+   Stored_X_Max : Long_Float := 0.0;
+   Stored_Y_Min : Long_Float := 0.0;
+   Stored_Y_Max : Long_Float := 0.0;
+   Stored_Plot_Ready : Boolean := False;
+   Stored_Log_Empty : Boolean := False;
+   Stored_Times : Ath_Throughput.Sample_Matrix := (others => (others => 0.0));
+   Stored_Infos : Ath_Throughput.Sample_Matrix := (others => (others => 0.0));
+   Stored_Sample_Ok : Ath_Throughput.Sample_Flag_Matrix :=
+     (others => (others => False));
+   Stored_Inside : Ath_Throughput.Inside_Flags := (others => False);
+
+   procedure Rebuild_Plot is
+   begin
+      if not Stored_Chart_Valid then
+         Stored_Plot_Ready := False;
+         Stored_Log_Empty := False;
+         return;
+      end if;
+      Ath_Throughput.Transmit_Samples
+        (Stored_Quantity, Stored_Linear_Count, Stored_Linear, Stored_Logarithmic,
+         Stored_X_Min, Stored_X_Max, Stored_Y_Min, Stored_Y_Max,
+         Stored_Plot_Ready, Stored_Log_Empty, Stored_Times, Stored_Infos,
+         Stored_Sample_Ok, Stored_Inside);
+   end Rebuild_Plot;
 
    function Flag (Value : Boolean) return Interfaces.Integer_32 is
    begin
@@ -57,6 +83,16 @@ package body Ath_Throughput_Exports is
       Stored_Log_Count := 0;
       Stored_Linear := (others => <>);
       Stored_Log := (others => <>);
+      Stored_X_Min := 0.0;
+      Stored_X_Max := 0.0;
+      Stored_Y_Min := 0.0;
+      Stored_Y_Max := 0.0;
+      Stored_Plot_Ready := False;
+      Stored_Log_Empty := False;
+      Stored_Times := (others => (others => 0.0));
+      Stored_Infos := (others => (others => 0.0));
+      Stored_Sample_Ok := (others => (others => False));
+      Stored_Inside := (others => False);
    end Clear;
 
    function Ath_Throughput_Set_Mode
@@ -73,9 +109,21 @@ package body Ath_Throughput_Exports is
             Stored_Match, Stored_Over_Human, Stored_Over_Bacterial,
             Stored_Ratio_Valid, Stored_Linear_Count, Stored_Log_Count,
             Stored_Linear, Stored_Log);
+         Rebuild_Plot;
       end if;
       return Stored_Mode;
    end Ath_Throughput_Set_Mode;
+
+   function Ath_Throughput_Set_Scale
+     (Scale : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      Stored_Logarithmic := Scale = 1;
+      Rebuild_Plot;
+      if Stored_Logarithmic then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Throughput_Set_Scale;
 
    function Ath_Throughput_F64
      (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit : Long_Float)
@@ -101,6 +149,7 @@ package body Ath_Throughput_Exports is
             Stored_Match, Stored_Over_Human, Stored_Over_Bacterial,
             Stored_Ratio_Valid, Stored_Linear_Count, Stored_Log_Count,
             Stored_Linear, Stored_Log);
+         Rebuild_Plot;
       end if;
       return Interfaces.Integer_32 (Status);
    end Ath_Throughput_F64;
@@ -388,4 +437,75 @@ package body Ath_Throughput_Exports is
    begin
       return Flag (Row (Which, Index).Time_Valid);
    end Ath_Throughput_Row_Time_Valid;
+
+   function Ath_Throughput_Plot_Ready return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Plot_Ready);
+   end Ath_Throughput_Plot_Ready;
+
+   function Ath_Throughput_Log_Empty return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Log_Empty);
+   end Ath_Throughput_Log_Empty;
+
+   function Ath_Throughput_X_Min return Long_Float is
+   begin
+      return Stored_X_Min;
+   end Ath_Throughput_X_Min;
+
+   function Ath_Throughput_X_Max return Long_Float is
+   begin
+      return Stored_X_Max;
+   end Ath_Throughput_X_Max;
+
+   function Ath_Throughput_Y_Min return Long_Float is
+   begin
+      return Stored_Y_Min;
+   end Ath_Throughput_Y_Min;
+
+   function Ath_Throughput_Y_Max return Long_Float is
+   begin
+      return Stored_Y_Max;
+   end Ath_Throughput_Y_Max;
+
+   function Ath_Throughput_Sample_Count return Interfaces.Integer_32 is
+   begin
+      return Ath_Throughput.Sample_Count;
+   end Ath_Throughput_Sample_Count;
+
+   function Ath_Throughput_Sample_Time
+     (Row, Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if Row < 1 or else Index < 1 or else Index > Ath_Throughput.Sample_Count then
+         return 0.0;
+      end if;
+      return Stored_Times (Integer (Row)) (Integer (Index));
+   end Ath_Throughput_Sample_Time;
+
+   function Ath_Throughput_Sample_Info
+     (Row, Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if Row < 1 or else Index < 1 or else Index > Ath_Throughput.Sample_Count then
+         return 0.0;
+      end if;
+      return Stored_Infos (Integer (Row)) (Integer (Index));
+   end Ath_Throughput_Sample_Info;
+
+   function Ath_Throughput_Sample_Ok
+     (Row, Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      if Row < 1 or else Index < 1 or else Index > Ath_Throughput.Sample_Count then
+         return 0;
+      end if;
+      return Flag (Stored_Sample_Ok (Integer (Row), Integer (Index)));
+   end Ath_Throughput_Sample_Ok;
+
+   function Ath_Throughput_Crossing_Inside
+     (Row : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      if Row < 1 or else Row > Ath_Throughput.Max_Comparison_Rows then
+         return 0;
+      end if;
+      return Flag (Stored_Inside (Integer (Row)));
+   end Ath_Throughput_Crossing_Inside;
 end Ath_Throughput_Exports;
