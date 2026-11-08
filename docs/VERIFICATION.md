@@ -6,7 +6,11 @@
 
 Node suites passed, including Wasm preset and leg checks. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`, including a 320px timeline. The catalogue still counts 3 working calculators.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/2c548eda8f3a2d8640b9c50852351a21d31ec554/dist/index.html
+
+The page showed release `0.1.8`, that commit, `application/wasm`, headline **6500** with exact mean **6523**, growth quantity **4** with chart end **2076**, three working calculators, and closed sources. The prefilled 1,000 light-years read **1000 years** and **2000 years**, with the same duration on each leg. Earth–Moon read **1.28 s** and **2.56 s**, with numbered circles 1, 2 and 3 and both legs **1.28 s**. The other presets read: Venus **2.3 min** / **4.6 min**, Sun **8.32 min** / **16.63 min**, Mars **12.51 min** / **25.02 min**, Europa **35 min** / **1.17 h**, Titan **1.19 h** / **2.38 h**, Proxima Centauri **4.25 years** / **8.49 years**. At 320px the numbered timeline did not overflow. `curl` received `text/html` and `application/wasm` (44567 bytes, SHA-256 `5e5290d84fe58e7af3a32fb3c9ad5593fad4261c5dd3860c43de4235e3c497f1`, `access-control-allow-origin: *`).
 
 ## v0.1.7 light-time
 
