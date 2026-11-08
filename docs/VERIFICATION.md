@@ -6,7 +6,11 @@
 
 Node suites: 25 passed. Integer results and calendar years matched Wasm by bits. The slow-doubling case 2^0.2 differed by one ulp between native GNAT and the wasm32 maths library; the check allows that one ulp and still requires a non-finite 15-year baseline to be omitted rather than capped. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The page showed quantity 4, factor 4, and chart end 2056, with both curves, year labels, and the outside-horizon target. Doubling time 14 with target 4 showed 2054 and a higher chosen curve on the same years. At 320px, `scrollWidth - clientWidth` was at most 1. The civilisation headline stayed 6500 with exact mean 6523.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/86a341b1541993fcafc28617572242d8fb421924/dist/index.html
+
+The page showed release `0.1.5`, that commit, `application/wasm`, quantity **4**, factor **4**, chart end **2056**, two curves, calendar-year and quantity labels, headline **6500** with exact mean **6523**, and closed Technical details. The default illustrative target 10 was reported after the chart, in **2075.8289**. Setting the target to 4 showed **2056**. Doubling time 14 with that target showed **2054**, with the chart still ending in 2056. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (37887 bytes, SHA-256 `b0e52442bc48360c9754bf46181ace5268a76dc256076b21c58e8cc13f7c8bf7`, `access-control-allow-origin: *`).
 
 ## v0.1.4 scientific-information growth
 
