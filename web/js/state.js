@@ -1,6 +1,18 @@
 export const DEMO_LEFT = "2";
 export const DEMO_RIGHT = "3";
 
+export const LIFETIME_DEFAULTS = {
+  probabilities: ["5", "60", "15", "20"],
+  durations: ["100", "30", "30000", "10000"],
+};
+
+function lifetimeDefaults() {
+  return {
+    probabilities: LIFETIME_DEFAULTS.probabilities.slice(),
+    durations: LIFETIME_DEFAULTS.durations.slice(),
+  };
+}
+
 export function createState() {
   return {
     lang: "en-GB",
@@ -14,6 +26,7 @@ export function createState() {
     collapsedChapters: new Set(),
     collapsedCards: new Set(),
     demo: { left: DEMO_LEFT, right: DEMO_RIGHT },
+    lifetime: lifetimeDefaults(),
   };
 }
 
@@ -35,6 +48,16 @@ export function setDemoInput(state, side, value) {
 
 export function resetDemo(state) {
   return { ...state, demo: { left: DEMO_LEFT, right: DEMO_RIGHT } };
+}
+
+export function setLifetimeInput(state, kind, index, value) {
+  const next = state.lifetime[kind].slice();
+  next[index] = value;
+  return { ...state, lifetime: { ...state.lifetime, [kind]: next } };
+}
+
+export function resetLifetime(state) {
+  return { ...state, lifetime: lifetimeDefaults() };
 }
 
 export function toggleFilter(state, category, id) {

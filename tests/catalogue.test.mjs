@@ -158,7 +158,9 @@ test("clear filters restores reading order", () => {
 
 test("planned entries are never counted as working calculators", () => {
   assert.equal(countWorkingCalculators(fixture), 2);
-  assert.equal(countWorkingCalculators(entries), 0);
+  assert.equal(countWorkingCalculators(entries), 1);
+  const calculator = entries.find((entry) => entry.type === "calculator" && entry.availability === "available");
+  assert.equal(calculator.id, "cosmic-civilisations/statistics-of-cosmic-civilisations");
 });
 
 test("book neighbours ignore catalogue order", () => {
@@ -195,5 +197,5 @@ test("production catalogue keeps eight book chapters and stable English ids", ()
     }
   }
   assert.equal(sections.length, 73);
-  assert.equal(entries.some((entry) => entry.type === "calculator"), false);
+  assert.equal(entries.filter((entry) => entry.type === "calculator").length, 1);
 });

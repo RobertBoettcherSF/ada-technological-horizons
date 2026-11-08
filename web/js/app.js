@@ -24,12 +24,14 @@ import {
   expandCard,
   openAll,
   resetDemo,
+  resetLifetime,
   setDemoInput,
   setLanguage,
+  setLifetimeInput,
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callLifetime, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -122,15 +124,21 @@ function renderChapterNav() {
   list.replaceChildren();
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
-    const statusKey = chapter.kind === "closing" ? "tile.retrospective" : "tile.planned";
+    const ready = chapter.id === "cosmic-civilisations";
+    const statusKey = chapter.kind === "closing" ? "tile.retrospective" : ready ? "tile.calculator" : "tile.planned";
     list.append(
       h("li", {}, [
         h(
           "a",
           {
             href: `#${chapter.id}`,
-            class: chapter.kind === "closing" ? "chapter-tile is-retrospective" : "chapter-tile is-planned",
-            dataset: { chapterLink: chapter.id, chapterKind: chapter.kind, firstSection: first.id },
+            class: ready ? "chapter-tile is-ready" : chapter.kind === "closing" ? "chapter-tile is-retrospective" : "chapter-tile is-planned",
+            dataset: {
+              chapterLink: chapter.id,
+              chapterKind: chapter.kind,
+              firstSection: first.id,
+              calculator: ready ? "ready" : "none",
+            },
           },
           [
             h("span", { class: "tile-status", dataset: { i18n: statusKey } }),
@@ -270,8 +278,8 @@ function renderCard(entry) {
     text: `${t(state.lang, "catalogue.filter.topic")}: ${topicById(entry.topicId).title[state.lang]} · ${chapter.title[state.lang]}`,
   });
   body.append(summary, topic);
-  if (entry.id === "technical/binary64-addition") {
-    body.append(h("p", {}, [h("a", { href: "#try-addition", dataset: { i18n: "demo.jump" } })]));
+  if (entry.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
+    body.append(h("p", {}, [h("a", { href: "#lifetime-card", dataset: { i18n: "lifetime.open" } })]));
   }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
@@ -295,6 +303,7 @@ function renderResults() {
     );
     applyI18n();
     updateDemo();
+    updateLifetime();
     return;
   }
 
@@ -334,6 +343,7 @@ function renderResults() {
   host.replaceChildren(fragment);
   applyI18n();
   updateDemo();
+  updateLifetime();
 }
 
 function updateDiagnostics() {
@@ -409,6 +419,98 @@ function updateDemo() {
   updateDiagnostics();
 }
 
+function clearLifetimeView() {
+  const result = document.getElementById("lifetime-result");
+  if (result) {
+    result.textContent = "";
+  }
+  for (let index = 1; index <= 4; index += 1) {
+    const share = document.getElementById(`contrib-${index}`);
+    const shownProbability = document.getElementById(`shown-prob-${index}`);
+    const shownYears = document.getElementById(`shown-years-${index}`);
+    const bar = document.getElementById(`bar-${index}`);
+    if (share) share.textContent = "";
+    if (shownProbability) shownProbability.textContent = "";
+    if (shownYears) shownYears.textContent = "";
+    if (bar) bar.style.width = "0%";
+  }
+}
+
+function lifetimeMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "lifetime.empty";
+  if (code === "malformed") return "lifetime.malformed";
+  if (code === 0) return "lifetime.ok";
+  if (code === 1) return "lifetime.nonFinite";
+  if (code === 2) return "lifetime.range";
+  if (code === 3) return "lifetime.durationNegative";
+  if (code === 4) return "lifetime.total";
+  if (code === 5) return "lifetime.overflow";
+  return "demo.loadFailed";
+}
+
+function updateLifetime() {
+  const statusNode = document.getElementById("lifetime-status");
+  const resultNode = document.getElementById("lifetime-result");
+  if (!statusNode || !resultNode) {
+    return;
+  }
+  clearLifetimeView();
+  let code = "loading";
+  let parsed = null;
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const percentages = [];
+    const durations = [];
+    for (let index = 0; index < 4; index += 1) {
+      const probability = interpretOperand(state.lifetime.probabilities[index]);
+      const duration = interpretOperand(state.lifetime.durations[index]);
+      if (probability.kind === "empty" || duration.kind === "empty") {
+        code = "empty";
+        break;
+      }
+      if (probability.kind === "malformed" || duration.kind === "malformed") {
+        code = "malformed";
+        break;
+      }
+      percentages.push(probability.value);
+      durations.push(duration.value);
+    }
+    if (code === "loading") {
+      const outcome = callLifetime(session, percentages, durations);
+      code = outcome.status;
+      if (outcome.status === 0 && outcome.mean !== null && outcome.contributions) {
+        try {
+          resultNode.textContent = formatCanonical(outcome.mean);
+          const largest = outcome.contributions.reduce((max, value) => Math.max(max, value), 0);
+          outcome.contributions.forEach((value, index) => {
+            const share = formatCanonical(value);
+            document.getElementById(`contrib-${index + 1}`).textContent = share;
+            document.getElementById(`shown-prob-${index + 1}`).textContent = state.lifetime.probabilities[index].trim();
+            document.getElementById(`shown-years-${index + 1}`).textContent = state.lifetime.durations[index].trim();
+            const width = largest === 0 ? 0 : (value / largest) * 100;
+            document.getElementById(`bar-${index + 1}`).style.width = `${width}%`;
+          });
+          parsed = true;
+        } catch {
+          clearLifetimeView();
+          code = 5;
+        }
+      }
+    }
+  }
+  if (!parsed) {
+    clearLifetimeView();
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, lifetimeMessage(code));
+  updateDiagnostics();
+}
+
 function statusMessage(code) {
   if (code === "loading") return "demo.loading";
   if (code === "load-failed") return "demo.loadFailed";
@@ -422,7 +524,7 @@ function statusMessage(code) {
 
 function routeFromHash() {
   const route = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (route === "try-addition" || route === "about" || route === "content") {
+  if (route === "lifetime-card" || route === "about" || route === "content") {
     return "";
   }
   return route;
@@ -453,6 +555,7 @@ async function boot() {
   session.exports = null;
   session.mime = "";
   updateDemo();
+  updateLifetime();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -470,6 +573,7 @@ async function boot() {
     session.message = error instanceof Error ? error.message : "load failed";
   }
   updateDemo();
+  updateLifetime();
 }
 
 function simulateFailure() {
@@ -478,6 +582,7 @@ function simulateFailure() {
   session.exports = null;
   session.message = "simulated";
   updateDemo();
+  updateLifetime();
 }
 
 function bind() {
@@ -602,6 +707,26 @@ function bind() {
   });
   document.getElementById("retry-load").addEventListener("click", () => {
     boot();
+  });
+  document.getElementById("lifetime-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.dataset.lifetime) {
+      return;
+    }
+    state = setLifetimeInput(state, field.dataset.lifetime, Number(field.dataset.index), field.value);
+    updateLifetime();
+  });
+  document.getElementById("lifetime-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateLifetime();
+  });
+  document.getElementById("lifetime-reset").addEventListener("click", () => {
+    state = resetLifetime(state);
+    for (let index = 0; index < 4; index += 1) {
+      document.getElementById(`prob-${index + 1}`).value = state.lifetime.probabilities[index];
+      document.getElementById(`years-${index + 1}`).value = state.lifetime.durations[index];
+    }
+    updateLifetime();
   });
   window.addEventListener("hashchange", () => {
     showRoute(routeFromHash(), { focus: true });

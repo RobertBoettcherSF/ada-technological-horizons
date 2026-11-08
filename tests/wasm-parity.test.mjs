@@ -3,11 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callLifetime, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
 const fixturePath = path.join(root, "build", "native", "fixtures.txt");
+const lifetimePath = path.join(root, "build", "native", "lifetime-fixtures.txt");
 
 function bitsToFloat(hex) {
   const buffer = new ArrayBuffer(8);
@@ -62,6 +63,44 @@ test("browser exports match the native fixture bits", async (t) => {
     } else {
       assert.equal(outcome.result, null, fixture.name);
       assert.equal(floatToBits(session.exports.ath_last_sum()), "0000000000000000", fixture.name);
+    }
+  }
+});
+
+test("lifetime exports match the native fixture bits", async (t) => {
+  if (!fs.existsSync(wasmPath) || !fs.existsSync(lifetimePath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const lines = fs
+    .readFileSync(lifetimePath, "utf8")
+    .split("\n")
+    .filter((line) => line.startsWith("LIFE "));
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const [, name, status, mean, c1, c2, c3, c4, ...inputs] = parts;
+    const percentages = inputs.slice(0, 4).map(bitsToFloat);
+    const durations = inputs.slice(4, 8).map(bitsToFloat);
+    const outcome = callLifetime(session, percentages, durations);
+    assert.equal(outcome.status, Number(status), name);
+    if (Number(status) === 0) {
+      assert.equal(floatToBits(outcome.mean), mean, name);
+      assert.deepEqual(outcome.contributions.map(floatToBits), [c1, c2, c3, c4], name);
+    } else {
+      assert.equal(outcome.mean, null, name);
+      assert.equal(floatToBits(session.exports.ath_lifetime_mean()), "0000000000000000", name);
     }
   }
 });

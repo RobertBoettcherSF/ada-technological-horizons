@@ -3,21 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.1">
+  <meta name="ath-release" content="0.1.2">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#try-addition" data-i18n="skip.content">Skip to the addition</a>
+  <a class="skip" href="#lifetime-card" data-i18n="skip.content">Skip to the calculator</a>
   <div class="horizon" aria-hidden="true"></div>
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.1</p>
+        <p class="release-pill" id="header-version">0.1.2</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
-        <p class="invite" data-i18n="app.invite">Start with the addition card. Then open a chapter tile to see its planned sections. Nothing in the chapters calculates in this release.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Statistics of Cosmic Civilisations is the one calculator ready in this release. The other sections are planned.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -31,47 +31,102 @@
     </div>
   </header>
   <main id="content" class="wrap">
-    <section id="try-addition" class="demo-card" aria-labelledby="demo-title">
-      <p class="demo-kicker">
-        <span class="badge operational" data-i18n="type.technical-demo">Technical demonstration</span>
-        <span class="badge operational" data-i18n="availability.available">Operational</span>
-      </p>
-      <h2 id="demo-title" data-i18n="demo.friendlyTitle">Add two numbers</h2>
-      <p data-i18n="demo.lead">These two numbers are already filled in. Change either one and the sum updates. Ada does the addition. This card is a technical demonstration, not a scientific calculator.</p>
-      <form id="addition-form">
-        <div class="operands">
-          <div>
-            <label for="operand-left" data-i18n="demo.left">Left operand</label>
-            <input id="operand-left" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="2">
-          </div>
-          <div>
-            <label for="operand-right" data-i18n="demo.right">Right operand</label>
-            <input id="operand-right" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="3">
-          </div>
-        </div>
-        <div id="live-result" class="live-result">
-          <p class="live-label" data-i18n="demo.result">Result</p>
-          <output id="addition-result" for="operand-left operand-right"></output>
-        </div>
-        <p id="addition-status" role="status" aria-live="polite"></p>
-        <div class="button-row">
-          <button type="submit" data-i18n="demo.compute">Compute</button>
-          <button type="button" id="reset-demo" class="secondary" data-i18n="demo.reset">Reset example</button>
-        </div>
-        <p id="decimal-note" class="note" data-i18n="demo.separator">Use a dot as the decimal separator in every language. Ada receives the binary64 value, not translated text.</p>
-        <p class="note" data-i18n="demo.contract">Contract: finite binary64 addition. A negative finite operand is an ordinary value. A non-finite operand or a non-finite sum is an error. Underflow to a finite result, including zero, is success. Tolerance for the published integer fixtures is exact binary64 equality.</p>
-        <div class="button-row quiet-actions">
-          <button type="button" id="retry-load" class="secondary" data-i18n="demo.retry">Retry Ada module</button>
-          <button type="button" id="simulate-failure" class="secondary" data-i18n="demo.simulate">Simulate module loading failure</button>
-        </div>
-      </form>
-    </section>
-
     <nav class="chapter-nav" aria-labelledby="chapters-label">
       <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
-      <p class="note" data-i18n="chapters.note">Each tile opens that part of the book. Planned tiles are not working calculators.</p>
+      <p class="note" data-i18n="chapters.note">Each tile opens that part of the book. A planned tile has no working calculator.</p>
       <ul id="chapter-list" class="chapter-list"></ul>
     </nav>
+
+    <section id="lifetime-card" class="lifetime-card" aria-labelledby="lifetime-title">
+      <p class="kicker" data-i18n="lifetime.path">Cosmic Civilisations · Statistics of Cosmic Civilisations</p>
+      <h2 id="lifetime-title" data-i18n="lifetime.title">How long is the technological phase?</h2>
+      <p data-i18n="lifetime.lead">Four historical alternatives, each with a probability and a mean duration. Ada computes the weighted mean. These are subjective assumptions about a communication-oriented technological phase, not a forecast for humanity, and the end of that phase is not automatically an extinction.</p>
+      <p class="formula" data-i18n="lifetime.formula">L = Σ pᵢ lᵢ, with each probability used as a fraction.</p>
+      <p class="note" data-i18n="lifetime.history">A historical account rounded the default case to about 6500 years. The result below is the calculated value, not that rounding.</p>
+      <form id="lifetime-form">
+        <div class="fates">
+          <div class="fate">
+            <h3 data-i18n="fate.1">Complete destruction of life</h3>
+            <div>
+              <label for="prob-1" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-1" data-lifetime="probabilities" data-index="0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="5">
+            </div>
+            <div>
+              <label for="years-1" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-1" data-lifetime="durations" data-index="0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="100">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.2">Destruction of higher life</h3>
+            <div>
+              <label for="prob-2" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-2" data-lifetime="probabilities" data-index="1" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="60">
+            </div>
+            <div>
+              <label for="years-2" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-2" data-lifetime="durations" data-index="1" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.3">Physical or mental degeneration</h3>
+            <div>
+              <label for="prob-3" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-3" data-lifetime="probabilities" data-index="2" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="15">
+            </div>
+            <div>
+              <label for="years-3" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-3" data-lifetime="durations" data-index="2" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30000">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.4">Loss of scientific or technical interest</h3>
+            <div>
+              <label for="prob-4" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-4" data-lifetime="probabilities" data-index="3" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="20">
+            </div>
+            <div>
+              <label for="years-4" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-4" data-lifetime="durations" data-index="3" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10000">
+            </div>
+          </div>
+        </div>
+        <div id="lifetime-live" class="live-result">
+          <p class="live-label" data-i18n="lifetime.result">Mean duration</p>
+          <output id="lifetime-result" for="prob-1 prob-2 prob-3 prob-4 years-1 years-2 years-3 years-4"></output>
+        </div>
+        <p id="lifetime-status" role="status" aria-live="polite"></p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="lifetime-reset" class="secondary" data-i18n="lifetime.reset">Reset example</button>
+        </div>
+      </form>
+      <h3 data-i18n="lifetime.contributions">Contribution of each fate</h3>
+      <div class="bars" id="lifetime-bars">
+        <div class="bar-row"><span data-i18n="fate.1.short">All life</span><span class="bar-track"><span class="bar-fill" id="bar-1"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.2.short">Higher life</span><span class="bar-track"><span class="bar-fill" id="bar-2"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.3.short">Degeneration</span><span class="bar-track"><span class="bar-fill" id="bar-3"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.4.short">Lost interest</span><span class="bar-track"><span class="bar-fill" id="bar-4"></span></span></div>
+      </div>
+      <div class="table-scroll">
+      <table id="lifetime-table">
+        <caption class="note" data-i18n="lifetime.tableCaption">Contributions returned by Ada, in years.</caption>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="lifetime.fate">Fate</th>
+            <th scope="col" data-i18n="lifetime.probability">Probability (%)</th>
+            <th scope="col" data-i18n="lifetime.duration">Duration (years)</th>
+            <th scope="col" data-i18n="lifetime.share">Contribution (years)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row" data-i18n="fate.1">Complete destruction of life</th><td id="shown-prob-1"></td><td id="shown-years-1"></td><td id="contrib-1"></td></tr>
+          <tr><th scope="row" data-i18n="fate.2">Destruction of higher life</th><td id="shown-prob-2"></td><td id="shown-years-2"></td><td id="contrib-2"></td></tr>
+          <tr><th scope="row" data-i18n="fate.3">Physical or mental degeneration</th><td id="shown-prob-3"></td><td id="shown-years-3"></td><td id="contrib-3"></td></tr>
+          <tr><th scope="row" data-i18n="fate.4">Loss of scientific or technical interest</th><td id="shown-prob-4"></td><td id="shown-years-4"></td><td id="contrib-4"></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
 
     <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>
       <h2 id="reading-title" tabindex="-1"></h2>
@@ -132,7 +187,7 @@
       <section id="diagnostics" aria-labelledby="diagnostics-label">
         <h2 id="diagnostics-label" data-i18n="diag.heading">Release identity</h2>
         <dl class="diag">
-          <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.1</dd></div>
+          <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.2</dd></div>
           <div><dt data-i18n="diag.commit">Published commit</dt><dd id="diag-commit"></dd></div>
           <div><dt data-i18n="diag.module">Module fingerprint</dt><dd id="diag-module"></dd></div>
           <div><dt data-i18n="diag.toolchain">Toolchain</dt><dd id="diag-toolchain"></dd></div>
@@ -142,10 +197,41 @@
           <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
         </dl>
       </section>
+      <div class="addition-block">
+        <p class="kicker" data-i18n="type.technical-demo">Technical demonstration</p>
+        <h2 data-i18n="demo.friendlyTitle">Add two numbers</h2>
+        <p data-i18n="demo.lead">These two numbers are already filled in. Change either one and the sum updates. Ada does the addition. This is a boundary test, not a chapter calculator.</p>
+        <form id="addition-form">
+          <div class="operands">
+            <div>
+              <label for="operand-left" data-i18n="demo.left">Left operand</label>
+              <input id="operand-left" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="2">
+            </div>
+            <div>
+              <label for="operand-right" data-i18n="demo.right">Right operand</label>
+              <input id="operand-right" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="3">
+            </div>
+          </div>
+          <div id="live-result" class="live-result addition-live">
+            <p class="live-label" data-i18n="demo.result">Result</p>
+            <output id="addition-result" for="operand-left operand-right"></output>
+          </div>
+          <p id="addition-status" role="status" aria-live="polite"></p>
+          <div class="button-row">
+            <button type="submit" data-i18n="demo.compute">Compute</button>
+            <button type="button" id="reset-demo" class="secondary" data-i18n="demo.reset">Reset example</button>
+          </div>
+          <p id="decimal-note" class="note" data-i18n="demo.separator">Use a dot as the decimal separator in every language. Ada receives the binary64 value, not translated text.</p>
+          <p class="note" data-i18n="demo.contract">Contract: finite binary64 addition. A negative finite operand is an ordinary value. A non-finite operand or a non-finite sum is an error. Underflow to a finite result, including zero, is success. Tolerance for the published integer fixtures is exact binary64 equality.</p>
+          <div class="button-row quiet-actions">
+            <button type="button" id="retry-load" class="secondary" data-i18n="demo.retry">Retry Ada module</button>
+            <button type="button" id="simulate-failure" class="secondary" data-i18n="demo.simulate">Simulate module loading failure</button>
+          </div>
+        </form>
+      </div>
     </details>
-
     <noscript>
-      <p>JavaScript is required to load the Ada module and the catalogue. This page does not calculate a result without it.</p>
+      <p>JavaScript is required to load the Ada module. This page does not calculate a result without it.</p>
     </noscript>
   </main>
   <footer class="wrap">

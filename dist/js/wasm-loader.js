@@ -49,10 +49,38 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_add_f64 !== "function") {
     throw new Error("Ada module is missing ath_add_f64");
   }
+  if (typeof instance.exports.ath_lifetime_f64 !== "function") {
+    throw new Error("Ada module is missing ath_lifetime_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
     exports: instance.exports,
+  };
+}
+
+export function callLifetime(session, percentages, durations) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_lifetime_f64(
+    percentages[0],
+    percentages[1],
+    percentages[2],
+    percentages[3],
+    durations[0],
+    durations[1],
+    durations[2],
+    durations[3],
+  );
+  session.invocations += 1;
+  if (status !== STATUS_OK) {
+    return { status, mean: null, contributions: null };
+  }
+  return {
+    status,
+    mean: session.exports.ath_lifetime_mean(),
+    contributions: [1, 2, 3, 4].map((index) => session.exports.ath_lifetime_contribution(index)),
   };
 }
 

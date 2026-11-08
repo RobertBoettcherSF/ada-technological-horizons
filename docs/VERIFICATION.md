@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.2 calculator and theme
+
+`bash tools/build.sh` on Ubuntu 24.04.5 printed `NATIVE OK` and `LIFETIME OK`.
+
+Native lifetime checks include defaults **6523** years with contributions 5, 18, 4500 and 2000; last duration 20000 giving **8523**; a single 100% fate; zero durations giving 0; totals 90 and 110; a negative probability; a negative duration; NaN and infinity. The export clears a previous mean when the total is rejected. Wasm replay of those fixture bits matched. The addition fixtures still match as well.
+
+Node suites: 21 passed. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. That run checked the closed Technical details disclosure, the lifetime card showing 6523, an edit to 8523, reset, chapter tiles, filters, languages, the addition proof after the disclosure is opened, and a 320px viewport.
+
+The immutable review URL is added here after that commit is loaded in a browser.
+
 ## v0.1.1 opening
 
 Checked on the same Ubuntu 24.04.5 host after `bash tools/build.sh`.

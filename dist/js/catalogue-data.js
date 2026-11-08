@@ -130,7 +130,18 @@ const RAW = [
   book("afterword", "retrospective", "part-ii", L("Part II", "Teil II", "Parte II", "Partie II")),
 ];
 
-export const sections = RAW.map((entry, index) => ({ ...entry, bookOrder: index + 1 }));
+export const sections = RAW.map((entry, index) => {
+  const withOrder = { ...entry, bookOrder: index + 1 };
+  if (withOrder.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.lifetime",
+    };
+  }
+  return withOrder;
+});
 
 export const technicalDemo = {
   id: "technical/binary64-addition",

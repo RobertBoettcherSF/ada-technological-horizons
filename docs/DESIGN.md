@@ -1,6 +1,6 @@
 # Ada Technological Horizons — design proposal
 
-**Plan 1.1 presentation note (8 November 2026).** Release 0.1.1 changes only the opening of the scaffold. The addition card is the first thing to try. Chapter tiles carry a one-line description and stay marked planned. Search and the toolchain record are disclosures, closed until asked for. This note does not add a calculator, a chapter essay, or any later queue item. The sections below remain the original design proposal.
+**Plan 1.1 and Plan 2 note (8 November 2026).** Release 0.1.1 clarified the opening. Release 0.1.2, approved as Plan 2, adds only the four-fate weighted mean under Statistics of Cosmic Civilisations and restyles the shell. The addition proof sits inside closed Technical details. Spacing, contact, recurrence and the rest of the queue below are not implemented. The sections that follow remain the original design proposal.
 
 
 **Design for review · 8 November 2026 (Europe/Berlin)**

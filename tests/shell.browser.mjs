@@ -50,14 +50,25 @@ async function shot(page, label, name) {
 async function exercise(page, label) {
   await page.goto(page.url() === "about:blank" ? page.context()._base : page.context()._base, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6523");
   assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#header-version").isVisible(), true);
-  const demoBeforeCatalogue = await page.evaluate(() => {
-    const demo = document.getElementById("try-addition");
+  const layout = await page.evaluate(() => {
+    const form = document.getElementById("addition-form");
+    const details = document.getElementById("technical-details");
+    const card = document.getElementById("lifetime-card");
     const catalogue = document.getElementById("catalogue");
-    return Boolean(demo.compareDocumentPosition(catalogue) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return {
+      additionInsideDetails: details.contains(form),
+      cardBeforeCatalogue: Boolean(card.compareDocumentPosition(catalogue) & Node.DOCUMENT_POSITION_FOLLOWING),
+    };
   });
-  assert.equal(demoBeforeCatalogue, true);
+  assert.equal(layout.additionInsideDetails, true);
+  assert.equal(layout.cardBeforeCatalogue, true);
+  assert.equal(
+    await page.locator('[data-chapter-link="cosmic-civilisations"]').getAttribute("data-calculator"),
+    "ready",
+  );
   const blurbs = await page.locator(".tile-blurb").evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
   assert.equal(blurbs.length, 10);
   assert.ok(blurbs.every((blurb) => blurb.length > 12));
@@ -69,10 +80,26 @@ async function exercise(page, label) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, label, "desktop-top.png");
   await shot(page, label, "opening.png");
+  await page.locator("#lifetime-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "lifetime-card.png");
+  await page.fill("#years-4", "20000");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "8523");
+  await shot(page, label, "lifetime-changed.png");
+  await page.click("#lifetime-reset");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6523");
+  assert.equal(await page.locator("#years-4").inputValue(), "10000");
+  await page.locator("#technical-details summary").scrollIntoViewIfNeeded();
+  await shot(page, label, "technical-collapsed.png");
+  await page.locator("#technical-details summary").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open);
   await page.locator("#addition-form").scrollIntoViewIfNeeded();
   await shot(page, label, "demo-result.png");
   await shot(page, label, "demo-card.png");
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.1");
+  await page.locator("#technical-details summary").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.2");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -130,7 +157,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "0");
+  assert.equal(await page.locator("#working-count").textContent(), "1");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -147,8 +174,13 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "0");
+  assert.equal(await page.locator("#working-count").textContent(), "1");
 
+  if (!(await page.locator("#technical-details").evaluate((element) => element.open))) {
+    await page.locator("#technical-details summary").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector("#technical-details").open);
+  }
   await page.fill("#operand-left", "8");
   await page.fill("#operand-right", "-3");
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
@@ -228,9 +260,10 @@ async function exercise(page, label) {
 
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow overflow");
+  await page.locator("#lifetime-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "narrow.png");
   await page.locator("#addition-form button[type=submit]").scrollIntoViewIfNeeded();
   assert.equal(await page.locator("#addition-form button[type=submit]").isVisible(), true);
-  await shot(page, label, "narrow.png");
 }
 
 const port = Number(process.env.PORT ?? 8765);

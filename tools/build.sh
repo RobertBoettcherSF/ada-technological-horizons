@@ -65,22 +65,34 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/addition_tests" \
   "$ROOT/tests/native/addition_tests.adb" \
   -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
 "$ROOT/build/native/addition_tests" | tee "$ROOT/build/native/fixtures.txt"
+gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/lifetime_tests" \
+  "$ROOT/tests/native/lifetime_tests.adb" \
+  -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
+"$ROOT/build/native/lifetime_tests" | tee "$ROOT/build/native/lifetime-fixtures.txt"
 
-"$TOOLCHAIN/bin/llvm-gcc" -c -x ada "$ROOT/ada/core/ath_addition.adb" \
-  --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
-  -o "$ROOT/build/wasm/ath_addition.o"
-"$TOOLCHAIN/bin/llvm-gcc" -c -x ada "$ROOT/ada/browser/ath_addition_exports.adb" \
-  --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
-  -o "$ROOT/build/wasm/ath_addition_exports.o"
+compile_wasm() {
+  local Source="$1"
+  local Object="$2"
+  "$TOOLCHAIN/bin/llvm-gcc" -c -x ada "$Source" \
+    --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
+    -o "$ROOT/build/wasm/$Object"
+}
+compile_wasm "$ROOT/ada/core/ath_addition.adb" ath_addition.o
+compile_wasm "$ROOT/ada/core/ath_lifetime.adb" ath_lifetime.o
+compile_wasm "$ROOT/ada/browser/ath_addition_exports.adb" ath_addition_exports.o
+compile_wasm "$ROOT/ada/browser/ath_lifetime_exports.adb" ath_lifetime_exports.o
+compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
 (
   cd "$ROOT/build/wasm"
-  "$TOOLCHAIN/bin/llvm-gnatbind" -n ath_addition_exports.ali \
+  "$TOOLCHAIN/bin/llvm-gnatbind" -n ath_browser.ali \
     -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
-  "$TOOLCHAIN/bin/llvm-gcc" -c -x ada b~ath_addition_exports.adb \
+  "$TOOLCHAIN/bin/llvm-gcc" -c -x ada b~ath_browser.adb \
     --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
-    -o b~ath_addition_exports.o
+    -o b~ath_browser.o
   "$TOOLCHAIN/bin/llvm-gcc" --target=wasm32 -o ath_addition.wasm \
-    ath_addition.o ath_addition_exports.o b~ath_addition_exports.o \
+    ath_addition.o ath_lifetime.o \
+    ath_addition_exports.o ath_lifetime_exports.o \
+    ath_browser.o b~ath_browser.o \
     -L"$TOOLCHAIN/lib/rts-native/adalib" -lgnat \
     -nostdlib \
     -Wl,--no-entry \
@@ -90,6 +102,9 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/addition_tests" \
     -Wl,--export=adafinal \
     -Wl,--export=ath_add_f64 \
     -Wl,--export=ath_last_sum \
+    -Wl,--export=ath_lifetime_f64 \
+    -Wl,--export=ath_lifetime_mean \
+    -Wl,--export=ath_lifetime_contribution \
     -Wl,--export-memory
 )
 
@@ -105,7 +120,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.1",
+  version: "0.1.2",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -116,7 +131,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

@@ -8,7 +8,7 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.1** is that scaffold with a clearer opening. The addition card is the first thing on the page. Chapter tiles describe each part of the book and stay marked planned. Search and the toolchain record are closed until opened. Version 0.1.0 was the same boundary without that presentation.
+Version **0.1.2** keeps that scaffold, restyles the opening, and adds one calculator: the historical four-fate mean under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes it. The addition check is inside Technical details, closed until opened. Search tools start closed. Version 0.1.1 was the clearer opening without this calculator. Version 0.1.0 was the first boundary.
 
 - Eight book chapters, plus Conclusion and Afterword, with the planned sections named in `docs/DESIGN.md`.
 - A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all.
@@ -73,8 +73,8 @@ The v0.1.0 snapshot remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/fecd1d9154dfbef5a69a306ef3409d9219d7958e/dist/index.html
 
-Verified v0.1.1 snapshot:
+The v0.1.1 opening remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7ed60133a77e6b1a3ac22c9dc0b390e2823a064f/dist/index.html
 
-A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5. Details are in `docs/VERIFICATION.md`.
+The verified v0.1.2 address is in `docs/VERIFICATION.md` after that commit has been loaded. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default mean is 6523 years.
