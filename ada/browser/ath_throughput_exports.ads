@@ -104,4 +104,46 @@ package Ath_Throughput_Exports is
 
    function Ath_Throughput_Link_Valid return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_throughput_link_valid";
+
+   function Ath_Throughput_Match return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_match";
+
+   function Ath_Throughput_Over_Human return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_over_human";
+
+   function Ath_Throughput_Over_Bacterial return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_over_bacterial";
+
+   function Ath_Throughput_Ratio_Valid return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_ratio_valid";
+
+   function Ath_Throughput_Linear_Count return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_linear_count";
+
+   function Ath_Throughput_Log_Count return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_log_count";
+
+   function Ath_Throughput_Row_Kind
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_row_kind";
+
+   function Ath_Throughput_Row_Rate
+     (Which, Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_row_rate";
+
+   function Ath_Throughput_Row_Seconds
+     (Which, Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_row_seconds";
+
+   function Ath_Throughput_Row_Share
+     (Which, Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_row_share";
+
+   function Ath_Throughput_Row_Lower
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_row_lower";
+
+   function Ath_Throughput_Row_Time_Valid
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_row_time_valid";
 end Ath_Throughput_Exports;

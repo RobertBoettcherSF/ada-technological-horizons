@@ -217,6 +217,42 @@ begin
          Fail ("link-time");
       end if;
    end;
+   declare
+      Match, Linear_Count, Log_Count : Interfaces.Integer_32;
+      Over_Human, Over_Bacterial : Long_Float;
+      Ratio_Valid : Boolean;
+      Linear_Rows, Log_Rows : Ath_Throughput.Comparison_Table;
+   begin
+      Ath_Throughput.Build_Comparison
+        (Ath_Throughput.Link_Bits_Per_Second, 0.0, 10_000.0,
+         Match, Over_Human, Over_Bacterial, Ratio_Valid,
+         Linear_Count, Log_Count, Linear_Rows, Log_Rows);
+      if Match /= Ath_Throughput.Match_Link
+        or else Linear_Count /= 3
+        or else Linear_Rows (1).Kind /= Ath_Throughput.Match_Link
+        or else Linear_Rows (1).Linear /= 1.0
+        or else Linear_Rows (2).Kind /= Ath_Throughput.Match_Human
+        or else Linear_Rows (2).Rate /= 25.0
+        or else not Ratio_Valid
+        or else Over_Human /= 40_000_000.0
+        or else Over_Bacterial /= 1_000_000.0
+      then
+         Fail ("link-comparison");
+      end if;
+      Ath_Throughput.Build_Comparison
+        (25.0, 0.0, 10_000.0,
+         Match, Over_Human, Over_Bacterial, Ratio_Valid,
+         Linear_Count, Log_Count, Linear_Rows, Log_Rows);
+      if Match /= Ath_Throughput.Match_Human
+        or else Linear_Count /= 2
+        or else Linear_Rows (1).Kind /= Ath_Throughput.Match_Human
+        or else Linear_Rows (2).Linear /= 1.0
+        or else Log_Count /= 3
+        or else Log_Rows (3).Kind /= Ath_Throughput.Match_Link
+      then
+         Fail ("human-comparison");
+      end if;
+   end;
 
    declare
       Export_Status : Interfaces.Integer_32;

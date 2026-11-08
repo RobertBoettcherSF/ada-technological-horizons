@@ -305,7 +305,32 @@ export function callThroughput(
     linkTime: session.exports.ath_throughput_link_valid() === 1
       ? session.exports.ath_throughput_link_time()
       : null,
+    match: session.exports.ath_throughput_match(),
+    overHuman: session.exports.ath_throughput_ratio_valid() === 1
+      ? session.exports.ath_throughput_over_human()
+      : null,
+    overBacterial: session.exports.ath_throughput_ratio_valid() === 1
+      ? session.exports.ath_throughput_over_bacterial()
+      : null,
+    linearRows: readRows(session, 0, session.exports.ath_throughput_linear_count()),
+    logRows: readRows(session, 1, session.exports.ath_throughput_log_count()),
   };
+}
+
+function readRows(session, which, count) {
+  const rows = [];
+  for (let index = 1; index <= count; index += 1) {
+    rows.push({
+      kind: session.exports.ath_throughput_row_kind(which, index),
+      rate: session.exports.ath_throughput_row_rate(which, index),
+      seconds: session.exports.ath_throughput_row_time_valid(which, index) === 1
+        ? session.exports.ath_throughput_row_seconds(which, index)
+        : null,
+      share: session.exports.ath_throughput_row_share(which, index),
+      lower: session.exports.ath_throughput_row_lower(which, index) === 1,
+    });
+  }
+  return rows;
 }
 
 export function throughputPreset(session, index) {

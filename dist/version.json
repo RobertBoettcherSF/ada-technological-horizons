@@ -1,8 +1,8 @@
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.12",
-  "builtFrom": "5f6c383fc95ae5b59392cc2e3be390ee84bce562",
-  "wasmSha256": "ff17470117dc72a8aa74b7fc8139d3d7b43c92d4b06b2fbb0ed21c671362dc95",
+  "version": "0.1.13",
+  "builtFrom": "3afcbf4ce695c8d20e926588875ebadca16807bd",
+  "wasmSha256": "87cf9eae2f336c475de8381c3daa1d1db3c07ea3f59938455fb786a8d96e4300",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
   "nativeCompiler": "GNATMAKE 13.3.0"
 }

@@ -292,4 +292,135 @@ package body Ath_Throughput is
          Seconds := 0.0;
       end if;
    end Reference_Seconds;
+
+   function Match_Code
+     (Rate_Bits, Bound : Long_Float) return Interfaces.Integer_32 is
+   begin
+      if Rate_Bits = Human_Bits_Per_Second and then Bound = Bound_Exact then
+         return Match_Human;
+      elsif Rate_Bits = Bacterial_Bits_Per_Second and then Bound = Bound_Lower then
+         return Match_Bacterial;
+      elsif Rate_Bits = Link_Bits_Per_Second and then Bound = Bound_Exact then
+         return Match_Link;
+      end if;
+      return Match_Custom;
+   end Match_Code;
+
+   function Kind_Rate
+     (Kind : Interfaces.Integer_32;
+      Chosen : Long_Float) return Long_Float is
+   begin
+      case Kind is
+         when Match_Human =>
+            return Human_Bits_Per_Second;
+         when Match_Bacterial =>
+            return Bacterial_Bits_Per_Second;
+         when Match_Link =>
+            return Link_Bits_Per_Second;
+         when others =>
+            return Chosen;
+      end case;
+   end Kind_Rate;
+
+   function Kind_Lower
+     (Kind : Interfaces.Integer_32;
+      Bound : Long_Float) return Boolean is
+   begin
+      if Kind = Match_Bacterial then
+         return True;
+      elsif Kind = Match_Custom then
+         return Bound = Bound_Lower;
+      end if;
+      return False;
+   end Kind_Lower;
+
+   procedure Fill_Row
+     (Kind : Interfaces.Integer_32;
+      Chosen, Bound, Quantity_Bits : Long_Float;
+      Row : out Comparison_Row) is
+      Valid : Boolean;
+   begin
+      Row := (others => <>);
+      Row.Kind := Kind;
+      Row.Rate := Kind_Rate (Kind, Chosen);
+      Row.Lower := Kind_Lower (Kind, Bound);
+      Reference_Seconds (Quantity_Bits, Row.Rate, Row.Seconds, Valid);
+      Row.Time_Valid := Valid;
+   end Fill_Row;
+
+   procedure Apply_Shares
+     (Rows : in out Comparison_Table;
+      Count : Interfaces.Integer_32;
+      Logarithmic : Boolean) is
+      Maximum : Long_Float := 0.0;
+   begin
+      for Index in 1 .. Integer (Count) loop
+         if Rows (Index).Rate > Maximum then
+            Maximum := Rows (Index).Rate;
+         end if;
+      end loop;
+      for Index in 1 .. Integer (Count) loop
+         if Maximum <= 0.0 or else Rows (Index).Rate <= 0.0 then
+            if Logarithmic then
+               Rows (Index).Logarithmic := 0.0;
+            else
+               Rows (Index).Linear := 0.0;
+            end if;
+         elsif Logarithmic then
+            Rows (Index).Logarithmic :=
+              Ada.Numerics.Long_Elementary_Functions.Log (Rows (Index).Rate)
+              / Ada.Numerics.Long_Elementary_Functions.Log (Maximum);
+         else
+            Rows (Index).Linear := Rows (Index).Rate / Maximum;
+         end if;
+      end loop;
+   end Apply_Shares;
+
+   procedure Build_Comparison
+     (Rate_Bits, Bound, Quantity_Bits : Long_Float;
+      Match                           : out Interfaces.Integer_32;
+      Over_Human, Over_Bacterial      : out Long_Float;
+      Ratio_Valid                     : out Boolean;
+      Linear_Count, Log_Count         : out Interfaces.Integer_32;
+      Linear_Rows, Log_Rows           : out Comparison_Table) is
+   begin
+      Match := Match_Code (Rate_Bits, Bound);
+      Over_Human := 0.0;
+      Over_Bacterial := 0.0;
+      Ratio_Valid := Is_Finite (Rate_Bits) and then Rate_Bits > 0.0;
+      if Ratio_Valid then
+         Over_Human := Rate_Bits / Human_Bits_Per_Second;
+         Over_Bacterial := Rate_Bits / Bacterial_Bits_Per_Second;
+         Ratio_Valid := Is_Finite (Over_Human) and then Is_Finite (Over_Bacterial);
+      end if;
+      Linear_Rows := (others => <>);
+      Log_Rows := (others => <>);
+      if Match = Match_Human then
+         Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
+         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
+         Linear_Count := 2;
+      elsif Match = Match_Bacterial then
+         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
+         Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
+         Linear_Count := 2;
+      elsif Match = Match_Link then
+         Fill_Row (Match_Link, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
+         Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
+         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (3));
+         Linear_Count := 3;
+      else
+         Fill_Row (Match_Custom, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
+         Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
+         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (3));
+         Linear_Count := 3;
+      end if;
+      Log_Rows := Linear_Rows;
+      Log_Count := Linear_Count;
+      if Match = Match_Human or else Match = Match_Bacterial then
+         Fill_Row (Match_Link, Rate_Bits, Bound, Quantity_Bits, Log_Rows (3));
+         Log_Count := 3;
+      end if;
+      Apply_Shares (Linear_Rows, Linear_Count, False);
+      Apply_Shares (Log_Rows, Log_Count, True);
+   end Build_Comparison;
 end Ath_Throughput;

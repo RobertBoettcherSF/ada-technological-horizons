@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.12">
+  <meta name="ath-release" content="0.1.13">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip" href="#content" data-i18n="skip.content">Skip to the calculator</a>
   <div class="debug-dock">
-    <button type="button" id="debug-toggle" class="debug-toggle" aria-controls="technical-details" aria-expanded="false" aria-keyshortcuts="F9" data-i18n="diag.toggle">Technical details</button>
+    <button type="button" id="debug-toggle" class="debug-toggle" aria-controls="debug-dialog" aria-expanded="false" aria-haspopup="dialog" aria-keyshortcuts="F9" data-i18n="debug.open">Debug</button>
   </div>
   <div class="horizon" aria-hidden="true"></div>
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.12</p>
+        <p class="release-pill" id="header-version">0.1.13</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -370,10 +370,10 @@
         <ul id="throughput-compare"></ul>
         <div id="throughput-link" class="link-reference">
           <h3 data-i18n="throughput.linkTitle">Digital link, nominal line rate</h3>
-          <p data-i18n="throughput.linkLead">This is the nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T. It is not framed payload, not a measured processing speed, and not machine understanding. The time below is an ideal constant rate for the quantity above. It stays off the linear biological bars.</p>
-          <p class="live-label" data-i18n="throughput.linkRateLabel">Nominal line rate</p>
+          <p data-i18n="throughput.linkLead">This is the nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T. It is not framed payload, not a measured processing speed, and not machine understanding. The time below is an ideal constant rate for the quantity above. When this rate is chosen, the chart compares it with the historical figures.</p>
+          <p class="field-label" data-i18n="throughput.linkRateLabel">Nominal line rate</p>
           <output id="throughput-link-rate"></output>
-          <p class="live-label" data-i18n="throughput.linkTimeLabel">Time for this quantity at that rate</p>
+          <p class="field-label" data-i18n="throughput.linkTimeLabel">Time for this quantity at that rate</p>
           <output id="throughput-link-time"></output>
         </div>
         <p class="note" data-i18n="throughput.limit">The historical human and bacterial figures are not the same kind of information as each other, or as this line rate. Spike counts, DNA alphabet capacity and task information are not on the chart.</p>
@@ -503,6 +503,17 @@
       <p>JavaScript is required to load the Ada module. This page does not calculate a result without it.</p>
     </noscript>
   </main>
+  <dialog id="debug-dialog" aria-labelledby="debug-title">
+    <h2 id="debug-title" data-i18n="debug.title">Debug</h2>
+    <p data-i18n="debug.lead">Save a report of this page on your computer. Nothing is uploaded.</p>
+    <label class="field-label" for="debug-expectation" data-i18n="debug.expectation">What would you have expected?</label>
+    <textarea id="debug-expectation"></textarea>
+    <p id="debug-save-note" class="note" data-i18n="debug.saveNote">Saving downloads a text file. This page cannot force the system save window.</p>
+    <div class="button-row">
+      <button type="button" id="debug-save" data-i18n="debug.save">Save file</button>
+      <button type="button" id="debug-cancel" class="secondary" data-i18n="debug.cancel">Cancel</button>
+    </div>
+  </dialog>
   <footer class="wrap">
     <p><a href="#about" data-i18n="nav.about">About</a></p>
     <p data-i18n="footer.note"></p>

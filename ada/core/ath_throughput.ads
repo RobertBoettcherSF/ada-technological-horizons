@@ -102,4 +102,33 @@ package Ath_Throughput is
       Rate          : Long_Float;
       Seconds       : out Long_Float;
       Valid         : out Boolean);
+
+   --  0 custom, 1 the historical human figure, 2 the bacterial lower bound,
+   --  3 the 1000BASE-T nominal line rate. A matching rate keeps its own name.
+   Match_Custom    : constant Interfaces.Integer_32 := 0;
+   Match_Human     : constant Interfaces.Integer_32 := 1;
+   Match_Bacterial : constant Interfaces.Integer_32 := 2;
+   Match_Link      : constant Interfaces.Integer_32 := 3;
+
+   Max_Comparison_Rows : constant := 4;
+
+   type Comparison_Row is record
+      Kind         : Interfaces.Integer_32 := Match_Custom;
+      Rate         : Long_Float := 0.0;
+      Seconds      : Long_Float := 0.0;
+      Linear       : Long_Float := 0.0;
+      Logarithmic  : Long_Float := 0.0;
+      Lower        : Boolean := False;
+      Time_Valid   : Boolean := False;
+   end record;
+
+   type Comparison_Table is array (1 .. Max_Comparison_Rows) of Comparison_Row;
+
+   procedure Build_Comparison
+     (Rate_Bits, Bound, Quantity_Bits : Long_Float;
+      Match                           : out Interfaces.Integer_32;
+      Over_Human, Over_Bacterial      : out Long_Float;
+      Ratio_Valid                     : out Boolean;
+      Linear_Count, Log_Count         : out Interfaces.Integer_32;
+      Linear_Rows, Log_Rows           : out Comparison_Table);
 end Ath_Throughput;

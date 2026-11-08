@@ -1127,11 +1127,19 @@ function timeLabel(seconds, upper) {
   return upper ? `${t(state.lang, "throughput.atMost")} ${text}` : text;
 }
 
-function throughputNoteKey() {
-  if (state.throughput.bound === "1") return "throughput.note.lower";
-  if (state.throughput.rate === "25" && state.throughput.rateUnit === "0") return "throughput.note.historical";
+function throughputNoteKey(match) {
+  if (match === 2) return "throughput.note.lower";
+  if (match === 1) return "throughput.note.historical";
+  if (match === 3) return "throughput.note.link";
   return "throughput.note.assumption";
 }
+
+const THROUGHPUT_KIND = {
+  0: "throughput.customBar",
+  1: "throughput.humanBar",
+  2: "throughput.bacterialBar",
+  3: "throughput.linkBar",
+};
 
 function clearThroughputView() {
   for (const id of ["throughput-time", "throughput-total", "throughput-ratio", "throughput-exact-quantity", "throughput-exact-rate", "throughput-exact-time", "throughput-exact-total", "throughput-link-rate", "throughput-link-time", "throughput-exact-link"]) {
@@ -1140,6 +1148,8 @@ function clearThroughputView() {
   }
   document.getElementById("throughput-bars")?.replaceChildren();
   document.getElementById("throughput-compare")?.replaceChildren();
+  const note = document.getElementById("throughput-note");
+  if (note) note.textContent = "";
 }
 
 function rateLabel(rate, lower) {
@@ -1162,8 +1172,16 @@ function renderThroughput(outcome) {
     const bits = bitsLabel(outcome.total);
     totalNode.textContent = outcome.totalLower ? `${t(state.lang, "throughput.atLeast")} ${bits}` : bits;
   }
-  if (outcome.ratio !== null) {
+  const ratioLabel = document.getElementById("throughput-ratio-label");
+  if (outcome.match === 1 || outcome.match === 2) {
+    if (ratioLabel) ratioLabel.textContent = t(state.lang, "throughput.ratioLabel");
     ratioNode.textContent = formatReadable(outcome.ratio, state.lang);
+  } else if (outcome.overHuman !== null) {
+    if (ratioLabel) ratioLabel.textContent = t(state.lang, "throughput.ratioToHuman");
+    ratioNode.textContent = formatReadable(outcome.overHuman, state.lang);
+  } else if (ratioLabel) {
+    ratioLabel.textContent = t(state.lang, "throughput.ratioToHuman");
+    ratioNode.textContent = "";
   }
   document.getElementById("throughput-exact-quantity").textContent = outcome.quantityBits === null ? "" : formatCanonical(outcome.quantityBits);
   document.getElementById("throughput-exact-rate").textContent = outcome.rateBits === null ? "" : formatCanonical(outcome.rateBits);
@@ -1179,36 +1197,43 @@ function renderThroughput(outcome) {
   document.getElementById("throughput-linear")?.setAttribute("aria-pressed", logarithmic ? "false" : "true");
   document.getElementById("throughput-log")?.setAttribute("aria-pressed", logarithmic ? "true" : "false");
   if (scaleNote) {
-    scaleNote.textContent = logarithmic ? t(state.lang, "throughput.logNote") : t(state.lang, "throughput.linearNote");
+    scaleNote.textContent = logarithmic
+      ? t(state.lang, "throughput.logNote")
+      : (outcome.match === 1 || outcome.match === 2)
+        ? t(state.lang, "throughput.linearNote")
+        : t(state.lang, "throughput.linearWide");
   }
+  const note = document.getElementById("throughput-note");
+  if (note) note.textContent = t(state.lang, throughputNoteKey(outcome.match));
   if (outcome.linkTime !== null && outcome.linkRate !== null) {
     document.getElementById("throughput-link-rate").textContent = rateLabel(outcome.linkRate, false);
     document.getElementById("throughput-link-time").textContent = timeLabel(outcome.linkTime, false);
     document.getElementById("throughput-exact-link").textContent = formatCanonical(outcome.linkTime);
   }
-  if (outcome.humanRate === null || outcome.bacterialRate === null) return;
-  const rows = [
-    ["throughput.humanBar", outcome.humanRate, outcome.humanLinear, outcome.humanLog, outcome.human, false, ""],
-    ["throughput.bacterialBar", outcome.bacterialRate, outcome.bacterialLinear, outcome.bacterialLog, outcome.bacterial, true, "bound"],
-  ];
-  if (logarithmic && outcome.linkRate !== null) {
-    rows.push(["throughput.linkBar", outcome.linkRate, null, outcome.linkLog, outcome.linkTime, false, "link"]);
-  }
-  for (const [name, rate, linearShare, logShare, seconds, lower, klass] of rows) {
-    const share = logarithmic ? logShare : linearShare;
+  const rows = logarithmic ? outcome.logRows : outcome.linearRows;
+  if (!rows) return;
+  const klassFor = { 0: "chosen", 1: "", 2: "bound", 3: "link" };
+  for (const row of rows) {
+    const chosen = outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
+    const name = t(state.lang, THROUGHPUT_KIND[row.kind]);
+    const marked = chosen ? `${name} (${t(state.lang, "throughput.chosen")})` : name;
+    const when = row.seconds === null
+      ? t(state.lang, "throughput.unreachableValue")
+      : timeLabel(row.seconds, row.lower && row.seconds > 0);
     const item = document.createElement("li");
-    item.textContent = `${t(state.lang, name)} — ${rateLabel(rate, lower)} — ${timeLabel(seconds, lower && seconds > 0)}`;
+    item.textContent = `${marked} — ${rateLabel(row.rate, row.lower)} — ${when}`;
     list.append(item);
     const wrap = document.createElement("div");
     wrap.className = "bar-row";
     const label = document.createElement("span");
-    label.textContent = t(state.lang, name);
+    label.textContent = marked;
     const track = document.createElement("div");
     track.className = "bar-track";
     const fill = document.createElement("span");
+    const klass = klassFor[row.kind] || "";
     fill.className = klass ? `bar-fill ${klass}` : "bar-fill";
-    fill.dataset.share = formatCanonical(share);
-    fill.style.width = `${share * 100}%`;
+    fill.dataset.share = formatCanonical(row.share);
+    fill.style.width = `${row.share * 100}%`;
     track.append(fill);
     wrap.append(label, track);
     bars.append(wrap);
@@ -1233,8 +1258,6 @@ function throughputMessage(code, outcome) {
 function updateThroughput() {
   const statusNode = document.getElementById("throughput-status");
   if (!statusNode) return;
-  const note = document.getElementById("throughput-note");
-  if (note) note.textContent = t(state.lang, throughputNoteKey());
   clearThroughputView();
   let code = "loading";
   let outcome = null;
@@ -1337,18 +1360,123 @@ function showRoute(route, options = {}) {
   document.getElementById("reading")?.scrollIntoView({ block: "nearest" });
 }
 
-function setTechnical(open, options = {}) {
-  const details = document.getElementById("technical-details");
+function debugReport() {
+  const comment = document.getElementById("debug-expectation")?.value ?? "";
+  const textOf = (id) => document.getElementById(id)?.textContent ?? "";
+  const valueOf = (id) => document.getElementById(id)?.value ?? "";
+  const lines = [
+    "Ada Technological Horizons debug report",
+    `Release: ${textOf("diag-version") || textOf("header-version")}`,
+    `Published commit: ${textOf("diag-commit")}`,
+    `Locale: ${document.documentElement.lang}`,
+    `Active address: ${location.hash || "(all chapters)"}`,
+    `Wasm response type: ${textOf("diag-mime")}`,
+    `Execution: ${textOf("diag-execution")}`,
+    `Ada calls: ${textOf("diag-calls")}`,
+    `Toolchain: ${textOf("diag-toolchain")}`,
+    `Module fingerprint: ${textOf("diag-module")}`,
+    "",
+    "Expectation:",
+    comment.trim() === "" ? "(none)" : comment,
+    "",
+    "Lifetime",
+    `Probabilities: ${[1, 2, 3, 4].map((index) => valueOf(`prob-${index}`)).join(", ")}`,
+    `Durations: ${[1, 2, 3, 4].map((index) => valueOf(`years-${index}`)).join(", ")}`,
+    `Headline: ${textOf("lifetime-result")}`,
+    `Status: ${textOf("lifetime-status")}`,
+    "",
+    "Growth",
+    `Initial: ${valueOf("growth-initial")}`,
+    `Doubling: ${valueOf("growth-doubling")}`,
+    `Elapsed: ${valueOf("growth-elapsed")}`,
+    `Start year: ${valueOf("growth-start-year")}`,
+    `Target: ${valueOf("growth-target")}`,
+    `Quantity: ${textOf("growth-quantity")}`,
+    `Factor: ${textOf("growth-factor")}`,
+    `Evaluation year: ${textOf("growth-eval-year")}`,
+    `Chart end: ${textOf("growth-end-year")}`,
+    `Status: ${textOf("growth-status")}`,
+    "",
+    "Light time",
+    `Distance: ${valueOf("delay-distance")}`,
+    `Unit: ${valueOf("delay-unit")}`,
+    `One way: ${textOf("delay-one-way")}`,
+    `Reply: ${textOf("delay-round")}`,
+    `Events: ${[...document.querySelectorAll("#delay-events li")].map((node) => node.textContent).join(" | ")}`,
+    `Status: ${textOf("delay-status")}`,
+    "",
+    "Information rate",
+    `Quantity: ${valueOf("throughput-quantity")}`,
+    `Quantity unit: ${valueOf("throughput-quantity-unit")}`,
+    `Rate: ${valueOf("throughput-rate")}`,
+    `Rate unit: ${valueOf("throughput-rate-unit")}`,
+    `Duration: ${valueOf("throughput-duration")}`,
+    `Duration unit: ${valueOf("throughput-duration-unit")}`,
+    `Scale: ${state.throughput.scale}`,
+    `Time: ${textOf("throughput-time")}`,
+    `Total: ${textOf("throughput-total")}`,
+    `Ratio label: ${textOf("throughput-ratio-label")}`,
+    `Ratio: ${textOf("throughput-ratio")}`,
+    `Comparison: ${[...document.querySelectorAll("#throughput-compare li")].map((node) => node.textContent).join(" | ")}`,
+    `Link rate: ${textOf("throughput-link-rate")}`,
+    `Link time: ${textOf("throughput-link-time")}`,
+    `Status: ${textOf("throughput-status")}`,
+    `Note: ${textOf("throughput-note")}`,
+    "",
+    "Addition",
+    `Left: ${valueOf("operand-left")}`,
+    `Right: ${valueOf("operand-right")}`,
+    `Result: ${textOf("addition-result")}`,
+    `Status: ${textOf("addition-status")}`,
+    "",
+  ];
+  return lines.join("\n");
+}
+
+function downloadReport(text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = "ath-debug.txt";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+async function saveDebugReport() {
+  const text = debugReport();
+  const headless = /Headless/i.test(navigator.userAgent);
+  if (!headless && typeof window.showSaveFilePicker === "function") {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: "ath-debug.txt",
+        types: [{ description: "Text", accept: { "text/plain": [".txt"] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(text);
+      await writable.close();
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+    }
+  }
+  downloadReport(text);
+}
+
+function setDebugDialog(open) {
+  const dialog = document.getElementById("debug-dialog");
   const button = document.getElementById("debug-toggle");
-  if (!details || !button) return;
-  details.open = open;
-  button.setAttribute("aria-expanded", open ? "true" : "false");
-  if (open) {
-    details.scrollIntoView({ block: "nearest" });
-    if (options.focusPanel) details.querySelector("summary")?.focus();
-  } else if (options.focusButton) {
+  if (!dialog || !button) return;
+  if (open && !dialog.open) {
+    dialog.showModal();
+    document.getElementById("debug-expectation")?.focus();
+  } else if (!open && dialog.open) {
+    dialog.close();
     button.focus();
   }
+  button.setAttribute("aria-expanded", dialog.open ? "true" : "false");
 }
 
 async function boot() {
@@ -1719,30 +1847,40 @@ function bind() {
     card.focus();
     card.scrollIntoView({ block: "nearest" });
   });
-  const technical = document.getElementById("technical-details");
   const debugButton = document.getElementById("debug-toggle");
-  const syncDebugButton = () => {
-    debugButton?.setAttribute("aria-expanded", technical.open ? "true" : "false");
-  };
-  technical?.addEventListener("toggle", () => {
-    syncDebugButton();
-    queueMicrotask(syncDebugButton);
-  });
+  const debugDialog = document.getElementById("debug-dialog");
   debugButton?.addEventListener("click", () => {
-    setTechnical(!technical.open, { focusPanel: !technical.open, focusButton: technical.open });
+    setDebugDialog(!debugDialog.open);
+  });
+  document.getElementById("debug-cancel")?.addEventListener("click", () => {
+    setDebugDialog(false);
+  });
+  document.getElementById("debug-save")?.addEventListener("click", () => {
+    saveDebugReport();
+  });
+  debugDialog?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    setDebugDialog(false);
+  });
+  debugDialog?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab" || !debugDialog.open) return;
+    const items = [...debugDialog.querySelectorAll("textarea, button")].filter((node) => !node.disabled);
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "F9" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      if (event.repeat) return;
       event.preventDefault();
-      const open = !technical.open;
-      setTechnical(open, { focusPanel: open, focusButton: !open });
-    }
-    if (event.key === "Escape" && technical?.open) {
-      const target = event.target;
-      if (target instanceof Node && (technical.contains(target) || target === debugButton)) {
-        event.preventDefault();
-        setTechnical(false, { focusButton: true });
-      }
+      setDebugDialog(!debugDialog?.open);
     }
   });
   window.addEventListener("hashchange", () => {

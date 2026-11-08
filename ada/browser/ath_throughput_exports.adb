@@ -15,6 +15,15 @@ package body Ath_Throughput_Exports is
    Stored_Chart_Valid : Boolean := False;
    Stored_Time_Upper : Boolean := False;
    Stored_Total_Lower : Boolean := False;
+   Stored_Bound : Long_Float := 0.0;
+   Stored_Match : Interfaces.Integer_32 := 0;
+   Stored_Over_Human : Long_Float := 0.0;
+   Stored_Over_Bacterial : Long_Float := 0.0;
+   Stored_Ratio_Valid : Boolean := False;
+   Stored_Linear_Count : Interfaces.Integer_32 := 0;
+   Stored_Log_Count : Interfaces.Integer_32 := 0;
+   Stored_Linear : Ath_Throughput.Comparison_Table;
+   Stored_Log : Ath_Throughput.Comparison_Table;
 
    function Flag (Value : Boolean) return Interfaces.Integer_32 is
    begin
@@ -38,6 +47,15 @@ package body Ath_Throughput_Exports is
       Stored_Chart_Valid := False;
       Stored_Time_Upper := False;
       Stored_Total_Lower := False;
+      Stored_Bound := 0.0;
+      Stored_Match := 0;
+      Stored_Over_Human := 0.0;
+      Stored_Over_Bacterial := 0.0;
+      Stored_Ratio_Valid := False;
+      Stored_Linear_Count := 0;
+      Stored_Log_Count := 0;
+      Stored_Linear := (others => <>);
+      Stored_Log := (others => <>);
    end Clear;
 
    function Ath_Throughput_F64
@@ -57,6 +75,13 @@ package body Ath_Throughput_Exports is
         and then Status /= Ath_Throughput.Indeterminate
       then
          Clear;
+      else
+         Stored_Bound := Bound;
+         Ath_Throughput.Build_Comparison
+           (Stored_Rate, Stored_Bound, Stored_Quantity,
+            Stored_Match, Stored_Over_Human, Stored_Over_Bacterial,
+            Stored_Ratio_Valid, Stored_Linear_Count, Stored_Log_Count,
+            Stored_Linear, Stored_Log);
       end if;
       return Interfaces.Integer_32 (Status);
    end Ath_Throughput_F64;
@@ -260,4 +285,88 @@ package body Ath_Throughput_Exports is
         (Stored_Quantity, Ath_Throughput.Link_Bits_Per_Second, Seconds, Valid);
       return Flag (Valid);
    end Ath_Throughput_Link_Valid;
+
+   function Ath_Throughput_Match return Interfaces.Integer_32 is
+   begin
+      return Stored_Match;
+   end Ath_Throughput_Match;
+
+   function Ath_Throughput_Over_Human return Long_Float is
+   begin
+      return Stored_Over_Human;
+   end Ath_Throughput_Over_Human;
+
+   function Ath_Throughput_Over_Bacterial return Long_Float is
+   begin
+      return Stored_Over_Bacterial;
+   end Ath_Throughput_Over_Bacterial;
+
+   function Ath_Throughput_Ratio_Valid return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Ratio_Valid);
+   end Ath_Throughput_Ratio_Valid;
+
+   function Ath_Throughput_Linear_Count return Interfaces.Integer_32 is
+   begin
+      return Stored_Linear_Count;
+   end Ath_Throughput_Linear_Count;
+
+   function Ath_Throughput_Log_Count return Interfaces.Integer_32 is
+   begin
+      return Stored_Log_Count;
+   end Ath_Throughput_Log_Count;
+
+   function Row
+     (Which, Index : Interfaces.Integer_32) return Ath_Throughput.Comparison_Row is
+      Empty : Ath_Throughput.Comparison_Row;
+   begin
+      if Index < 1 then
+         return Empty;
+      elsif Which = 0 and then Index <= Stored_Linear_Count then
+         return Stored_Linear (Integer (Index));
+      elsif Which = 1 and then Index <= Stored_Log_Count then
+         return Stored_Log (Integer (Index));
+      end if;
+      return Empty;
+   end Row;
+
+   function Ath_Throughput_Row_Kind
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      return Row (Which, Index).Kind;
+   end Ath_Throughput_Row_Kind;
+
+   function Ath_Throughput_Row_Rate
+     (Which, Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      return Row (Which, Index).Rate;
+   end Ath_Throughput_Row_Rate;
+
+   function Ath_Throughput_Row_Seconds
+     (Which, Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      return Row (Which, Index).Seconds;
+   end Ath_Throughput_Row_Seconds;
+
+   function Ath_Throughput_Row_Share
+     (Which, Index : Interfaces.Integer_32) return Long_Float is
+      Item : constant Ath_Throughput.Comparison_Row := Row (Which, Index);
+   begin
+      if Which = 1 then
+         return Item.Logarithmic;
+      end if;
+      return Item.Linear;
+   end Ath_Throughput_Row_Share;
+
+   function Ath_Throughput_Row_Lower
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      return Flag (Row (Which, Index).Lower);
+   end Ath_Throughput_Row_Lower;
+
+   function Ath_Throughput_Row_Time_Valid
+     (Which, Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      return Flag (Row (Which, Index).Time_Valid);
+   end Ath_Throughput_Row_Time_Valid;
 end Ath_Throughput_Exports;

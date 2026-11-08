@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.13** makes that rate chart follow the rate you chose, and Debug / F9 opens a dialog that saves a local report. Nothing is uploaded.
+
 Version **0.1.12** compares information rates. On the linear chart the bacterial bar is 40 times the human bar. The nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T is a separate digital-link reference, not a claim about machine understanding. A logarithmic scale can include that link and says that its lengths are not the 40-to-1 ratio.
 
 Version **0.1.11** shows every calculator until a chapter, section, or catalogue filter is chosen. All chapters brings them back. Technical details stays closed until its button or F9 opens it.
@@ -79,7 +81,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.12`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.13`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 
