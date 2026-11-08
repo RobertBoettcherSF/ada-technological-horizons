@@ -1,5 +1,17 @@
 # Verification
 
+## v0.1.19 section entry and plain choices
+
+Choosing Creating Worlds from the chapter menu opens at the chapter heading, then Cultivating Information, then the calculator. The other calculators stay hidden, and the full section list is not shown underneath. The heading sits below the fixed debug bar. Back and All chapters return to the full page.
+
+The choices page says a bit is one yes-or-no. The fair-coin button fills 2 outcomes and 8 times, and the page says: eight coin tosses can produce 256 different sequences, and recording which one happened takes 8 bits. The die stays a fraction, **2.58496 bits** for one roll and **5.16993 bits** for two, with **36** sequences. The whole-number code length stays in the collapsed technical details. The arithmetic is unchanged.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/5a6f8237d5eb014a206118493defbf0d9e4b13a3/dist/index.html
+
+The page showed release `0.1.19`, commit `5a6f8237d5eb014a206118493defbf0d9e4b13a3`, and `application/wasm`. Creating Worlds showed the heading **Cultivating Information** before the calculator. The coin sentence named **256** sequences and **8 bits**. The die showed **2.58496 bits**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (91027 bytes, SHA-256 `7174eb34320291609f0ec1a0db257f232c3ffe810ca777f987fcec664e57f5a9`, `access-control-allow-origin: *`).
+
 ## v0.1.18 equally likely choices
 
 Cultivating Information, under Creating Worlds, computes ideal information for equally likely possibilities. A fair coin, N = 2 and k = 8, is **1 bit** for one toss, **8 bits** for eight tosses, and **256** combinations. A six-sided die is about **2.58496 bits** for one roll and **36** combinations for two rolls. The 26-letter alphabet, three independent letters, is **17576** combinations. These three are teaching examples, not quotations. The collapsed source note keeps the book’s logarithmic measure and the contrast with a set of about 100 element statements. k = 0 is one combination and 0 bits. N = 1 is 0 bits. N = 0, a fraction, and an integer above 2^53 are rejected. For N = 10 and k = 400 the count is not a finite exact value; log10 of the count is 400 and the ideal information stays finite. Choosing Creating Worlds leaves only this calculator. The catalogue counts five working calculators.
