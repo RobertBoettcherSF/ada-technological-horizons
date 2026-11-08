@@ -8,7 +8,7 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.0** is the scaffold and the Ada-to-WebAssembly boundary only.
+Version **0.1.1** is that scaffold with a clearer opening. The addition card is the first thing on the page. Chapter tiles describe each part of the book and stay marked planned. Search and the toolchain record are closed until opened. Version 0.1.0 was the same boundary without that presentation.
 
 - Eight book chapters, plus Conclusion and Afterword, with the planned sections named in `docs/DESIGN.md`.
 - A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all.
@@ -69,8 +69,8 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 The page shows release `0.1.0`. On that host it shows the commit from the URL as the published identity.
 
-Verified snapshot:
+The v0.1.0 snapshot remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/fecd1d9154dfbef5a69a306ef3409d9219d7958e/dist/index.html
 
-A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5. Details are in `docs/VERIFICATION.md`.
+The v0.1.1 opening is recorded in `docs/VERIFICATION.md` with the commit that contains it. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5.

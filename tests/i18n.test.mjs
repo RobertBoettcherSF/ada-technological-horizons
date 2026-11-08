@@ -20,7 +20,7 @@ test("the English credit sentence is exact", () => {
 });
 
 test("representative controls are actually translated", () => {
-  const keys = ["nav.previous", "nav.next", "catalogue.clear", "demo.empty", "demo.loadFailed", "type.planned"];
+  const keys = ["nav.previous", "nav.next", "catalogue.clear", "demo.empty", "demo.loadFailed", "type.planned", "app.invite", "demo.friendlyTitle", "diag.toggle"];
   for (const key of keys) {
     const values = new Set(LOCALES.map((locale) => t(locale, key)));
     assert.equal(values.size, 4, key);

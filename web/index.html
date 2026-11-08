@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.0">
+  <meta name="ath-release" content="0.1.1">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#content" data-i18n="skip.content">Skip to content</a>
+  <a class="skip" href="#try-addition" data-i18n="skip.content">Skip to the addition</a>
   <div class="horizon" aria-hidden="true"></div>
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="eyebrow"><span data-i18n="diag.version">Release</span> <span id="header-version">0.1.0</span></p>
+        <p class="release-pill" id="header-version">0.1.1</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
+        <p class="invite" data-i18n="app.invite">Start with the addition card. Then open a chapter tile to see its planned sections. Nothing in the chapters calculates in this release.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -28,64 +29,94 @@
         </select>
       </div>
     </div>
-    <nav class="chapter-nav" aria-labelledby="chapters-label">
-      <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
-      <ul id="chapter-list" class="chapter-list"></ul>
-    </nav>
   </header>
   <main id="content" class="wrap">
-    <section id="diagnostics" aria-labelledby="diagnostics-label">
-      <h2 id="diagnostics-label" data-i18n="diag.heading">Release identity</h2>
-      <dl class="diag">
-        <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.0</dd></div>
-        <div><dt data-i18n="diag.commit">Published commit</dt><dd id="diag-commit"></dd></div>
-        <div><dt data-i18n="diag.module">Module fingerprint</dt><dd id="diag-module"></dd></div>
-        <div><dt data-i18n="diag.toolchain">Toolchain</dt><dd id="diag-toolchain"></dd></div>
-        <div><dt data-i18n="diag.execution">Execution</dt><dd id="diag-execution" data-execution="idle"></dd></div>
-        <div><dt data-i18n="diag.calls">Ada calls</dt><dd id="diag-calls">0</dd></div>
-        <div><dt data-i18n="diag.locale">Locale</dt><dd id="diag-locale">en-GB</dd></div>
-        <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
-      </dl>
+    <section id="try-addition" class="demo-card" aria-labelledby="demo-title">
+      <p class="demo-kicker">
+        <span class="badge operational" data-i18n="type.technical-demo">Technical demonstration</span>
+        <span class="badge operational" data-i18n="availability.available">Operational</span>
+      </p>
+      <h2 id="demo-title" data-i18n="demo.friendlyTitle">Add two numbers</h2>
+      <p data-i18n="demo.lead">These two numbers are already filled in. Change either one and the sum updates. Ada does the addition. This card is a technical demonstration, not a scientific calculator.</p>
+      <form id="addition-form">
+        <div class="operands">
+          <div>
+            <label for="operand-left" data-i18n="demo.left">Left operand</label>
+            <input id="operand-left" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="2">
+          </div>
+          <div>
+            <label for="operand-right" data-i18n="demo.right">Right operand</label>
+            <input id="operand-right" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="3">
+          </div>
+        </div>
+        <div id="live-result" class="live-result">
+          <p class="live-label" data-i18n="demo.result">Result</p>
+          <output id="addition-result" for="operand-left operand-right"></output>
+        </div>
+        <p id="addition-status" role="status" aria-live="polite"></p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="reset-demo" class="secondary" data-i18n="demo.reset">Reset example</button>
+        </div>
+        <p id="decimal-note" class="note" data-i18n="demo.separator">Use a dot as the decimal separator in every language. Ada receives the binary64 value, not translated text.</p>
+        <p class="note" data-i18n="demo.contract">Contract: finite binary64 addition. A negative finite operand is an ordinary value. A non-finite operand or a non-finite sum is an error. Underflow to a finite result, including zero, is success. Tolerance for the published integer fixtures is exact binary64 equality.</p>
+        <div class="button-row quiet-actions">
+          <button type="button" id="retry-load" class="secondary" data-i18n="demo.retry">Retry Ada module</button>
+          <button type="button" id="simulate-failure" class="secondary" data-i18n="demo.simulate">Simulate module loading failure</button>
+        </div>
+      </form>
     </section>
-    <article id="reading" aria-labelledby="reading-title" tabindex="-1">
+
+    <nav class="chapter-nav" aria-labelledby="chapters-label">
+      <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
+      <p class="note" data-i18n="chapters.note">Each tile opens that part of the book. Planned tiles are not working calculators.</p>
+      <ul id="chapter-list" class="chapter-list"></ul>
+    </nav>
+
+    <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>
       <h2 id="reading-title" tabindex="-1"></h2>
       <p id="reading-meta"></p>
       <p id="reading-summary"></p>
       <div id="reading-pager" class="pager"></div>
     </article>
+
     <section id="catalogue" aria-labelledby="catalogue-label">
-      <h2 id="catalogue-label" data-i18n="catalogue.heading">Catalogue</h2>
-      <p data-i18n="catalogue.intro"></p>
-      <p data-i18n="catalogue.plannedNote"></p>
-      <div class="catalogue-controls">
-        <div class="search-wrap">
-          <label for="search" data-i18n="catalogue.search">Search titles, summaries and topics</label>
-          <input id="search" type="search" autocomplete="off">
+      <h2 id="catalogue-label" data-i18n="catalogue.heading">Sections</h2>
+      <p data-i18n="catalogue.intro">Book order is independent of this list. Sorting and filtering do not renumber the chapters.</p>
+      <p data-i18n="catalogue.plannedNote">Planned sections are not operational and are not counted as working calculators.</p>
+      <details id="catalogue-tools">
+        <summary data-i18n="catalogue.tools">Search, order and filters</summary>
+        <div class="catalogue-controls">
+          <div class="search-wrap">
+            <label for="search" data-i18n="catalogue.search">Search titles, summaries and topics</label>
+            <input id="search" type="search" autocomplete="off">
+          </div>
+          <div class="sort-wrap">
+            <label for="sort" data-i18n="catalogue.sort">Order</label>
+            <select id="sort">
+              <option value="reading" data-i18n="catalogue.sort.reading" selected>Reading order</option>
+              <option value="calculators" data-i18n="catalogue.sort.calculators">Calculators first</option>
+              <option value="topic" data-i18n="catalogue.sort.topic">Topic</option>
+              <option value="title" data-i18n="catalogue.sort.title">Title</option>
+            </select>
+          </div>
         </div>
-        <div class="sort-wrap">
-          <label for="sort" data-i18n="catalogue.sort">Order</label>
-          <select id="sort">
-            <option value="reading" data-i18n="catalogue.sort.reading" selected>Reading order</option>
-            <option value="calculators" data-i18n="catalogue.sort.calculators">Calculators first</option>
-            <option value="topic" data-i18n="catalogue.sort.topic">Topic</option>
-            <option value="title" data-i18n="catalogue.sort.title">Title</option>
-          </select>
+        <div id="filters" class="filters"></div>
+        <div class="button-row">
+          <button type="button" id="open-all" data-i18n="catalogue.openAll">Open all</button>
+          <button type="button" id="close-all" class="secondary" data-i18n="catalogue.closeAll">Close all</button>
+          <button type="button" id="clear-filters" class="secondary" data-i18n="catalogue.clear" aria-describedby="clear-help">Clear filters</button>
         </div>
-      </div>
-      <div id="filters" class="filters"></div>
-      <div class="button-row">
-        <button type="button" id="open-all" data-i18n="catalogue.openAll">Open all</button>
-        <button type="button" id="close-all" class="secondary" data-i18n="catalogue.closeAll">Close all</button>
-        <button type="button" id="clear-filters" class="secondary" data-i18n="catalogue.clear" aria-describedby="clear-help">Clear filters</button>
-      </div>
-      <p id="clear-help" class="note" data-i18n="catalogue.clearHelp"></p>
-      <dl class="counts">
-        <div><dt data-i18n="catalogue.results">Results</dt><dd id="result-count">0</dd></div>
-        <div><dt data-i18n="catalogue.activeFilters">Active filters</dt><dd id="active-count">0</dd></div>
-        <div><dt data-i18n="catalogue.workingCalculators">Working calculators</dt><dd id="working-count">0</dd></div>
-      </dl>
+        <p id="clear-help" class="note" data-i18n="catalogue.clearHelp"></p>
+        <dl class="counts">
+          <div><dt data-i18n="catalogue.results">Results</dt><dd id="result-count">0</dd></div>
+          <div><dt data-i18n="catalogue.activeFilters">Active filters</dt><dd id="active-count">0</dd></div>
+          <div><dt data-i18n="catalogue.workingCalculators">Working calculators</dt><dd id="working-count">0</dd></div>
+        </dl>
+      </details>
       <div id="catalogue-results"></div>
     </section>
+
     <section id="about" aria-labelledby="about-label">
       <h2 id="about-label" data-i18n="about.heading">About this release</h2>
       <p data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
@@ -95,6 +126,24 @@
       <p data-i18n="about.decimal"></p>
       <p data-i18n="app.licence"></p>
     </section>
+
+    <details id="technical-details">
+      <summary data-i18n="diag.toggle">Technical details</summary>
+      <section id="diagnostics" aria-labelledby="diagnostics-label">
+        <h2 id="diagnostics-label" data-i18n="diag.heading">Release identity</h2>
+        <dl class="diag">
+          <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.1</dd></div>
+          <div><dt data-i18n="diag.commit">Published commit</dt><dd id="diag-commit"></dd></div>
+          <div><dt data-i18n="diag.module">Module fingerprint</dt><dd id="diag-module"></dd></div>
+          <div><dt data-i18n="diag.toolchain">Toolchain</dt><dd id="diag-toolchain"></dd></div>
+          <div><dt data-i18n="diag.execution">Execution</dt><dd id="diag-execution" data-execution="idle"></dd></div>
+          <div><dt data-i18n="diag.calls">Ada calls</dt><dd id="diag-calls">0</dd></div>
+          <div><dt data-i18n="diag.locale">Locale</dt><dd id="diag-locale">en-GB</dd></div>
+          <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
+        </dl>
+      </section>
+    </details>
+
     <noscript>
       <p>JavaScript is required to load the Ada module and the catalogue. This page does not calculate a result without it.</p>
     </noscript>

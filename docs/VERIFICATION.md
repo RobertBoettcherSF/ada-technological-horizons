@@ -1,6 +1,21 @@
-# Verification for v0.1.0
+# Verification
 
-These commands were run on the implementation host (Ubuntu 24.04.5, x86_64). The live raw.githack URL is filled in after the commit that contains `dist/` has been fetched. It is not claimed here until that fetch succeeds.
+## v0.1.1 opening
+
+Checked on the same Ubuntu 24.04.5 host after `bash tools/build.sh`.
+
+- Native fixture: `NATIVE OK`. The Wasm module SHA-256 is unchanged, `92a552be9ee7c1421a17948e35caa50dbd746b043d19297db05af07f67f7b5d1`, because the Ada units did not change.
+- `node --test` on the catalogue, translation, state, number and Wasm-parity suites: 20 passed.
+- Headless Chromium against `dist/` printed `BROWSER OK` for `Content-Type: application/wasm` and again for `application/octet-stream`.
+- On first load, `#technical-details` is closed. Enter on its summary opens it and Enter closes it. The visible release label is `0.1.1`.
+- The addition card is before the section list, shows prefilled `2` and `3`, and shows result `5` from Ada. Chapter tiles expose a description in the active language.
+- Search, order and filters start closed. Enter on that summary opens them. The existing language, filter, sort, reset, collapse, error and load-failure checks still pass. At 320px, `scrollWidth - clientWidth` is at most 1.
+
+The immutable 0.1.1 raw.githack URL is recorded below once that commit has been loaded in a browser.
+
+## v0.1.0
+
+These commands were run on the implementation host (Ubuntu 24.04.5, x86_64).
 
 ## Build
 

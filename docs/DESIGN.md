@@ -1,5 +1,8 @@
 # Ada Technological Horizons — design proposal
 
+**Plan 1.1 presentation note (8 November 2026).** Release 0.1.1 changes only the opening of the scaffold. The addition card is the first thing to try. Chapter tiles carry a one-line description and stay marked planned. Search and the toolchain record are disclosures, closed until asked for. This note does not add a calculator, a chapter essay, or any later queue item. The sections below remain the original design proposal.
+
+
 **Design for review · 8 November 2026 (Europe/Berlin)**
 
 ## 1. Purpose

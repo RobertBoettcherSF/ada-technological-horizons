@@ -91,9 +91,9 @@ function applyI18n() {
   for (const node of document.querySelectorAll("[data-i18n]")) {
     node.textContent = t(state.lang, node.dataset.i18n);
   }
-  for (const link of document.querySelectorAll("[data-chapter-link]")) {
-    const chapter = chapterById(link.dataset.chapterLink);
-    link.textContent = chapter.title[state.lang];
+  for (const node of document.querySelectorAll("[data-chapter-title]")) {
+    const chapter = chapterById(node.dataset.chapterTitle);
+    node.textContent = chapter.title[state.lang];
   }
   for (const input of document.querySelectorAll("[data-filter-category]")) {
     const label = input.closest("label");
@@ -122,13 +122,22 @@ function renderChapterNav() {
   list.replaceChildren();
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
+    const statusKey = chapter.kind === "closing" ? "tile.retrospective" : "tile.planned";
     list.append(
       h("li", {}, [
-        h("a", {
-          href: `#${chapter.id}`,
-          text: chapter.title[state.lang],
-          dataset: { chapterLink: chapter.id, chapterKind: chapter.kind, firstSection: first.id },
-        }),
+        h(
+          "a",
+          {
+            href: `#${chapter.id}`,
+            class: chapter.kind === "closing" ? "chapter-tile is-retrospective" : "chapter-tile is-planned",
+            dataset: { chapterLink: chapter.id, chapterKind: chapter.kind, firstSection: first.id },
+          },
+          [
+            h("span", { class: "tile-status", dataset: { i18n: statusKey } }),
+            h("span", { class: "tile-title", dataset: { chapterTitle: chapter.id } }),
+            h("span", { class: "tile-blurb", dataset: { i18n: `chapter.${chapter.id}.blurb` } }),
+          ],
+        ),
       ]),
     );
   }
@@ -169,12 +178,14 @@ function renderReading(route) {
   panel.dataset.route = route || "";
 
   if (!route) {
-    title.textContent = t(state.lang, "reading.prompt");
+    panel.hidden = true;
+    title.textContent = "";
     summary.textContent = "";
     meta.textContent = "";
     pager.replaceChildren();
     return;
   }
+  panel.hidden = false;
 
   const chapter = chapterById(route);
   if (chapter && chapter.kind !== "technical") {
@@ -260,53 +271,12 @@ function renderCard(entry) {
   });
   body.append(summary, topic);
   if (entry.id === "technical/binary64-addition") {
-    body.append(renderDemo());
+    body.append(h("p", {}, [h("a", { href: "#try-addition", dataset: { i18n: "demo.jump" } })]));
   }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
     body,
   ]);
-}
-
-function renderDemo() {
-  const form = h("form", { id: "addition-form" });
-  const leftLabel = h("label", { for: "operand-left", dataset: { i18n: "demo.left" } });
-  const left = h("input", {
-    id: "operand-left",
-    type: "text",
-    inputmode: "decimal",
-    autocomplete: "off",
-    spellcheck: "false",
-    "aria-describedby": "decimal-note",
-  });
-  left.value = state.demo.left;
-  const rightLabel = h("label", { for: "operand-right", dataset: { i18n: "demo.right" } });
-  const right = h("input", {
-    id: "operand-right",
-    type: "text",
-    inputmode: "decimal",
-    autocomplete: "off",
-    spellcheck: "false",
-    "aria-describedby": "decimal-note",
-  });
-  right.value = state.demo.right;
-  form.append(
-    h("div", { class: "operands" }, [
-      h("div", {}, [leftLabel, left]),
-      h("div", {}, [rightLabel, right]),
-    ]),
-    h("p", { id: "decimal-note", class: "note", dataset: { i18n: "demo.separator" } }),
-    h("p", { class: "note", dataset: { i18n: "demo.contract" } }),
-    h("div", { class: "button-row" }, [
-      h("button", { type: "submit", dataset: { i18n: "demo.compute" } }),
-      h("button", { type: "button", id: "reset-demo", class: "secondary", dataset: { i18n: "demo.reset" } }),
-      h("button", { type: "button", id: "retry-load", class: "secondary", dataset: { i18n: "demo.retry" } }),
-      h("button", { type: "button", id: "simulate-failure", class: "secondary", dataset: { i18n: "demo.simulate" } }),
-    ]),
-    h("p", {}, [h("span", { dataset: { i18n: "demo.result" } }), h("span", { text: " " }), h("output", { id: "addition-result", for: "operand-left operand-right" })]),
-    h("p", { id: "addition-status", role: "status", "aria-live": "polite" }),
-  );
-  return form;
 }
 
 function renderResults() {
@@ -324,7 +294,7 @@ function renderResults() {
       ]),
     );
     applyI18n();
-    updateDiagnostics();
+    updateDemo();
     return;
   }
 
@@ -368,6 +338,10 @@ function renderResults() {
 
 function updateDiagnostics() {
   document.getElementById("diag-version").textContent = buildInfo.version;
+  const headerVersion = document.getElementById("header-version");
+  if (headerVersion) {
+    headerVersion.textContent = buildInfo.version;
+  }
   document.getElementById("diag-commit").textContent = publishedCommit();
   document.getElementById("diag-module").textContent = buildInfo.wasmSha256;
   document.getElementById("diag-module").title = buildInfo.wasmSha256;
@@ -428,6 +402,10 @@ function updateDemo() {
   }
   statusNode.dataset.status = String(code);
   statusNode.textContent = t(state.lang, statusMessage(code));
+  const live = document.getElementById("live-result");
+  if (live) {
+    live.dataset.status = String(code);
+  }
   updateDiagnostics();
 }
 
@@ -444,6 +422,9 @@ function statusMessage(code) {
 
 function routeFromHash() {
   const route = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (route === "try-addition" || route === "about" || route === "content") {
+    return "";
+  }
   return route;
 }
 
@@ -594,22 +575,9 @@ function bind() {
       chapterButton.textContent = opening ? "–" : "+";
       return;
     }
-    if (event.target.id === "reset-demo") {
-      state = resetDemo(state);
-      const left = document.getElementById("operand-left");
-      const right = document.getElementById("operand-right");
-      if (left) left.value = state.demo.left;
-      if (right) right.value = state.demo.right;
-      updateDemo();
-    }
-    if (event.target.id === "simulate-failure") {
-      simulateFailure();
-    }
-    if (event.target.id === "retry-load") {
-      boot();
-    }
   });
-  results.addEventListener("input", (event) => {
+  const form = document.getElementById("addition-form");
+  form.addEventListener("input", (event) => {
     if (event.target.id === "operand-left") {
       state = setDemoInput(state, "left", event.target.value);
       updateDemo();
@@ -619,11 +587,21 @@ function bind() {
       updateDemo();
     }
   });
-  results.addEventListener("submit", (event) => {
-    if (event.target.id === "addition-form") {
-      event.preventDefault();
-      updateDemo();
-    }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateDemo();
+  });
+  document.getElementById("reset-demo").addEventListener("click", () => {
+    state = resetDemo(state);
+    document.getElementById("operand-left").value = state.demo.left;
+    document.getElementById("operand-right").value = state.demo.right;
+    updateDemo();
+  });
+  document.getElementById("simulate-failure").addEventListener("click", () => {
+    simulateFailure();
+  });
+  document.getElementById("retry-load").addEventListener("click", () => {
+    boot();
   });
   window.addEventListener("hashchange", () => {
     showRoute(routeFromHash(), { focus: true });

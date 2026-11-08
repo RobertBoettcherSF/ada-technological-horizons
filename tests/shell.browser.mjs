@@ -50,11 +50,29 @@ async function shot(page, label, name) {
 async function exercise(page, label) {
   await page.goto(page.url() === "about:blank" ? page.context()._base : page.context()._base, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
-  await page.locator("#addition-form").scrollIntoViewIfNeeded();
-  await shot(page, label, "demo-result.png");
+  assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
+  assert.equal(await page.locator("#header-version").isVisible(), true);
+  const demoBeforeCatalogue = await page.evaluate(() => {
+    const demo = document.getElementById("try-addition");
+    const catalogue = document.getElementById("catalogue");
+    return Boolean(demo.compareDocumentPosition(catalogue) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  assert.equal(demoBeforeCatalogue, true);
+  const blurbs = await page.locator(".tile-blurb").evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
+  assert.equal(blurbs.length, 10);
+  assert.ok(blurbs.every((blurb) => blurb.length > 12));
+  await page.locator("#technical-details summary").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open);
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, label, "desktop-top.png");
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.0");
+  await shot(page, label, "opening.png");
+  await page.locator("#addition-form").scrollIntoViewIfNeeded();
+  await shot(page, label, "demo-result.png");
+  await shot(page, label, "demo-card.png");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.1");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -97,6 +115,12 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "cosmic-civilisations/formulating-the-method");
   const bookNext = await page.locator("#reading-next").getAttribute("href");
   assert.equal(bookNext, "#cosmic-civilisations/statistics-of-cosmic-civilisations");
+  const tools = page.locator("#catalogue-tools");
+  if (!(await tools.evaluate((element) => element.open))) {
+    await tools.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector("#catalogue-tools").open);
+  }
   await page.selectOption("#sort", "title");
   assert.equal(await page.locator("#reading-next").getAttribute("href"), bookNext);
   await page.selectOption("#sort", "calculators");
