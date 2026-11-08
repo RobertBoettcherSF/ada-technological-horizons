@@ -6,7 +6,11 @@
 
 Node suites: 23 passed, plus the headline check that 6523 displays as 6500 and 8523 as 8500. Headless Chromium printed `BROWSER OK` twice. The default card showed 6500 with exact mean 6523. Editing 60 to 30 showed 15, 30, 25, 30. A duration of 20000 showed 8500 without moving the probabilities. Invalid text cleared the headline. Technical details stayed closed until opened.
 
-The immutable review URL is added here after that commit is loaded in a browser.
+Verified in a browser on 8 November 2026, after raw.githack’s “Open the page” confirmation:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/72fc54fc4378c7d3fda7f21e5540b8a7c30edf43/dist/index.html
+
+The page showed release `0.1.3`, that commit, `application/wasm`, headline **6500** with exact mean **6523**, and closed Technical details. Editing 60 to 30 showed probabilities 15, 30, 25, 30 and headline **10500** (exact 10524). `curl` received `text/html` and `application/wasm` (14874 bytes, `access-control-allow-origin: *`).
 
 ## v0.1.2 calculator and theme
 

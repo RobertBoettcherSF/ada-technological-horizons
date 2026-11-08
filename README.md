@@ -81,4 +81,8 @@ The v0.1.2 calculator, before rebalancing and headline rounding, remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c7a2ea1e7df52e4a649402c698a5bd23fababf68/dist/index.html
 
-The verified v0.1.3 address is in `docs/VERIFICATION.md` once that commit has been loaded. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default headline is 6500 years.
+Verified v0.1.3 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/72fc54fc4378c7d3fda7f21e5540b8a7c30edf43/dist/index.html
+
+A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default headline is 6500 years. Details are in `docs/VERIFICATION.md`.
