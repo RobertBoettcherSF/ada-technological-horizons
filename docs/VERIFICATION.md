@@ -67,6 +67,22 @@ Also checked in that run:
 
 Screenshots from that run are in `docs/review/`.
 
-## Not claimed yet
+## Published snapshot
 
-The raw.githack address is unverified until a later note in this file says the fetch returned the page.
+Verified on 8 November 2026 against commit `fecd1d9154dfbef5a69a306ef3409d9219d7958e`:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/fecd1d9154dfbef5a69a306ef3409d9219d7958e/dist/index.html
+
+`curl` received `200` with `text/html` for the page, `application/javascript` for `dist/js/app.js`, and `application/wasm` for `dist/ath_addition.wasm` (6818 bytes). The Wasm response also sent `access-control-allow-origin: *` and `cache-control: max-age=31536000, public, immutable`.
+
+A browser is shown raw.githack’s confirmation screen first (“One more step” / “Open the page”). After that button, headless Chromium loaded this URL and reported:
+
+- release `0.1.0`
+- published commit `fecd1d9154dfbef5a69a306ef3409d9219d7958e`
+- execution `Ada WebAssembly`
+- Wasm response type `application/wasm`
+- one Ada call
+- result `5` for the default operands `2` and `3`
+- eight chapter links
+
+Screenshots of that session are `docs/review/githack-live.png` and `docs/review/githack-demo.png`.

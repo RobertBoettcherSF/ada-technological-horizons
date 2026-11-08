@@ -67,4 +67,10 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.0`. On that host it shows the commit from the URL as the published identity. The verified address is recorded in `docs/VERIFICATION.md` after it has been fetched.
+The page shows release `0.1.0`. On that host it shows the commit from the URL as the published identity.
+
+Verified snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/fecd1d9154dfbef5a69a306ef3409d9219d7958e/dist/index.html
+
+A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5. Details are in `docs/VERIFICATION.md`.
