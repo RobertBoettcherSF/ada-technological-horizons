@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callExplore, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -251,6 +251,33 @@ test("growth exports match the native fixture bits", async (t) => {
     assert.equal(outcome.status, Number(parts[2]), name);
     assert.equal(floatToBits(outcome.elapsed), parts[3], name);
     assert.equal(floatToBits(outcome.year), parts[4], name);
+  }
+
+  const extendInputs = {
+    "target-20": [1, 14, 30, 2026, 20, true],
+    "target-lowered": [1, 14, 30, 2026, 4, true],
+  };
+  const extensions = fs.readFileSync(growthPath, "utf8").split("\n").filter((line) => line.startsWith("EXTEND "));
+  assert.ok(extensions.length >= 2);
+  for (const line of extensions) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const inputs = extendInputs[name];
+    assert.ok(inputs, name);
+    const outcome = callExplore(session, ...inputs);
+    assert.equal(outcome.status, Number(parts[2]), name);
+    assert.equal(outcome.extended, parts[3] === "1", name);
+    assert.equal(floatToBits(outcome.quantity), parts[4], `${name} quantity`);
+    assert.equal(floatToBits(outcome.factor), parts[5], `${name} factor`);
+    assert.equal(floatToBits(outcome.evalYear), parts[6], name);
+    assert.equal(floatToBits(outcome.endYear), parts[7], name);
+    assert.equal(floatToBits(outcome.samples.at(-1).time), parts[8], name);
+    assertBitsOrOneUlp(floatToBits(outcome.samples.at(-1).quantity), parts[9], `${name} end quantity`);
+    assertBitsOrOneUlp(floatToBits(outcome.samples.at(-1).baseline), parts[10], `${name} baseline`);
+    if (outcome.extended) {
+      assert.notEqual(floatToBits(outcome.quantity), floatToBits(outcome.samples.at(-1).quantity), name);
+      assert.ok(outcome.endYear > outcome.evalYear, name);
+    }
   }
 });
 

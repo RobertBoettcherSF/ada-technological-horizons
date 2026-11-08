@@ -338,6 +338,19 @@ button.collapse {
   vector-effect: non-scaling-stroke;
 }
 .growth-curve .target-mark { fill: var(--ink); }
+.growth-curve .eval-line {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 0.8 0.8;
+  vector-effect: non-scaling-stroke;
+}
+.metric-note {
+  margin: 0.15rem 0 0;
+  color: var(--lime-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+.swatch.elapsed { background: var(--muted); }
 
 .growth-fields {
   display: grid;

@@ -19,6 +19,17 @@ package Ath_Growth_Exports is
    function Ath_Growth_End_Year return Long_Float
    with Export, Convention => C, External_Name => "ath_growth_end_year";
 
+   function Ath_Growth_Eval_Year return Long_Float
+   with Export, Convention => C, External_Name => "ath_growth_eval_year";
+
+   function Ath_Growth_Extended return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_growth_extended";
+
+   function Ath_Growth_Explore_F64
+     (Initial, Doubling, Elapsed, Start_Year, Target : Long_Float;
+      Use_Target : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_growth_explore_f64";
+
    function Ath_Growth_Baseline_Status return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_growth_baseline_status";
 

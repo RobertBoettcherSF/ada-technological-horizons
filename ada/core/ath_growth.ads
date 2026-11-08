@@ -79,11 +79,36 @@ package Ath_Growth is
       Growth_Status    : out Status_Code;
       Baseline_Status  : out Status_Code);
 
+   --  Quantity and Factor are always the values at the visitor's Elapsed time.
+   --  When Use_Target is true and the target is reached after that time, both
+   --  curves are sampled through the next whole calendar year at or after the
+   --  crossing, so the crossing is on the chart. An already-reached target and
+   --  a starting quantity of zero do not add any future. If the longer curve
+   --  is not finite, the chart stays on the visitor's elapsed time.
+   procedure Explore
+     (Initial         : Long_Float;
+      Doubling        : Long_Float;
+      Elapsed         : Long_Float;
+      Start_Year      : Long_Float;
+      Target          : Long_Float;
+      Use_Target      : Boolean;
+      Quantity        : out Long_Float;
+      Factor          : out Long_Float;
+      Eval_Year       : out Long_Float;
+      Chart_End       : out Long_Float;
+      Extended        : out Boolean;
+      Times           : out Sample_Times;
+      Model           : out Sample_Quantities;
+      Baseline        : out Sample_Quantities;
+      Growth_Status   : out Status_Code;
+      Baseline_Status : out Status_Code);
+
    --  Elapsed time t = d * log2(Target / N0), and the calendar year
    --  Start_Year + t. A target already at or below N0 is the starting year,
    --  not a crossing placed in the past. N0 = 0 never reaches a positive
-   --  target. A finite crossing beyond Elapsed is outside the chart, not
-   --  unreachable. Invalid targets and a failed scenario leave both outputs 0.
+   --  target. A finite crossing beyond Elapsed is beyond the visitor's
+   --  elapsed time; Explore may draw it by extending the chart. Invalid
+   --  targets and a failed scenario leave both outputs 0.
    procedure Crossing
      (Initial     : Long_Float;
       Doubling    : Long_Float;

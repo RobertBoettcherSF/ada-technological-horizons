@@ -308,6 +308,109 @@ begin
       then
          Fail ("export target clears");
       end if;
+
+      declare
+         Eval_Q      : Long_Float;
+         Eval_F      : Long_Float;
+         Eval_Y      : Long_Float;
+         Chart_Y     : Long_Float;
+         Held_Q      : Long_Float;
+         Check_Q     : Long_Float;
+         Check_F     : Long_Float;
+         Check_Times : Ath_Growth.Sample_Times;
+         Check_Values : Ath_Growth.Sample_Quantities;
+         Check_Status : Ath_Growth.Status_Code;
+         Extended    : Boolean;
+         Bound       : Long_Float;
+         Span_Times  : Ath_Growth.Sample_Times;
+         Span_Model  : Ath_Growth.Sample_Quantities;
+         Span_Base   : Ath_Growth.Sample_Quantities;
+         Span_Growth : Ath_Growth.Status_Code;
+         Span_Base_S : Ath_Growth.Status_Code;
+
+         procedure Emit_Extend (Name : String) is
+         begin
+            Ada.Text_IO.Put_Line
+              ("EXTEND " & Name &
+               Interfaces.Integer_32'Image (Interfaces.Integer_32 (Span_Growth)) &
+               " " & (if Extended then "1" else "0") &
+               " " & Hex (To_Bits (Eval_Q)) & " " & Hex (To_Bits (Eval_F)) &
+               " " & Hex (To_Bits (Eval_Y)) & " " & Hex (To_Bits (Chart_Y)) &
+               " " & Hex (To_Bits (Span_Times (Span_Times'Last))) &
+               " " & Hex (To_Bits (Span_Model (Span_Model'Last))) &
+               " " & Hex (To_Bits (Span_Base (Span_Base'Last))));
+         end Emit_Extend;
+      begin
+         Ath_Growth.Crossing
+           (1.0, 14.0, 30.0, 2026.0, 20.0, Cross_Time, Cross_Year, Target_Status);
+         Bound := Long_Float'Ceiling (Cross_Year);
+         Ath_Growth.Explore
+           (1.0, 14.0, 30.0, 2026.0, 20.0, True, Eval_Q, Eval_F, Eval_Y, Chart_Y,
+            Extended, Span_Times, Span_Model, Span_Base, Span_Growth, Span_Base_S);
+         Held_Q := Eval_Q;
+         if Target_Status /= Ath_Growth.Target_Outside
+           or else Span_Growth /= Ath_Growth.Ok
+           or else not Extended
+           or else Bound /= 2087.0
+           or else Chart_Y /= 2087.0
+           or else Chart_Y < Cross_Year
+           or else Eval_Y /= 2056.0
+           or else Span_Times (Span_Times'First) /= 2026.0
+           or else Span_Times (Span_Times'Last) /= 2087.0
+           or else Eval_Q = Span_Model (Span_Model'Last)
+           or else Span_Model (Span_Model'Last) < 20.0
+           or else Span_Base (Span_Base'Last) = 0.0
+           or else Span_Base_S /= Ath_Growth.Ok
+         then
+            Fail ("extend to target 20");
+         end if;
+         Ath_Growth.Grow
+           (1.0, 14.0, 30.0, Check_Q, Check_F, Check_Times, Check_Values, Check_Status);
+         if Check_Status /= Ath_Growth.Ok or else Check_Q /= Eval_Q or else Check_F /= Eval_F then
+            Fail ("evaluation stays at elapsed 30");
+         end if;
+         Emit_Extend ("target-20");
+
+         Ath_Growth.Explore
+           (1.0, 14.0, 30.0, 2026.0, 4.0, True, Eval_Q, Eval_F, Eval_Y, Chart_Y,
+            Extended, Span_Times, Span_Model, Span_Base, Span_Growth, Span_Base_S);
+         if Extended or else Chart_Y /= 2056.0 or else Eval_Y /= 2056.0
+           or else Eval_Q /= Held_Q
+           or else Span_Times (Span_Times'Last) /= 2056.0
+         then
+            Fail ("lower target restores horizon");
+         end if;
+         Emit_Extend ("target-lowered");
+
+         Ath_Growth.Explore
+           (1.0, 14.0, 30.0, 2026.0, 1.0, True, Eval_Q, Eval_F, Eval_Y, Chart_Y,
+            Extended, Span_Times, Span_Model, Span_Base, Span_Growth, Span_Base_S);
+         if Extended or else Chart_Y /= 2056.0 then
+            Fail ("already reached does not extend");
+         end if;
+
+         Ath_Growth.Explore
+           (0.0, 14.0, 30.0, 2026.0, 20.0, True, Eval_Q, Eval_F, Eval_Y, Chart_Y,
+            Extended, Span_Times, Span_Model, Span_Base, Span_Growth, Span_Base_S);
+         if Extended or else Eval_Q /= 0.0 or else Chart_Y /= 2056.0
+           or else Span_Times (Span_Times'Last) /= 2056.0
+         then
+            Fail ("zero start does not invent a crossing");
+         end if;
+
+         Export_Status :=
+           Ath_Growth_Exports.Ath_Growth_Explore_F64
+             (1.0, 14.0, 30.0, 2026.0, 20.0, 1);
+         if Export_Status /= 0
+           or else Ath_Growth_Exports.Ath_Growth_Extended /= 1
+           or else Ath_Growth_Exports.Ath_Growth_Eval_Year /= 2056.0
+           or else Ath_Growth_Exports.Ath_Growth_End_Year /= 2087.0
+           or else Ath_Growth_Exports.Ath_Growth_Quantity /= Held_Q
+           or else Ath_Growth_Exports.Ath_Growth_Sample_Time (Ath_Growth.Sample_Count) /= 2087.0
+         then
+            Fail ("export extend");
+         end if;
+      end;
    end;
 
    if Failures = 0 then

@@ -6,6 +6,8 @@ package body Ath_Growth_Exports is
    Stored_Quantity : Long_Float := 0.0;
    Stored_Factor   : Long_Float := 0.0;
    Stored_End_Year : Long_Float := 0.0;
+   Stored_Eval_Year : Long_Float := 0.0;
+   Stored_Extended : Interfaces.Integer_32 := 0;
    Stored_Baseline_Status : Interfaces.Integer_32 := 0;
    Stored_Times    : Ath_Growth.Sample_Times := (others => 0.0);
    Stored_Values   : Ath_Growth.Sample_Quantities := (others => 0.0);
@@ -18,6 +20,8 @@ package body Ath_Growth_Exports is
       Stored_Quantity := 0.0;
       Stored_Factor := 0.0;
       Stored_End_Year := 0.0;
+      Stored_Eval_Year := 0.0;
+      Stored_Extended := 0;
       Stored_Baseline_Status := 0;
       Stored_Times := (others => 0.0);
       Stored_Values := (others => 0.0);
@@ -44,6 +48,8 @@ package body Ath_Growth_Exports is
          Stored_Quantity := Quantity;
          Stored_Factor := Factor;
          Stored_End_Year := End_Year;
+         Stored_Eval_Year := End_Year;
+         Stored_Extended := 0;
          Stored_Baseline_Status := Interfaces.Integer_32 (Baseline_Status);
          Stored_Times := Times;
          Stored_Values := Model;
@@ -68,6 +74,51 @@ package body Ath_Growth_Exports is
    begin
       return Stored_End_Year;
    end Ath_Growth_End_Year;
+
+   function Ath_Growth_Eval_Year return Long_Float is
+   begin
+      return Stored_Eval_Year;
+   end Ath_Growth_Eval_Year;
+
+   function Ath_Growth_Extended return Interfaces.Integer_32 is
+   begin
+      return Stored_Extended;
+   end Ath_Growth_Extended;
+
+   function Ath_Growth_Explore_F64
+     (Initial, Doubling, Elapsed, Start_Year, Target : Long_Float;
+      Use_Target : Interfaces.Integer_32) return Interfaces.Integer_32
+   is
+      Quantity        : Long_Float;
+      Factor          : Long_Float;
+      Eval_Year       : Long_Float;
+      Chart_End       : Long_Float;
+      Extended        : Boolean;
+      Times           : Ath_Growth.Sample_Times;
+      Model           : Ath_Growth.Sample_Quantities;
+      Baseline        : Ath_Growth.Sample_Quantities;
+      Growth_Status   : Ath_Growth.Status_Code;
+      Baseline_Status : Ath_Growth.Status_Code;
+   begin
+      Ath_Growth.Explore
+        (Initial, Doubling, Elapsed, Start_Year, Target, Use_Target /= 0,
+         Quantity, Factor, Eval_Year, Chart_End, Extended, Times, Model,
+         Baseline, Growth_Status, Baseline_Status);
+      if Growth_Status = Ath_Growth.Ok then
+         Stored_Quantity := Quantity;
+         Stored_Factor := Factor;
+         Stored_Eval_Year := Eval_Year;
+         Stored_End_Year := Chart_End;
+         Stored_Extended := (if Extended then 1 else 0);
+         Stored_Baseline_Status := Interfaces.Integer_32 (Baseline_Status);
+         Stored_Times := Times;
+         Stored_Values := Model;
+         Stored_Baseline := Baseline;
+      else
+         Clear_Curve;
+      end if;
+      return Interfaces.Integer_32 (Growth_Status);
+   end Ath_Growth_Explore_F64;
 
    function Ath_Growth_Baseline_Status return Interfaces.Integer_32 is
    begin

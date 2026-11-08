@@ -61,6 +61,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_growth_target_f64 !== "function") {
     throw new Error("Ada module is missing ath_growth_target_f64");
   }
+  if (typeof instance.exports.ath_growth_explore_f64 !== "function") {
+    throw new Error("Ada module is missing ath_growth_explore_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -145,6 +148,52 @@ export function callGrowth(session, initial, doubling, elapsed, startYear) {
     quantity: session.exports.ath_growth_quantity(),
     factor: session.exports.ath_growth_factor(),
     endYear: session.exports.ath_growth_end_year(),
+    baselineStatus: session.exports.ath_growth_baseline_status(),
+    samples,
+  };
+}
+
+export function callExplore(session, initial, doubling, elapsed, startYear, target, useTarget) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_growth_explore_f64(
+    initial,
+    doubling,
+    elapsed,
+    startYear,
+    useTarget ? target : 0,
+    useTarget ? 1 : 0,
+  );
+  session.invocations += 1;
+  if (status !== STATUS_OK) {
+    return {
+      status,
+      quantity: null,
+      factor: null,
+      evalYear: null,
+      endYear: null,
+      extended: false,
+      baselineStatus: null,
+      samples: null,
+    };
+  }
+  const count = session.exports.ath_growth_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      time: session.exports.ath_growth_sample_time(index),
+      quantity: session.exports.ath_growth_sample_quantity(index),
+      baseline: session.exports.ath_growth_sample_baseline(index),
+    });
+  }
+  return {
+    status,
+    quantity: session.exports.ath_growth_quantity(),
+    factor: session.exports.ath_growth_factor(),
+    evalYear: session.exports.ath_growth_eval_year(),
+    endYear: session.exports.ath_growth_end_year(),
+    extended: session.exports.ath_growth_extended() === 1,
     baselineStatus: session.exports.ath_growth_baseline_status(),
     samples,
   };

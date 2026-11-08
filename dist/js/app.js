@@ -33,7 +33,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callExplore, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -539,13 +539,17 @@ function updateLifetime() {
 }
 
 function clearGrowthView() {
-  for (const id of ["growth-quantity", "growth-factor", "growth-end-year"]) {
+  for (const id of ["growth-quantity", "growth-factor", "growth-end-year", "growth-eval-year"]) {
     const node = document.getElementById(id);
     if (node) {
       node.textContent = "";
       delete node.dataset.exact;
     }
   }
+  const chartNote = document.getElementById("growth-chart-note");
+  if (chartNote) chartNote.textContent = "";
+  const evalLegend = document.getElementById("growth-eval-legend");
+  if (evalLegend) evalLegend.hidden = true;
   document.getElementById("growth-samples")?.replaceChildren();
   document.getElementById("growth-curve")?.replaceChildren();
   document.getElementById("growth-x-ticks")?.replaceChildren();
@@ -668,7 +672,7 @@ function renderGrowthCurve(outcome, target) {
   const dataMax = quantities.reduce((max, value) => Math.max(max, value), 0);
   let includeTarget = false;
   if (target && (target.status === 0 || target.status === 1 || target.status === 3) && Number.isFinite(target.level) && target.level > 0) {
-    includeTarget = target.status === 0 || target.status === 1 || (dataMax > 0 && target.level <= dataMax * 1.5);
+    includeTarget = target.status === 0 || target.status === 1 || outcome.extended;
   }
   const yMax = scale === "log"
     ? Math.max(...quantities.filter((value) => value > 0), includeTarget ? target.level : 0)
@@ -698,6 +702,18 @@ function renderGrowthCurve(outcome, target) {
   };
   addSeries("series-chosen", (sample) => sample.quantity);
   if (baselineDrawn) addSeries("series-baseline", (sample) => sample.baseline);
+  if (outcome.extended && Number.isFinite(outcome.evalYear)) {
+    const mark = document.createElementNS(svg, "line");
+    const x = xOf(outcome.evalYear);
+    mark.setAttribute("class", "eval-line");
+    mark.setAttribute("x1", String(x));
+    mark.setAttribute("x2", String(x));
+    mark.setAttribute("y1", "0");
+    mark.setAttribute("y2", "100");
+    curve.append(mark);
+  }
+  const evalLegend = document.getElementById("growth-eval-legend");
+  if (evalLegend) evalLegend.hidden = !outcome.extended;
   if (includeTarget) {
     const y = yOf(target.level);
     const line = document.createElementNS(svg, "line");
@@ -707,7 +723,8 @@ function renderGrowthCurve(outcome, target) {
     line.setAttribute("y1", String(y));
     line.setAttribute("y2", String(y));
     curve.append(line);
-    if ((target.status === 0 || target.status === 1) && target.year >= xMin && target.year <= xMax) {
+    if ((target.status === 0 || target.status === 1 || (target.status === 3 && outcome.extended))
+      && target.year >= xMin && target.year <= xMax) {
       const mark = document.createElementNS(svg, "circle");
       mark.setAttribute("class", "target-mark");
       mark.setAttribute("cx", String(xOf(target.year)));
@@ -752,7 +769,7 @@ function renderGrowthCurve(outcome, target) {
   }
 }
 
-function showTarget(code, yearText, exactYear, exactElapsed) {
+function showTarget(code, yearText, exactYear, exactElapsed, extended = false) {
   const statusNode = document.getElementById("growth-target-status");
   const text = document.getElementById("growth-target-text");
   const year = document.getElementById("growth-target-year");
@@ -762,7 +779,7 @@ function showTarget(code, yearText, exactYear, exactElapsed) {
     0: "growth.targetWithin",
     1: "growth.targetAlready",
     2: "growth.targetNever",
-    3: "growth.targetOutside",
+    3: extended ? "growth.targetWithin" : "growth.targetOutside",
     4: "growth.targetInvalid",
     5: "growth.targetOverflow",
     empty: "growth.targetEmpty",
@@ -794,6 +811,8 @@ function updateGrowth() {
   const doubling = interpretOperand(state.growth.doubling);
   const elapsed = interpretOperand(state.growth.elapsed);
   const startYear = interpretOperand(state.growth.startYear);
+  const target = interpretOperand(state.growth.target);
+  const useTarget = target.kind === "value" && Number.isFinite(target.value) && target.value > 0;
   if (session.phase === "loading") {
     code = "loading";
   } else if (session.phase !== "ready" || !session.exports) {
@@ -803,16 +822,30 @@ function updateGrowth() {
   } else if ([initial, doubling, elapsed, startYear].some((item) => item.kind !== "value")) {
     code = "malformed";
   } else {
-    outcome = callGrowth(session, initial.value, doubling.value, elapsed.value, startYear.value);
+    outcome = callExplore(
+      session,
+      initial.value,
+      doubling.value,
+      elapsed.value,
+      startYear.value,
+      useTarget ? target.value : 0,
+      useTarget,
+    );
     code = outcome.status;
     if (outcome.status === 0 && outcome.quantity !== null && outcome.samples) {
       try {
+        const evalNode = document.getElementById("growth-eval-year");
+        const chartNote = document.getElementById("growth-chart-note");
         quantityNode.textContent = formatReadable(outcome.quantity, state.lang);
         factorNode.textContent = formatReadable(outcome.factor, state.lang);
         endNode.textContent = formatReadable(outcome.endYear, state.lang, "year");
+        evalNode.textContent = formatReadable(outcome.evalYear, state.lang, "year");
         quantityNode.dataset.exact = formatCanonical(outcome.quantity);
         factorNode.dataset.exact = formatCanonical(outcome.factor);
         endNode.dataset.exact = formatCanonical(outcome.endYear);
+        endNode.dataset.extended = outcome.extended ? "1" : "0";
+        evalNode.dataset.exact = formatCanonical(outcome.evalYear);
+        chartNote.textContent = t(state.lang, outcome.extended ? "growth.chartExtended" : "growth.chartHorizon");
         document.getElementById("growth-exact-quantity").textContent = formatCanonical(outcome.quantity);
         document.getElementById("growth-exact-factor").textContent = formatCanonical(outcome.factor);
         shown = true;
@@ -823,7 +856,6 @@ function updateGrowth() {
       }
     }
   }
-  const target = interpretOperand(state.growth.target);
   let targetView = null;
   if (!shown) {
     clearGrowthView();
@@ -851,6 +883,7 @@ function updateGrowth() {
         formatReadable(crossing.year, state.lang, "year"),
         formatCanonical(crossing.year),
         formatCanonical(crossing.elapsed),
+        outcome.extended,
       );
       targetView = { status: crossing.status, year: crossing.year, level: target.value };
     }

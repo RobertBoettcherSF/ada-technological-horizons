@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.5">
+  <meta name="ath-release" content="0.1.6">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.5</p>
+        <p class="release-pill" id="header-version">0.1.6</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -164,6 +164,7 @@
           <div>
             <p class="live-label" data-i18n="growth.quantity">Quantity</p>
             <output id="growth-quantity" for="growth-initial growth-doubling growth-elapsed growth-start-year"></output>
+            <p class="metric-note"><span data-i18n="growth.atYear">At year</span> <span id="growth-eval-year"></span></p>
           </div>
           <div>
             <p class="live-label" data-i18n="growth.factor">Growth factor</p>
@@ -172,6 +173,7 @@
           <div>
             <p class="live-label" data-i18n="growth.endYear">Chart ends</p>
             <output id="growth-end-year"></output>
+            <p class="metric-note" id="growth-chart-note"></p>
           </div>
         </div>
         <p id="growth-target-status" role="status" aria-live="polite">
@@ -201,6 +203,7 @@
       <ul id="growth-legend" class="legend">
         <li><span class="swatch chosen" aria-hidden="true"></span><span data-i18n="growth.chosen">Chosen doubling</span></li>
         <li><span class="swatch baseline" aria-hidden="true"></span><span data-i18n="growth.baseline">15-year baseline</span></li>
+        <li id="growth-eval-legend" hidden><span class="swatch elapsed" aria-hidden="true"></span><span data-i18n="growth.elapsedMark">Your elapsed time</span></li>
       </ul>
       <p id="growth-baseline-note" class="note" data-i18n="growth.baselineNote">The cyan curve keeps a 15-year doubling on the same axes. It is a comparison, not a forecast.</p>
       <p id="growth-baseline-warning" class="note" hidden></p>

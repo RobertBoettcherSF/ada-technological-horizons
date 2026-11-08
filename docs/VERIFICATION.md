@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.6 extended chart horizon
+
+`bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, and `GROWTH OK`. For N₀ = 1, doubling time 14 years, 30 elapsed years, start 2026 and target 20, the quantity and factor stay at the 30-year value and the chart ends at 2087, with both curves sampled through that year. The crossing is on the chart. Lowering the target to 4 restores the chart end to 2056 and leaves the 30-year quantity unchanged. An already-reached target and a starting quantity of zero do not extend the chart. Lifetime fixtures are unchanged, including exact 6523.
+
+Node suites: 25 passed, including bit-matched Wasm replay of that extended case. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The page showed quantity 4.41636 and factor 4.41636 at year 2056, chart end 2087, and the target year 2086.507. At 320px, `scrollWidth - clientWidth` was at most 1.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.5 calendar, baseline, and target year
 
 `bash tools/build.sh` printed `NATIVE OK`, `LIFETIME OK`, and `GROWTH OK`. The lifetime fixtures are unchanged, including exact 6523 and 8523. Growth defaults remain quantity 4 and factor 4. With starting year 2026 the chart ends at 2056. Target 4 is reached in 2056 when the doubling time is 15, and in 2054 when it is 14. A target already at or below the starting quantity stays at 2026. A starting quantity of 0 does not invent a year for a positive target. Target 10 is reported after the 30-year chart. A fractional year and a year outside -10000..10000 clear the curve. An invalid target clears only the target year.

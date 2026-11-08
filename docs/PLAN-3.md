@@ -1,6 +1,6 @@
 # Plan 3 — Scientific-information growth
 
-**Ada Technological Horizons · approved with “OK” and implemented in release 0.1.4. Release 0.1.5 adds the calendar, baseline, and target year.**
+**Ada Technological Horizons · approved with “OK” and implemented in release 0.1.4. Release 0.1.5 adds the calendar, baseline, and target year. Release 0.1.6 extends the chart through a reachable target.**
 
 The visitor-facing calculator is Intellectronics / Return to Earth. Ada computes unrestricted exponential growth of a normalised index. JavaScript only marshals the fields and draws the samples Ada returns. It does not evaluate the power, the factor, or the curve.
 
@@ -54,6 +54,10 @@ The quantity model is unchanged. The chart adds a presentation calendar and a co
 - There is no tipping point in a fixed exponential. The note on the card says so in one sentence.
 
 An integer power of two, and every calendar sum of the default years, is bit-exact in native GNAT and in Wasm. A non-integer power may differ by one binary64 ulp between the native maths library and the wasm32 run-time. The parity check allows that one ulp and still requires the baseline to be cleared, rather than capped, when it overflows.
+
+## Chart horizon in 0.1.6
+
+The quantity and the factor stay at the elapsed time the visitor entered. When a positive target is reached later, Ada samples both the chosen curve and the 15-year baseline through the next whole calendar year at or after that crossing. For a start of 2026, a doubling time of 14 years, 30 elapsed years and a target of 20, the quantity is about 4.41636 at 2056 and the chart ends at 2087, which includes the crossing. Lowering the target back inside the 30 years restores the chart end to 2056. A target already reached at the start, and a starting quantity of zero, do not add any future years. If the longer curve is not finite, the chart stays on the elapsed time and nothing is capped.
 
 ## Out of scope
 

@@ -310,4 +310,86 @@ package body Ath_Growth is
          Status := Target_Within;
       end if;
    end Crossing;
+
+   procedure Explore
+     (Initial         : Long_Float;
+      Doubling        : Long_Float;
+      Elapsed         : Long_Float;
+      Start_Year      : Long_Float;
+      Target          : Long_Float;
+      Use_Target      : Boolean;
+      Quantity        : out Long_Float;
+      Factor          : out Long_Float;
+      Eval_Year       : out Long_Float;
+      Chart_End       : out Long_Float;
+      Extended        : out Boolean;
+      Times           : out Sample_Times;
+      Model           : out Sample_Quantities;
+      Baseline        : out Sample_Quantities;
+      Growth_Status   : out Status_Code;
+      Baseline_Status : out Status_Code)
+   is
+      Cross_Time      : Long_Float;
+      Cross_Year      : Long_Float;
+      Target_Status   : Target_Code;
+      Span            : Long_Float;
+      Longer_Quantity : Long_Float;
+      Longer_Factor   : Long_Float;
+      Longer_End      : Long_Float;
+      Longer_Times    : Sample_Times;
+      Longer_Model    : Sample_Quantities;
+      Longer_Baseline : Sample_Quantities;
+      Longer_Status   : Status_Code;
+      Longer_Base     : Status_Code;
+   begin
+      Extended := False;
+      Chart
+        (Initial, Doubling, Elapsed, Start_Year, Quantity, Factor, Eval_Year,
+         Times, Model, Baseline, Growth_Status, Baseline_Status);
+      Chart_End := Eval_Year;
+      if Growth_Status /= Ok or else not Use_Target then
+         return;
+      end if;
+
+      Crossing
+        (Initial, Doubling, Elapsed, Start_Year, Target,
+         Cross_Time, Cross_Year, Target_Status);
+      --  Already reached, never reached, and a crossing inside the elapsed
+      --  time keep the visitor's horizon. Only a later finite crossing extends.
+      if Target_Status /= Target_Outside then
+         return;
+      end if;
+
+      Chart_End := Long_Float'Ceiling (Cross_Year);
+      Span := Chart_End - Start_Year;
+      if not Is_Finite (Chart_End) or else not Is_Finite (Span)
+        or else Chart_End < Cross_Year or else Span < Elapsed
+      then
+         Chart_End := Eval_Year;
+         return;
+      end if;
+
+      Chart
+        (Initial, Doubling, Span, Start_Year, Longer_Quantity, Longer_Factor,
+         Longer_End, Longer_Times, Longer_Model, Longer_Baseline,
+         Longer_Status, Longer_Base);
+      if Longer_Status /= Ok or else not Is_Finite (Longer_End)
+        or else Longer_End < Cross_Year
+      then
+         Chart_End := Eval_Year;
+         return;
+      end if;
+
+      Times := Longer_Times;
+      Model := Longer_Model;
+      Chart_End := Longer_End;
+      Extended := True;
+      if Longer_Base = Ok then
+         Baseline := Longer_Baseline;
+         Baseline_Status := Ok;
+      else
+         Baseline := (others => 0.0);
+         Baseline_Status := Longer_Base;
+      end if;
+   end Explore;
 end Ath_Growth;
