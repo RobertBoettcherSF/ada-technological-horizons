@@ -67,6 +67,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_delay_f64 !== "function") {
     throw new Error("Ada module is missing ath_delay_f64");
   }
+  if (typeof instance.exports.ath_throughput_f64 !== "function") {
+    throw new Error("Ada module is missing ath_throughput_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -251,6 +254,61 @@ export function delayPreset(session, index) {
   return {
     distance: session.exports.ath_delay_preset_distance(index),
     unit: session.exports.ath_delay_preset_unit(index),
+  };
+}
+
+export function callThroughput(
+  session,
+  quantity,
+  quantityUnit,
+  rate,
+  rateUnit,
+  bound,
+  duration,
+  durationUnit,
+) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_throughput_f64(
+    quantity,
+    quantityUnit,
+    rate,
+    rateUnit,
+    bound,
+    duration,
+    durationUnit,
+  );
+  session.invocations += 1;
+  const timeValid = session.exports.ath_throughput_time_valid() === 1;
+  const totalValid = session.exports.ath_throughput_total_valid() === 1;
+  const chartValid = session.exports.ath_throughput_chart_valid() === 1;
+  return {
+    status,
+    time: timeValid ? session.exports.ath_throughput_time() : null,
+    timeUpper: session.exports.ath_throughput_time_upper() === 1,
+    total: totalValid ? session.exports.ath_throughput_total() : null,
+    totalLower: session.exports.ath_throughput_total_lower() === 1,
+    human: chartValid ? session.exports.ath_throughput_human() : null,
+    bacterial: chartValid ? session.exports.ath_throughput_bacterial() : null,
+    ratio: chartValid ? session.exports.ath_throughput_ratio() : null,
+    quantityBits: totalValid || chartValid ? session.exports.ath_throughput_quantity_bits() : null,
+    rateBits: totalValid ? session.exports.ath_throughput_rate_bits() : null,
+  };
+}
+
+export function throughputPreset(session, index) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  return {
+    quantity: session.exports.ath_throughput_preset_quantity(index),
+    quantityUnit: session.exports.ath_throughput_preset_quantity_unit(index),
+    rate: session.exports.ath_throughput_preset_rate(index),
+    rateUnit: session.exports.ath_throughput_preset_rate_unit(index),
+    bound: session.exports.ath_throughput_preset_bound(index),
+    setsQuantity: session.exports.ath_throughput_preset_sets_quantity(index) === 1,
+    setsRate: session.exports.ath_throughput_preset_sets_rate(index) === 1,
   };
 }
 

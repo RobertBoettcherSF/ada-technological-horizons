@@ -571,6 +571,8 @@ button.collapse {
   background: var(--lime);
 }
 
+.bar-fill.bound { background: var(--cyan); }
+
 .table-scroll {
   width: 100%;
   max-width: 100%;

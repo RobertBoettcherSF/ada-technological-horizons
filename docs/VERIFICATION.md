@@ -1,5 +1,11 @@
 # Verification
 
+## v0.1.10 constant-rate information
+
+The prefilled Constructing Life example is 10,000 bits at 25 bits/s for 400 seconds. Ada reports 400 seconds and 10,000 bits. The same quantity at the bacterial lower bound of 1,000 bits/s is at most 10 seconds, and the historical rate ratio is 40. One page unit is that 10,000-bit convention. 1,500 bits per minute matches 25 bits per second. A rate of zero leaves the time unreachable and the total at 0 bits. A negative value clears the chart. The other calculators stay at headline 6500, growth quantity 4, and a Venus reply list of 4.6 min.
+
+`bash tools/test.sh` is recorded with this release. The immutable raw.githack check is added once that URL has been loaded.
+
 ## v0.1.9 cumulative event list
 
 The event list shows time since the signal leaves. For Earth–Venus the reply line is **4.6 min**, matching the headline, while each connecting leg stays **2.3 min**. The Moon list ends at **2.56 s** with legs of **1.28 s**. One thousand light-years lists **2000 years** with legs of **1000 years**. The same cumulative line is checked in German, French, and Spanish.

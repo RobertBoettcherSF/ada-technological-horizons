@@ -6,6 +6,16 @@ export const DELAY_DEFAULTS = {
   unit: "2",
 };
 
+export const THROUGHPUT_DEFAULTS = {
+  quantity: "10000",
+  quantityUnit: "0",
+  rate: "25",
+  rateUnit: "0",
+  bound: "0",
+  duration: "400",
+  durationUnit: "0",
+};
+
 export const GROWTH_DEFAULTS = {
   initial: "1",
   doubling: "15",
@@ -44,6 +54,7 @@ export function createState() {
     lifetime: lifetimeDefaults(),
     growth: { ...GROWTH_DEFAULTS },
     delay: { ...DELAY_DEFAULTS },
+    throughput: { ...THROUGHPUT_DEFAULTS },
   };
 }
 
@@ -91,6 +102,14 @@ export function setDelayInput(state, field, value) {
 
 export function resetDelay(state) {
   return { ...state, delay: { ...DELAY_DEFAULTS } };
+}
+
+export function setThroughputInput(state, field, value) {
+  return { ...state, throughput: { ...state.throughput, [field]: value } };
+}
+
+export function resetThroughput(state) {
+  return { ...state, throughput: { ...THROUGHPUT_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {

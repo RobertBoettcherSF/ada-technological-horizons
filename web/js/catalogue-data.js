@@ -148,6 +148,14 @@ export const sections = RAW.map((entry, index) => {
       summaryKey: "summary.delay",
     };
   }
+  if (withOrder.id === "a-lampoon-of-evolution/constructing-life") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.throughput",
+    };
+  }
   if (withOrder.id === "intellectronics/return-to-earth") {
     return {
       ...withOrder,

@@ -77,6 +77,10 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/delay_tests" \
   "$ROOT/tests/native/delay_tests.adb" \
   -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
 "$ROOT/build/native/delay_tests" | tee "$ROOT/build/native/delay-fixtures.txt"
+gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/throughput_tests" \
+  "$ROOT/tests/native/throughput_tests.adb" \
+  -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
+"$ROOT/build/native/throughput_tests" | tee "$ROOT/build/native/throughput-fixtures.txt"
 
 compile_wasm() {
   local Source="$1"
@@ -89,10 +93,12 @@ compile_wasm "$ROOT/ada/core/ath_addition.adb" ath_addition.o
 compile_wasm "$ROOT/ada/core/ath_lifetime.adb" ath_lifetime.o
 compile_wasm "$ROOT/ada/core/ath_growth.adb" ath_growth.o
 compile_wasm "$ROOT/ada/core/ath_delay.adb" ath_delay.o
+compile_wasm "$ROOT/ada/core/ath_throughput.adb" ath_throughput.o
 compile_wasm "$ROOT/ada/browser/ath_addition_exports.adb" ath_addition_exports.o
 compile_wasm "$ROOT/ada/browser/ath_lifetime_exports.adb" ath_lifetime_exports.o
 compile_wasm "$ROOT/ada/browser/ath_growth_exports.adb" ath_growth_exports.o
 compile_wasm "$ROOT/ada/browser/ath_delay_exports.adb" ath_delay_exports.o
+compile_wasm "$ROOT/ada/browser/ath_throughput_exports.adb" ath_throughput_exports.o
 compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
 (
   cd "$ROOT/build/wasm"
@@ -102,8 +108,8 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
     -o b~ath_browser.o
   "$TOOLCHAIN/bin/llvm-gcc" --target=wasm32 -o ath_addition.wasm \
-    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o \
-    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o \
+    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o \
+    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o \
     ath_browser.o b~ath_browser.o \
     -L"$TOOLCHAIN/lib/rts-native/adalib" -lgnat \
     -nostdlib \
@@ -143,6 +149,27 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_delay_preset_distance \
     -Wl,--export=ath_delay_preset_unit \
     -Wl,--export=ath_delay_leg_time \
+    -Wl,--export=ath_throughput_f64 \
+    -Wl,--export=ath_throughput_time_valid \
+    -Wl,--export=ath_throughput_time \
+    -Wl,--export=ath_throughput_time_upper \
+    -Wl,--export=ath_throughput_total_valid \
+    -Wl,--export=ath_throughput_total \
+    -Wl,--export=ath_throughput_total_lower \
+    -Wl,--export=ath_throughput_chart_valid \
+    -Wl,--export=ath_throughput_human \
+    -Wl,--export=ath_throughput_bacterial \
+    -Wl,--export=ath_throughput_ratio \
+    -Wl,--export=ath_throughput_quantity_bits \
+    -Wl,--export=ath_throughput_rate_bits \
+    -Wl,--export=ath_throughput_preset_count \
+    -Wl,--export=ath_throughput_preset_quantity \
+    -Wl,--export=ath_throughput_preset_quantity_unit \
+    -Wl,--export=ath_throughput_preset_rate \
+    -Wl,--export=ath_throughput_preset_rate_unit \
+    -Wl,--export=ath_throughput_preset_bound \
+    -Wl,--export=ath_throughput_preset_sets_quantity \
+    -Wl,--export=ath_throughput_preset_sets_rate \
     -Wl,--export-memory
 )
 
@@ -158,7 +185,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.9",
+  version: "0.1.10",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -169,7 +196,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

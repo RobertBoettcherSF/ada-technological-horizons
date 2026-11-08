@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -11,6 +11,7 @@ const fixturePath = path.join(root, "build", "native", "fixtures.txt");
 const lifetimePath = path.join(root, "build", "native", "lifetime-fixtures.txt");
 const growthPath = path.join(root, "build", "native", "growth-fixtures.txt");
 const delayPath = path.join(root, "build", "native", "delay-fixtures.txt");
+const throughputPath = path.join(root, "build", "native", "throughput-fixtures.txt");
 
 function bitsToFloat(hex) {
   const buffer = new ArrayBuffer(8);
@@ -338,6 +339,71 @@ test("light-time exports match the native fixture bits", async (t) => {
   const legs = callDelay(session, 1000, 2);
   assert.equal(session.exports.ath_delay_leg_time(2), legs.oneWay);
   assert.equal(session.exports.ath_delay_leg_time(3), legs.oneWay);
+});
+
+test("constant-rate exports match the native fixture bits", async (t) => {
+  if (!fs.existsSync(wasmPath) || !fs.existsSync(throughputPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const lines = fs.readFileSync(throughputPath, "utf8").split("\n").filter((line) => /^THROUGHPUT [a-z0-9-]+ /.test(line));
+  assert.ok(lines.length >= 8);
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const status = Number(parts[2]);
+    const timeValid = Number(parts[3]);
+    const totalValid = Number(parts[4]);
+    const chartValid = Number(parts[5]);
+    const outcome = callThroughput(
+      session,
+      bitsToFloat(parts[11]),
+      bitsToFloat(parts[12]),
+      bitsToFloat(parts[13]),
+      bitsToFloat(parts[14]),
+      bitsToFloat(parts[15]),
+      bitsToFloat(parts[16]),
+      bitsToFloat(parts[17]),
+    );
+    assert.equal(outcome.status, status, name);
+    assert.equal(outcome.time === null ? 0 : 1, timeValid, name);
+    assert.equal(outcome.total === null ? 0 : 1, totalValid, name);
+    assert.equal(outcome.human === null ? 0 : 1, chartValid, name);
+    if (timeValid === 1) assert.equal(floatToBits(outcome.time), parts[6], name);
+    if (totalValid === 1) assert.equal(floatToBits(outcome.total), parts[7], name);
+    if (chartValid === 1) {
+      assert.equal(floatToBits(outcome.human), parts[8], name);
+      assert.equal(floatToBits(outcome.bacterial), parts[9], name);
+      assert.equal(floatToBits(outcome.ratio), parts[10], name);
+    }
+  }
+  assert.equal(session.exports.ath_throughput_preset_count(), 3);
+  assert.equal(session.exports.ath_throughput_preset_quantity(1), 1);
+  assert.equal(session.exports.ath_throughput_preset_quantity_unit(1), 2);
+  assert.equal(session.exports.ath_throughput_preset_rate(2), 25);
+  assert.equal(session.exports.ath_throughput_preset_rate(3), 1000);
+  assert.equal(session.exports.ath_throughput_preset_bound(3), 1);
+  const page = callThroughput(session, 10000, 0, 25, 0, 0, 400, 0);
+  assert.equal(page.time, 400);
+  assert.equal(page.total, 10000);
+  assert.equal(page.bacterial, 10);
+  assert.equal(page.ratio, 40);
+  const stalled = callThroughput(session, 10000, 0, 0, 0, 0, 400, 0);
+  assert.equal(stalled.status, 5);
+  assert.equal(stalled.time, null);
+  assert.equal(stalled.total, 0);
 });
 
 test("a failed module load does not invent a sum", async () => {

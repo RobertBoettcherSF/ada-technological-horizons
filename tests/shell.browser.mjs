@@ -334,6 +334,43 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-end-year").textContent(), "2076");
   assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
+  await page.locator("#throughput-card").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
+  assert.equal(await page.locator("#throughput-total").textContent(), "10000 bits");
+  assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
+  assert.equal(await page.locator("#throughput-compare li").nth(1).textContent(), "Bacterial figure, at least 1,000 bits/s — at most 10 s");
+  assert.match(await page.locator("#throughput-card p.note").last().textContent(), /No contemporary/);
+  await shot(page, label, "throughput-card.png");
+  await page.click("#throughput-preset-page");
+  await page.waitForFunction(() => document.querySelector("#throughput-quantity")?.value === "1");
+  assert.equal(await page.locator("#throughput-quantity-unit").inputValue(), "2");
+  assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
+  assert.equal(await page.locator("#throughput-exact-quantity").textContent(), "10000");
+  await page.click("#throughput-preset-bacterial");
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "at most 10 s");
+  assert.equal(await page.locator("#throughput-total").textContent(), "at least 400000 bits");
+  assert.equal(await page.locator("#throughput-compare li").first().textContent(), "Human figure, about 25 bits/s — 400 s");
+  await page.selectOption("#throughput-rate-unit", "1");
+  await page.fill("#throughput-rate", "1500");
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
+  assert.equal(await page.locator("#throughput-total").textContent(), "10000 bits");
+  await page.fill("#throughput-rate", "0");
+  await page.selectOption("#throughput-rate-unit", "0");
+  await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "5");
+  assert.equal(await page.locator("#throughput-time").textContent(), "Unreachable");
+  assert.equal(await page.locator("#throughput-total").textContent(), "0 bits");
+  assert.match(await page.locator("#throughput-compare li").nth(1).textContent(), /at most 10 s/);
+  await page.fill("#throughput-rate", "-1");
+  await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "2");
+  assert.equal(await page.locator("#throughput-time").textContent(), "");
+  assert.equal(await page.locator("#throughput-compare li").count(), 0);
+  await page.fill("#throughput-quantity", "");
+  await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "empty");
+  await page.click("#throughput-reset");
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
+  assert.equal(await page.locator("#throughput-quantity").inputValue(), "10000");
+  assert.equal(await page.locator("#throughput-rate").inputValue(), "25");
+  assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
   await page.locator("#delay-card").scrollIntoViewIfNeeded();
   await shot(page, label, "delay-card.png");
   assert.equal(await page.locator("#delay-events li").count(), 3);
@@ -410,7 +447,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.9");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.10");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -468,7 +505,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "3");
+  assert.equal(await page.locator("#working-count").textContent(), "4");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -485,7 +522,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "3");
+  assert.equal(await page.locator("#working-count").textContent(), "4");
 
   if (!(await page.locator("#technical-details").evaluate((element) => element.open))) {
     await page.locator("#technical-details summary").focus();
@@ -514,6 +551,9 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-end-year").textContent(), "2005");
   assert.equal(await page.locator("#delay-distance").inputValue(), "1000");
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 Jahre");
+  assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
+  assert.equal(await page.locator("#throughput-time-label").textContent(), t("de", "throughput.timeLabel"));
+  assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
   assert.equal(await page.locator("#delay-events li").nth(2).textContent(), `${t("de", "delay.roundTrip")} — 2000 Jahre`);
   await page.click("#delay-preset-venus");
   await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "41390000");
@@ -616,6 +656,10 @@ async function exercise(page, label) {
   await page.locator("#growth-card").scrollIntoViewIfNeeded();
   await shot(page, label, "growth-narrow.png");
   assert.ok((await overflow(page)) <= 1, "narrow growth");
+  await page.locator("#throughput-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "throughput-narrow.png");
+  assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
+  assert.ok((await overflow(page)) <= 1, "narrow throughput");
   await page.click("#delay-preset-venus");
   await page.waitForFunction(() => document.querySelector("#delay-events li:nth-child(3)")?.textContent === "Reply arrives — 4.6 min");
   await page.locator("#delay-events").scrollIntoViewIfNeeded();

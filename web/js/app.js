@@ -27,15 +27,17 @@ import {
   resetDemo,
   resetGrowth,
   resetLifetime,
+  resetThroughput,
   setDelayInput,
   setDemoInput,
   setGrowthInput,
+  setThroughputInput,
   setLanguage,
   setLifetimeInput,
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callDelay, callExplore, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callDelay, callExplore, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -291,6 +293,9 @@ function renderCard(entry) {
   if (entry.id === "phantomology/teletaxy-and-phantomultiplication") {
     body.append(h("p", {}, [h("a", { href: "#delay-card", dataset: { i18n: "delay.open" } })]));
   }
+  if (entry.id === "a-lampoon-of-evolution/constructing-life") {
+    body.append(h("p", {}, [h("a", { href: "#throughput-card", dataset: { i18n: "throughput.open" } })]));
+  }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
     body,
@@ -316,6 +321,7 @@ function renderResults() {
     updateLifetime();
     updateGrowth();
     updateDelay();
+    updateThroughput();
     return;
   }
 
@@ -357,7 +363,8 @@ function renderResults() {
   updateDemo();
   updateLifetime();
   updateGrowth();
-    updateDelay();
+  updateDelay();
+  updateThroughput();
 }
 
 function updateDiagnostics() {
@@ -1012,6 +1019,160 @@ function updateDelay() {
   updateDiagnostics();
 }
 
+function bitsLabel(bits) {
+  return `${formatReadable(bits, state.lang)} ${t(state.lang, "throughput.bits")}`;
+}
+
+function timeLabel(seconds, upper) {
+  const shown = Math.abs(seconds) < 3600
+    ? `${formatReadable(seconds, state.lang)} ${t(state.lang, "delay.unitWord.s")}`
+    : durationLabel(seconds);
+  return upper ? `${t(state.lang, "throughput.atMost")} ${shown}` : shown;
+}
+
+function throughputNoteKey() {
+  if (state.throughput.bound === "1") return "throughput.note.lower";
+  if (state.throughput.rate === "25" && state.throughput.rateUnit === "0") return "throughput.note.historical";
+  return "throughput.note.assumption";
+}
+
+function clearThroughputView() {
+  for (const id of ["throughput-time", "throughput-total", "throughput-ratio", "throughput-exact-quantity", "throughput-exact-rate", "throughput-exact-time", "throughput-exact-total"]) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = "";
+  }
+  document.getElementById("throughput-bars")?.replaceChildren();
+  document.getElementById("throughput-compare")?.replaceChildren();
+}
+
+function renderThroughput(outcome) {
+  const timeNode = document.getElementById("throughput-time");
+  const totalNode = document.getElementById("throughput-total");
+  const ratioNode = document.getElementById("throughput-ratio");
+  if (outcome.time === null) {
+    timeNode.textContent = outcome.status === 5
+      ? t(state.lang, "throughput.unreachableValue")
+      : t(state.lang, "throughput.indeterminateValue");
+  } else {
+    timeNode.textContent = timeLabel(outcome.time, outcome.timeUpper);
+  }
+  if (outcome.total !== null) {
+    const bits = bitsLabel(outcome.total);
+    totalNode.textContent = outcome.totalLower ? `${t(state.lang, "throughput.atLeast")} ${bits}` : bits;
+  }
+  if (outcome.ratio !== null) {
+    ratioNode.textContent = formatReadable(outcome.ratio, state.lang);
+  }
+  document.getElementById("throughput-exact-quantity").textContent = outcome.quantityBits === null ? "" : formatCanonical(outcome.quantityBits);
+  document.getElementById("throughput-exact-rate").textContent = outcome.rateBits === null ? "" : formatCanonical(outcome.rateBits);
+  document.getElementById("throughput-exact-time").textContent = outcome.time === null ? "" : formatCanonical(outcome.time);
+  document.getElementById("throughput-exact-total").textContent = outcome.total === null ? "" : formatCanonical(outcome.total);
+  const bars = document.getElementById("throughput-bars");
+  const list = document.getElementById("throughput-compare");
+  bars.replaceChildren();
+  list.replaceChildren();
+  if (outcome.human === null || outcome.bacterial === null) return;
+  const scale = Math.max(outcome.human, outcome.bacterial);
+  const rows = [
+    ["throughput.humanBar", outcome.human, false, ""],
+    ["throughput.bacterialBar", outcome.bacterial, outcome.bacterial > 0, "bound"],
+  ];
+  for (const [name, seconds, upper, klass] of rows) {
+    const item = document.createElement("li");
+    item.textContent = `${t(state.lang, name)} — ${timeLabel(seconds, upper)}`;
+    list.append(item);
+    const wrap = document.createElement("div");
+    wrap.className = "bar-row";
+    const label = document.createElement("span");
+    label.textContent = t(state.lang, name);
+    const track = document.createElement("div");
+    track.className = "bar-track";
+    const fill = document.createElement("span");
+    fill.className = klass ? `bar-fill ${klass}` : "bar-fill";
+    fill.style.width = `${scale === 0 ? 0 : (seconds / scale) * 100}%`;
+    track.append(fill);
+    wrap.append(label, track);
+    bars.append(wrap);
+  }
+}
+
+function throughputMessage(code, outcome) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "throughput.empty";
+  if (code === "malformed") return "throughput.malformed";
+  if (code === 0) return outcome && outcome.timeUpper ? "throughput.okLower" : "throughput.ok";
+  if (code === 1) return "throughput.nonFinite";
+  if (code === 2) return "throughput.negative";
+  if (code === 3) return "throughput.badUnit";
+  if (code === 4) return "throughput.overflow";
+  if (code === 5) return "throughput.unreachable";
+  if (code === 6) return "throughput.indeterminate";
+  return "demo.loadFailed";
+}
+
+function updateThroughput() {
+  const statusNode = document.getElementById("throughput-status");
+  if (!statusNode) return;
+  const note = document.getElementById("throughput-note");
+  if (note) note.textContent = t(state.lang, throughputNoteKey());
+  clearThroughputView();
+  let code = "loading";
+  let outcome = null;
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const fields = ["quantity", "quantityUnit", "rate", "rateUnit", "bound", "duration", "durationUnit"];
+    const parsed = {};
+    let empty = false;
+    let malformed = false;
+    for (const field of fields) {
+      const value = interpretOperand(state.throughput[field]);
+      if (value.kind === "empty") empty = true;
+      else if (value.kind !== "value") malformed = true;
+      else parsed[field] = value.value;
+    }
+    if (empty) code = "empty";
+    else if (malformed) code = "malformed";
+    else {
+      outcome = callThroughput(
+        session,
+        parsed.quantity,
+        parsed.quantityUnit,
+        parsed.rate,
+        parsed.rateUnit,
+        parsed.bound,
+        parsed.duration,
+        parsed.durationUnit,
+      );
+      code = outcome.status;
+      if (outcome.status === 0 || outcome.status === 5 || outcome.status === 6) {
+        try {
+          renderThroughput(outcome);
+        } catch (error) {
+          clearThroughputView();
+          code = "load-failed";
+          console.error(error);
+        }
+      }
+    }
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, throughputMessage(code, outcome));
+  updateDiagnostics();
+}
+
+function syncThroughputForm() {
+  document.getElementById("throughput-quantity").value = state.throughput.quantity;
+  document.getElementById("throughput-quantity-unit").value = state.throughput.quantityUnit;
+  document.getElementById("throughput-rate").value = state.throughput.rate;
+  document.getElementById("throughput-rate-unit").value = state.throughput.rateUnit;
+  document.getElementById("throughput-duration").value = state.throughput.duration;
+  document.getElementById("throughput-duration-unit").value = state.throughput.durationUnit;
+}
+
 function statusMessage(code) {
   if (code === "loading") return "demo.loading";
   if (code === "load-failed") return "demo.loadFailed";
@@ -1025,7 +1186,7 @@ function statusMessage(code) {
 
 function routeFromHash() {
   const route = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (route === "lifetime-card" || route === "growth-card" || route === "delay-card" || route === "about" || route === "content") {
+  if (route === "lifetime-card" || route === "growth-card" || route === "delay-card" || route === "throughput-card" || route === "about" || route === "content") {
     return "";
   }
   return route;
@@ -1058,7 +1219,8 @@ async function boot() {
   updateDemo();
   updateLifetime();
   updateGrowth();
-    updateDelay();
+  updateDelay();
+  updateThroughput();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -1078,7 +1240,8 @@ async function boot() {
   updateDemo();
   updateLifetime();
   updateGrowth();
-    updateDelay();
+  updateDelay();
+  updateThroughput();
 }
 
 function simulateFailure() {
@@ -1089,7 +1252,8 @@ function simulateFailure() {
   updateDemo();
   updateLifetime();
   updateGrowth();
-    updateDelay();
+  updateDelay();
+  updateThroughput();
 }
 
 function bind() {
@@ -1338,6 +1502,49 @@ function bind() {
       document.getElementById(`years-${index + 1}`).value = state.lifetime.durations[index];
     }
     updateLifetime();
+  });
+  document.getElementById("throughput-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.throughput) return;
+    state = setThroughputInput(state, field.dataset.throughput, field.value);
+    if (field.dataset.throughput === "rate" || field.dataset.throughput === "rateUnit") {
+      state = setThroughputInput(state, "bound", "0");
+    }
+    updateThroughput();
+  });
+  document.getElementById("throughput-form").addEventListener("change", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.throughput) return;
+    state = setThroughputInput(state, field.dataset.throughput, field.value);
+    if (field.dataset.throughput === "rate" || field.dataset.throughput === "rateUnit") {
+      state = setThroughputInput(state, "bound", "0");
+    }
+    updateThroughput();
+  });
+  document.getElementById("throughput-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateThroughput();
+  });
+  document.getElementById("throughput-reset").addEventListener("click", () => {
+    state = resetThroughput(state);
+    syncThroughputForm();
+    updateThroughput();
+  });
+  document.getElementById("throughput-form").addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest("[data-throughput-preset]") : null;
+    if (!(button instanceof HTMLButtonElement) || !session.exports) return;
+    const preset = throughputPreset(session, Number(button.dataset.throughputPreset));
+    if (preset.setsQuantity) {
+      state = setThroughputInput(state, "quantity", formatCanonical(preset.quantity));
+      state = setThroughputInput(state, "quantityUnit", String(preset.quantityUnit));
+    }
+    if (preset.setsRate) {
+      state = setThroughputInput(state, "rate", formatCanonical(preset.rate));
+      state = setThroughputInput(state, "rateUnit", String(preset.rateUnit));
+      state = setThroughputInput(state, "bound", String(preset.bound));
+    }
+    syncThroughputForm();
+    updateThroughput();
   });
   window.addEventListener("hashchange", () => {
     showRoute(routeFromHash(), { focus: true });

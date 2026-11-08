@@ -1,0 +1,196 @@
+with Ath_Throughput;
+
+package body Ath_Throughput_Exports is
+   use type Ath_Throughput.Status_Code;
+
+   Stored_Time      : Long_Float := 0.0;
+   Stored_Total     : Long_Float := 0.0;
+   Stored_Quantity  : Long_Float := 0.0;
+   Stored_Rate      : Long_Float := 0.0;
+   Stored_Human     : Long_Float := 0.0;
+   Stored_Bacterial : Long_Float := 0.0;
+   Stored_Ratio     : Long_Float := 0.0;
+   Stored_Time_Valid : Boolean := False;
+   Stored_Total_Valid : Boolean := False;
+   Stored_Chart_Valid : Boolean := False;
+   Stored_Time_Upper : Boolean := False;
+   Stored_Total_Lower : Boolean := False;
+
+   function Flag (Value : Boolean) return Interfaces.Integer_32 is
+   begin
+      if Value then
+         return 1;
+      end if;
+      return 0;
+   end Flag;
+
+   procedure Clear is
+   begin
+      Stored_Time := 0.0;
+      Stored_Total := 0.0;
+      Stored_Quantity := 0.0;
+      Stored_Rate := 0.0;
+      Stored_Human := 0.0;
+      Stored_Bacterial := 0.0;
+      Stored_Ratio := 0.0;
+      Stored_Time_Valid := False;
+      Stored_Total_Valid := False;
+      Stored_Chart_Valid := False;
+      Stored_Time_Upper := False;
+      Stored_Total_Lower := False;
+   end Clear;
+
+   function Ath_Throughput_F64
+     (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit : Long_Float)
+      return Interfaces.Integer_32
+   is
+      Status : Ath_Throughput.Status_Code;
+   begin
+      Ath_Throughput.Convey
+        (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit,
+         Stored_Time, Stored_Total, Stored_Quantity, Stored_Rate,
+         Stored_Human, Stored_Bacterial, Stored_Ratio,
+         Stored_Time_Valid, Stored_Total_Valid, Stored_Chart_Valid,
+         Stored_Time_Upper, Stored_Total_Lower, Status);
+      if Status /= Ath_Throughput.Ok
+        and then Status /= Ath_Throughput.Unreachable
+        and then Status /= Ath_Throughput.Indeterminate
+      then
+         Clear;
+      end if;
+      return Interfaces.Integer_32 (Status);
+   end Ath_Throughput_F64;
+
+   function Ath_Throughput_Time_Valid return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Time_Valid);
+   end Ath_Throughput_Time_Valid;
+
+   function Ath_Throughput_Time return Long_Float is
+   begin
+      return Stored_Time;
+   end Ath_Throughput_Time;
+
+   function Ath_Throughput_Time_Upper return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Time_Upper);
+   end Ath_Throughput_Time_Upper;
+
+   function Ath_Throughput_Total_Valid return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Total_Valid);
+   end Ath_Throughput_Total_Valid;
+
+   function Ath_Throughput_Total return Long_Float is
+   begin
+      return Stored_Total;
+   end Ath_Throughput_Total;
+
+   function Ath_Throughput_Total_Lower return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Total_Lower);
+   end Ath_Throughput_Total_Lower;
+
+   function Ath_Throughput_Chart_Valid return Interfaces.Integer_32 is
+   begin
+      return Flag (Stored_Chart_Valid);
+   end Ath_Throughput_Chart_Valid;
+
+   function Ath_Throughput_Human return Long_Float is
+   begin
+      return Stored_Human;
+   end Ath_Throughput_Human;
+
+   function Ath_Throughput_Bacterial return Long_Float is
+   begin
+      return Stored_Bacterial;
+   end Ath_Throughput_Bacterial;
+
+   function Ath_Throughput_Ratio return Long_Float is
+   begin
+      return Stored_Ratio;
+   end Ath_Throughput_Ratio;
+
+   function Ath_Throughput_Quantity_Bits return Long_Float is
+   begin
+      return Stored_Quantity;
+   end Ath_Throughput_Quantity_Bits;
+
+   function Ath_Throughput_Rate_Bits return Long_Float is
+   begin
+      return Stored_Rate;
+   end Ath_Throughput_Rate_Bits;
+
+   function Ath_Throughput_Preset_Count return Interfaces.Integer_32 is
+   begin
+      return Ath_Throughput.Preset_Count;
+   end Ath_Throughput_Preset_Count;
+
+   function Known (Index : Interfaces.Integer_32) return Boolean is
+   begin
+      return Index >= 1 and then Index <= Ath_Throughput.Preset_Count;
+   end Known;
+
+   function Ath_Throughput_Preset_Quantity
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if not Known (Index) then
+         return 0.0;
+      end if;
+      return Ath_Throughput.Preset_Quantity (Integer (Index));
+   end Ath_Throughput_Preset_Quantity;
+
+   function Ath_Throughput_Preset_Quantity_Unit
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if not Known (Index) then
+         return -1.0;
+      end if;
+      return Ath_Throughput.Preset_Quantity_Unit (Integer (Index));
+   end Ath_Throughput_Preset_Quantity_Unit;
+
+   function Ath_Throughput_Preset_Rate
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if not Known (Index) then
+         return 0.0;
+      end if;
+      return Ath_Throughput.Preset_Rate (Integer (Index));
+   end Ath_Throughput_Preset_Rate;
+
+   function Ath_Throughput_Preset_Rate_Unit
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if not Known (Index) then
+         return -1.0;
+      end if;
+      return Ath_Throughput.Preset_Rate_Unit (Integer (Index));
+   end Ath_Throughput_Preset_Rate_Unit;
+
+   function Ath_Throughput_Preset_Bound
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if not Known (Index) then
+         return -1.0;
+      end if;
+      return Ath_Throughput.Preset_Bound (Integer (Index));
+   end Ath_Throughput_Preset_Bound;
+
+   function Ath_Throughput_Preset_Sets_Quantity
+     (Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      if Known (Index) and then Ath_Throughput.Preset_Sets_Quantity (Integer (Index)) then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Throughput_Preset_Sets_Quantity;
+
+   function Ath_Throughput_Preset_Sets_Rate
+     (Index : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      if Known (Index) and then Ath_Throughput.Preset_Sets_Rate (Integer (Index)) then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Throughput_Preset_Sets_Rate;
+end Ath_Throughput_Exports;

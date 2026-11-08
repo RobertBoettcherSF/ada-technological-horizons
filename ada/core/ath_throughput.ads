@@ -1,0 +1,85 @@
+with Interfaces;
+
+--  Constant-rate information arithmetic.
+--
+--  A quantity divided by a rate is a time. A rate multiplied by a duration
+--  is a quantity. Nothing here simulates a cell, a mind, or a channel.
+--
+--  The two comparison rates are the historical figures used in Constructing
+--  Life: about 25 bits/s, and at least 1_000 bits/s. A low-redundancy printed
+--  page in that comparison is about 10_000 bits. The bacterial figure is a
+--  lower bound on the rate, so its time is an upper bound. The page and the
+--  human figure are approximate, not measurements. Edited values are the
+--  visitor's assumption.
+--
+--  A kilobit is 1_000 bits. One page unit is that 10_000-bit convention.
+--  Bits per minute are divided by 60. Hours are 3_600 seconds.
+package Ath_Throughput is
+   pragma Compile_Time_Error
+     (Long_Float'Size /= 64,
+      "Ath_Throughput requires a binary64 Long_Float");
+
+   subtype Status_Code is Interfaces.Integer_32;
+
+   Ok                 : constant Status_Code := 0;
+   Non_Finite_Input   : constant Status_Code := 1;
+   Negative           : constant Status_Code := 2;
+   Bad_Unit           : constant Status_Code := 3;
+   Result_Not_Finite  : constant Status_Code := 4;
+   Unreachable        : constant Status_Code := 5;
+   Indeterminate      : constant Status_Code := 6;
+
+   Unit_Bits     : constant Long_Float := 0.0;
+   Unit_Kilobits : constant Long_Float := 1.0;
+   Unit_Pages    : constant Long_Float := 2.0;
+
+   Rate_Bits_Per_Second    : constant Long_Float := 0.0;
+   Rate_Bits_Per_Minute    : constant Long_Float := 1.0;
+   Rate_Kilobits_Per_Second : constant Long_Float := 2.0;
+
+   Duration_Seconds : constant Long_Float := 0.0;
+   Duration_Minutes : constant Long_Float := 1.0;
+   Duration_Hours   : constant Long_Float := 2.0;
+
+   Bound_Exact : constant Long_Float := 0.0;
+   Bound_Lower : constant Long_Float := 1.0;
+
+   Page_Bits : constant Long_Float := 10_000.0;
+   Human_Bits_Per_Second : constant Long_Float := 25.0;
+   Bacterial_Bits_Per_Second : constant Long_Float := 1_000.0;
+   Historical_Rate_Ratio : constant Long_Float := 40.0;
+
+   Preset_Count : constant := 3;
+
+   subtype Preset_Index is Integer range 1 .. Preset_Count;
+
+   procedure Convey
+     (Quantity      : Long_Float;
+      Quantity_Unit : Long_Float;
+      Rate          : Long_Float;
+      Rate_Unit     : Long_Float;
+      Bound         : Long_Float;
+      Duration      : Long_Float;
+      Duration_Unit : Long_Float;
+      Time_Seconds  : out Long_Float;
+      Total_Bits    : out Long_Float;
+      Quantity_Bits : out Long_Float;
+      Rate_Bits     : out Long_Float;
+      Human_Seconds : out Long_Float;
+      Bacterial_Seconds : out Long_Float;
+      Rate_Ratio    : out Long_Float;
+      Time_Valid    : out Boolean;
+      Total_Valid   : out Boolean;
+      Chart_Valid   : out Boolean;
+      Time_Is_Upper : out Boolean;
+      Total_Is_Lower : out Boolean;
+      Status        : out Status_Code);
+
+   function Preset_Quantity (Index : Preset_Index) return Long_Float;
+   function Preset_Quantity_Unit (Index : Preset_Index) return Long_Float;
+   function Preset_Rate (Index : Preset_Index) return Long_Float;
+   function Preset_Rate_Unit (Index : Preset_Index) return Long_Float;
+   function Preset_Bound (Index : Preset_Index) return Long_Float;
+   function Preset_Sets_Quantity (Index : Preset_Index) return Boolean;
+   function Preset_Sets_Rate (Index : Preset_Index) return Boolean;
+end Ath_Throughput;

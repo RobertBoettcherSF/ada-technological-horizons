@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.9">
+  <meta name="ath-release" content="0.1.10">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,11 +13,11 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.9</p>
+        <p class="release-pill" id="header-version">0.1.10</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
-        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Three calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, and Teletaxy. The other sections are planned.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Four calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, Teletaxy, and Constructing Life. The other sections are planned.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -286,6 +286,91 @@
         <dl class="diagnostics">
           <div><dt data-i18n="delay.exactOne">One-way seconds</dt><dd id="delay-exact-one"></dd></div>
           <div><dt data-i18n="delay.exactRound">Round-trip seconds</dt><dd id="delay-exact-round"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="throughput-card" class="lifetime-card" aria-labelledby="throughput-title">
+      <p class="kicker" data-i18n="throughput.path">A Lampoon of Evolution · Constructing Life</p>
+      <h2 id="throughput-title" data-i18n="throughput.title">How much information fits in a given time?</h2>
+      <p data-i18n="throughput.lead">Constructing Life sets three unlike historical figures side by side: a low-redundancy printed page of about 10,000 bits, a human mind coping with about 25 bits each second, and a bacterium producing at least 1,000 bits each second. This card divides a quantity by a constant rate, or multiplies that rate by a duration. It does not show that a bacterium reads a page, and 25 bits/s is not a measured brain bandwidth.</p>
+      <form id="throughput-form">
+        <div class="growth-fields">
+          <div>
+            <label for="throughput-quantity" data-i18n="throughput.quantity">Information quantity</label>
+            <input id="throughput-quantity" data-throughput="quantity" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10000">
+          </div>
+          <div>
+            <label for="throughput-quantity-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-quantity-unit" data-throughput="quantityUnit">
+              <option value="0" data-i18n="throughput.unit.bits" selected>Bits</option>
+              <option value="1" data-i18n="throughput.unit.kilobits">Kilobits (1,000 bits)</option>
+              <option value="2" data-i18n="throughput.unit.pages">Historical page (10,000 bits)</option>
+            </select>
+          </div>
+          <div>
+            <label for="throughput-rate" data-i18n="throughput.rate">Rate</label>
+            <input id="throughput-rate" data-throughput="rate" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="25">
+          </div>
+          <div>
+            <label for="throughput-rate-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-rate-unit" data-throughput="rateUnit">
+              <option value="0" data-i18n="throughput.rateUnit.bps" selected>Bits per second</option>
+              <option value="1" data-i18n="throughput.rateUnit.bpm">Bits per minute</option>
+              <option value="2" data-i18n="throughput.rateUnit.kbps">Kilobits per second (1,000 bits/s)</option>
+            </select>
+          </div>
+          <div>
+            <label for="throughput-duration" data-i18n="throughput.duration">Duration</label>
+            <input id="throughput-duration" data-throughput="duration" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="400">
+          </div>
+          <div>
+            <label for="throughput-duration-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-duration-unit" data-throughput="durationUnit">
+              <option value="0" data-i18n="throughput.durationUnit.s" selected>Seconds</option>
+              <option value="1" data-i18n="throughput.durationUnit.min">Minutes</option>
+              <option value="2" data-i18n="throughput.durationUnit.h">Hours</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="throughput-preset-page" data-throughput-preset="1" data-i18n="throughput.preset.page">One historical page</button>
+          <button type="button" class="secondary" id="throughput-preset-human" data-throughput-preset="2" data-i18n="throughput.preset.human">Human figure, about 25 bits/s</button>
+          <button type="button" class="secondary" id="throughput-preset-bacterial" data-throughput-preset="3" data-i18n="throughput.preset.bacterial">Bacterial figure, at least 1,000 bits/s</button>
+        </div>
+        <p id="throughput-note" class="note"></p>
+        <div id="throughput-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" id="throughput-time-label" data-i18n="throughput.timeLabel">Time for this quantity</p>
+            <output id="throughput-time" for="throughput-quantity throughput-rate"></output>
+          </div>
+          <div>
+            <p class="live-label" id="throughput-total-label" data-i18n="throughput.totalLabel">Information in this duration</p>
+            <output id="throughput-total" for="throughput-rate throughput-duration"></output>
+          </div>
+          <div>
+            <p class="live-label" id="throughput-ratio-label" data-i18n="throughput.ratioLabel">Historical rate ratio</p>
+            <output id="throughput-ratio"></output>
+          </div>
+        </div>
+        <p id="throughput-status" role="status" aria-live="polite"></p>
+        <h3 data-i18n="throughput.compare">Same quantity at the two historical rates</h3>
+        <div id="throughput-bars" class="bars" aria-hidden="true"></div>
+        <ul id="throughput-compare"></ul>
+        <p class="note" data-i18n="throughput.limit">No contemporary measurement is loaded. Spike counts, DNA alphabet capacity and task information are different definitions, so they are not placed on this chart.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="throughput-reset" class="secondary" data-i18n="throughput.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="throughput-sources">
+        <summary data-i18n="throughput.sources">Sources and what is not compared</summary>
+        <p class="note" data-i18n="throughput.sourceText">The three figures are the historical comparison in Stanisław Lem, Summa Technologiae, Constructing Life.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="throughput.exactQuantity">Quantity in bits</dt><dd id="throughput-exact-quantity"></dd></div>
+          <div><dt data-i18n="throughput.exactRate">Rate in bits per second</dt><dd id="throughput-exact-rate"></dd></div>
+          <div><dt data-i18n="throughput.exactTime">Time in seconds</dt><dd id="throughput-exact-time"></dd></div>
+          <div><dt data-i18n="throughput.exactTotal">Total in bits</dt><dd id="throughput-exact-total"></dd></div>
         </dl>
       </details>
     </section>
