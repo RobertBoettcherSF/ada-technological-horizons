@@ -956,11 +956,7 @@ function renderDelay(outcome) {
   track.replaceChildren();
   outcome.events.forEach((time, index) => {
     const item = document.createElement("li");
-    const leg = index === 0 ? null : outcome.legs[index - 1];
-    const when = durationLabel(time);
-    item.textContent = leg === null
-      ? `${t(state.lang, labels[index])} — ${when}`
-      : `${t(state.lang, labels[index])} — ${durationLabel(leg)}`;
+    item.textContent = `${t(state.lang, labels[index])} — ${durationLabel(time)}`;
     list.append(item);
     if (index > 0) {
       const legNode = document.createElement("span");

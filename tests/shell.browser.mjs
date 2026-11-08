@@ -338,6 +338,8 @@ async function exercise(page, label) {
   await shot(page, label, "delay-card.png");
   assert.equal(await page.locator("#delay-events li").count(), 3);
   assert.match(await page.locator("#delay-events li").first().textContent(), /0 s/);
+  assert.equal(await page.locator("#delay-events li").nth(2).textContent(), "Reply arrives — 2000 years");
+  assert.deepEqual(await page.locator(".delay-leg").allTextContents(), ["1000 years", "1000 years"]);
   await page.click("#delay-preset-moon");
   await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "384400");
   assert.equal(await page.locator("#delay-unit").inputValue(), "0");
@@ -347,10 +349,18 @@ async function exercise(page, label) {
   assert.deepEqual(track, ["1", "2", "3"]);
   const legs = await page.locator(".delay-leg").allTextContents();
   assert.deepEqual(legs, ["1.28 s", "1.28 s"]);
+  assert.equal(await page.locator("#delay-events li").nth(1).textContent(), "Signal arrives — 1.28 s");
+  assert.equal(await page.locator("#delay-events li").nth(2).textContent(), "Reply arrives — 2.56 s");
   await page.locator("#delay-track").scrollIntoViewIfNeeded();
   await shot(page, label, "delay-moon.png");
   await page.click("#delay-preset-venus");
   await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "41390000");
+  assert.equal(await page.locator("#delay-one-way").textContent(), "2.3 min");
+  assert.equal(await page.locator("#delay-round").textContent(), "4.6 min");
+  assert.equal(await page.locator("#delay-events li").nth(2).textContent(), "Reply arrives — 4.6 min");
+  assert.deepEqual(await page.locator(".delay-leg").allTextContents(), ["2.3 min", "2.3 min"]);
+  await page.locator("#delay-events").scrollIntoViewIfNeeded();
+  await shot(page, label, "delay-venus.png");
   await page.click("#delay-preset-sun");
   await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "1");
   assert.equal(await page.locator("#delay-unit").inputValue(), "1");
@@ -400,7 +410,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.8");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.9");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -504,6 +514,19 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-end-year").textContent(), "2005");
   assert.equal(await page.locator("#delay-distance").inputValue(), "1000");
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 Jahre");
+  assert.equal(await page.locator("#delay-events li").nth(2).textContent(), `${t("de", "delay.roundTrip")} — 2000 Jahre`);
+  await page.click("#delay-preset-venus");
+  await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "41390000");
+  assert.equal(
+    await page.locator("#delay-events li").nth(2).textContent(),
+    `${t("de", "delay.roundTrip")} — ${await page.locator("#delay-round").textContent()}`,
+  );
+  assert.deepEqual(
+    await page.locator(".delay-leg").allTextContents(),
+    [await page.locator("#delay-one-way").textContent(), await page.locator("#delay-one-way").textContent()],
+  );
+  await page.click("#delay-preset-stars");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1000 Jahre");
   assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#growth-x-label").textContent(), "Kalenderjahr");
   assert.match(await page.locator("#growth-status").textContent(), /Ada/);
@@ -565,8 +588,16 @@ async function exercise(page, label) {
 
   await page.selectOption("#language", "fr");
   assert.equal(await page.locator(".credit").first().textContent(), t("fr", "app.credit"));
+  assert.equal(
+    await page.locator("#delay-events li").nth(2).textContent(),
+    `${t("fr", "delay.roundTrip")} — ${await page.locator("#delay-round").textContent()}`,
+  );
   await page.selectOption("#language", "es");
   assert.equal(await page.locator("#clear-filters").textContent(), t("es", "catalogue.clear"));
+  assert.equal(
+    await page.locator("#delay-events li").nth(2).textContent(),
+    `${t("es", "delay.roundTrip")} — ${await page.locator("#delay-round").textContent()}`,
+  );
   await page.selectOption("#language", "en-GB");
   assert.equal(
     await page.locator(".credit").first().textContent(),
@@ -585,10 +616,11 @@ async function exercise(page, label) {
   await page.locator("#growth-card").scrollIntoViewIfNeeded();
   await shot(page, label, "growth-narrow.png");
   assert.ok((await overflow(page)) <= 1, "narrow growth");
-  await page.click("#delay-preset-moon");
-  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1.28 s");
-  await page.locator("#delay-track").scrollIntoViewIfNeeded();
+  await page.click("#delay-preset-venus");
+  await page.waitForFunction(() => document.querySelector("#delay-events li:nth-child(3)")?.textContent === "Reply arrives — 4.6 min");
+  await page.locator("#delay-events").scrollIntoViewIfNeeded();
   await shot(page, label, "delay-narrow.png");
+  assert.deepEqual(await page.locator(".delay-leg").allTextContents(), ["2.3 min", "2.3 min"]);
   assert.ok((await overflow(page)) <= 1, "narrow delay");
   await page.locator("#addition-form button[type=submit]").scrollIntoViewIfNeeded();
   assert.equal(await page.locator("#addition-form button[type=submit]").isVisible(), true);

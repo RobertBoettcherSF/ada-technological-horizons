@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.9 cumulative event list
+
+The event list shows time since the signal leaves. For Earth–Venus the reply line is **4.6 min**, matching the headline, while each connecting leg stays **2.3 min**. The Moon list ends at **2.56 s** with legs of **1.28 s**. One thousand light-years lists **2000 years** with legs of **1000 years**. The same cumulative line is checked in German, French, and Spanish.
+
+`bash tools/test.sh` is recorded with this release. Headless Chromium checks the list against the reply result on desktop and at 320px.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.8 numbered timeline and more presets
 
 `bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, `GROWTH OK`, and `DELAY OK`. The eight presets are the distances named in `docs/PLAN-4.md`. For 1,000 light-years each leg equals the one-way time. Moon display rounds to 1.28 s and 2.56 s, with both legs 1.28 s. Lifetime and growth behaviour is unchanged.

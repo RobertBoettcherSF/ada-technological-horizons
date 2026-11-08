@@ -34,7 +34,7 @@ These are chosen alignments held in Ada, not a live ephemeris. For Europa and Ti
 | Proxima Centauri | 4.2465 ly | Alpha Centauri C, the nearest star of the system, from the Gaia DR3 parallax. Not Alpha Centauri A or B |
 | 1,000 light-years | 1,000 ly | An illustrative interstellar distance. The prefilled example. |
 
-The timeline circles are numbered 1, 2 and 3. Each connecting leg shows that leg’s duration. The list under the graphic repeats those leg durations for assistive technology. Exact one-way and round-trip seconds stay in the closed sources disclosure. Displayed durations use at most two decimal places.
+The timeline circles are numbered 1, 2 and 3. Each connecting leg shows that leg’s duration. The list under the graphic shows cumulative time since the signal leaves: 0, the one-way time, then the full round trip. Exact one-way and round-trip seconds stay in the closed sources disclosure. Displayed durations use at most two decimal places. Release 0.1.9 restores the cumulative list; 0.1.8 had put the leg duration on the reply line.
 
 1,000 light-years gives a one-way time of 1,000 Julian years and a reply in 2,000. Zero distance gives zero for both. A negative, empty, non-finite, or overflowing distance clears both times and the timeline.
 
