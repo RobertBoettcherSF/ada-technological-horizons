@@ -240,6 +240,7 @@ export function callDelay(session, distance, unit) {
     oneWay: session.exports.ath_delay_one_way(),
     roundTrip: session.exports.ath_delay_round_trip(),
     events,
+    legs: [session.exports.ath_delay_leg_time(2), session.exports.ath_delay_leg_time(3)],
   };
 }
 

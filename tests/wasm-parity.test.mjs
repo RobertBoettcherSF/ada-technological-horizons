@@ -323,10 +323,21 @@ test("light-time exports match the native fixture bits", async (t) => {
       assert.equal(floatToBits(session.exports.ath_delay_one_way()), "0000000000000000", name);
     }
   }
+  assert.equal(session.exports.ath_delay_preset_count(), 8);
   assert.equal(session.exports.ath_delay_preset_distance(1), 384400);
-  assert.equal(session.exports.ath_delay_preset_distance(2), 225000000);
-  assert.equal(session.exports.ath_delay_preset_distance(3), 1000);
-  assert.equal(session.exports.ath_delay_preset_unit(3), 2);
+  assert.equal(session.exports.ath_delay_preset_distance(2), 41390000);
+  assert.equal(session.exports.ath_delay_preset_distance(3), 1);
+  assert.equal(session.exports.ath_delay_preset_unit(3), 1);
+  assert.equal(session.exports.ath_delay_preset_distance(4), 225000000);
+  assert.equal(session.exports.ath_delay_preset_distance(5), 629481000);
+  assert.equal(session.exports.ath_delay_preset_distance(6), 1283665000);
+  assert.equal(session.exports.ath_delay_preset_distance(7), 4.2465);
+  assert.equal(session.exports.ath_delay_preset_unit(7), 2);
+  assert.equal(session.exports.ath_delay_preset_distance(8), 1000);
+  assert.equal(session.exports.ath_delay_preset_unit(8), 2);
+  const legs = callDelay(session, 1000, 2);
+  assert.equal(session.exports.ath_delay_leg_time(2), legs.oneWay);
+  assert.equal(session.exports.ath_delay_leg_time(3), legs.oneWay);
 });
 
 test("a failed module load does not invent a sum", async () => {

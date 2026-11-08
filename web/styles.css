@@ -385,25 +385,58 @@ button.collapse {
 
 .preset-row { flex-wrap: wrap; }
 
-.delay-bar {
-  position: relative;
-  height: 0.7rem;
-  margin: 0.8rem 0 0.4rem;
-  border-radius: 999px;
-  background: #10192b;
+.delay-track {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.4rem;
+  margin: 0.6rem 0 0.8rem;
 }
 
-.delay-mark {
-  position: absolute;
-  top: 50%;
-  width: 0.75rem;
-  height: 0.75rem;
+.delay-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.delay-num {
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
   border-radius: 50%;
   background: var(--lime);
-  transform: translate(-50%, -50%);
+  color: var(--lime-ink);
+  font-weight: 800;
 }
 
-.delay-mark.reply { background: var(--cyan); }
+.delay-num.reply { background: var(--cyan); }
+
+.delay-name {
+  max-width: 6.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.delay-leg {
+  color: var(--cyan);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 40rem) {
+  .delay-track {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .delay-node { flex-direction: row; justify-content: flex-start; }
+  .delay-name { max-width: none; text-align: left; }
+  .delay-leg { grid-column: 1 / -1; text-align: left; padding-left: 2.2rem; }
+}
 
 #delay-events { margin: 0.2rem 0 1rem; padding-left: 1.2rem; }
 #delay-events li { margin: 0.25rem 0; }

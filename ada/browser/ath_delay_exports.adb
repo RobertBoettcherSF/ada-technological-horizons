@@ -81,4 +81,10 @@ package body Ath_Delay_Exports is
       end if;
       return Ath_Delay.Preset_Unit (Integer (Index));
    end Ath_Delay_Preset_Unit;
+
+   function Ath_Delay_Leg_Time
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      return Ath_Delay.Leg_Duration (Stored_One_Way, Stored_Round, Integer (Index));
+   end Ath_Delay_Leg_Time;
 end Ath_Delay_Exports;

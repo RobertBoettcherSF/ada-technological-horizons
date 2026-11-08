@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.7">
+  <meta name="ath-release" content="0.1.8">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.7</p>
+        <p class="release-pill" id="header-version">0.1.8</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -251,11 +251,16 @@
           </div>
         </div>
         <div class="button-row preset-row">
-          <button type="button" class="secondary" data-preset="1" data-i18n="delay.preset.moon">Earth–Moon</button>
-          <button type="button" class="secondary" data-preset="2" data-i18n="delay.preset.mars">Earth–Mars example</button>
-          <button type="button" class="secondary" data-preset="3" data-i18n="delay.preset.stars">1,000 light-years</button>
+          <button type="button" class="secondary" id="delay-preset-moon" data-preset="1" data-i18n="delay.preset.moon">Earth–Moon</button>
+          <button type="button" class="secondary" id="delay-preset-venus" data-preset="2" data-i18n="delay.preset.venus">Earth–Venus</button>
+          <button type="button" class="secondary" id="delay-preset-sun" data-preset="3" data-i18n="delay.preset.sun">Earth–Sun</button>
+          <button type="button" class="secondary" id="delay-preset-mars" data-preset="4" data-i18n="delay.preset.mars">Earth–Mars example</button>
+          <button type="button" class="secondary" id="delay-preset-europa" data-preset="5" data-i18n="delay.preset.europa">Earth–Europa</button>
+          <button type="button" class="secondary" id="delay-preset-titan" data-preset="6" data-i18n="delay.preset.titan">Earth–Titan</button>
+          <button type="button" class="secondary" id="delay-preset-proxima" data-preset="7" data-i18n="delay.preset.proxima">Proxima Centauri</button>
+          <button type="button" class="secondary" id="delay-preset-stars" data-preset="8" data-i18n="delay.preset.stars">1,000 light-years</button>
         </div>
-        <p id="delay-note" class="note" data-i18n="delay.note">Earth–Mars is a chosen average of 225 million km, not the distance today. 1,000 light-years is an illustrative interstellar distance.</p>
+        <p id="delay-note" class="note" data-i18n="delay.note">Variable distances use a chosen alignment, not today’s positions. Europa and Titan lie beyond their planets, not at the planet’s distance from the Sun. Proxima Centauri is the nearest star of Alpha Centauri, not the A and B pair.</p>
         <div id="delay-live" class="live-result growth-metrics">
           <div>
             <p class="live-label" data-i18n="delay.oneWay">Signal arrives</p>
@@ -268,7 +273,7 @@
         </div>
         <p id="delay-status" role="status" aria-live="polite"></p>
         <h3 data-i18n="delay.timeline">Timeline</h3>
-        <div id="delay-bar" class="delay-bar" aria-hidden="true"></div>
+        <div id="delay-track" class="delay-track" aria-hidden="true"></div>
         <ol id="delay-events"></ol>
         <div class="button-row">
           <button type="submit" data-i18n="demo.compute">Compute</button>
@@ -277,7 +282,7 @@
       </form>
       <details id="delay-sources">
         <summary data-i18n="delay.sources">Sources and exact seconds</summary>
-        <p class="note" data-i18n="delay.sourceText">Vacuum speed of light: 299,792,458 m/s, the SI definition of the metre. Astronomical unit: 149,597,870,700 m exactly, IAU 2012 Resolution B2. Light-year: the distance light travels in one Julian year of 365.25 days of 86,400 s, as recognised by the IAU. Moon: NASA’s stated average, 384,400 km. Mars: 225 million km, a round figure for the often cited average of about 140 million miles, not a current ephemeris.</p>
+        <p class="note" data-i18n="delay.sourceText">Vacuum speed of light: 299,792,458 m/s, the SI definition of the metre. Astronomical unit: 149,597,870,700 m exactly, IAU 2012 Resolution B2; the Earth–Sun preset is 1 au. Light-year: one Julian year of 365.25 days of 86,400 s, as recognised by the IAU. Moon: NASA’s stated average, 384,400 km. Venus: NASA fact sheet, mean distance at inferior conjunction, 41.39 million km. Mars: 225 million km, a round figure for the often cited average of about 140 million miles. Europa: NASA’s mean Jupiter opposition, 628.81 million km, plus Europa’s orbital distance 671,000 km on the far side. Titan: difference of the NASA Saturn and Earth semimajor axes, 1,282.443 million km, plus Titan’s orbital distance 1,222,000 km on the far side. Proxima Centauri, Alpha Centauri C: 4.2465 light-years from the Gaia DR3 parallax. None of these is today’s ephemeris.</p>
         <dl class="diagnostics">
           <div><dt data-i18n="delay.exactOne">One-way seconds</dt><dd id="delay-exact-one"></dd></div>
           <div><dt data-i18n="delay.exactRound">Round-trip seconds</dt><dd id="delay-exact-round"></dd></div>

@@ -21,13 +21,20 @@ Ada returns those two times and the timeline: the signal leaves at 0, arrives at
 
 ## Presets
 
-These are chosen examples held in Ada.
+These are chosen alignments held in Ada, not a live ephemeris. For Europa and Titan the distance is a mean Earth–planet separation plus the moon’s own orbital radius on the far side of the planet. It is not the planet’s distance from the Sun.
 
 | Preset | Distance | What it is |
 | --- | --- | --- |
 | Earth–Moon | 384,400 km | NASA’s stated average distance |
-| Earth–Mars example | 225,000,000 km | A round figure for the often cited average of about 140 million miles. Not the distance today. |
+| Earth–Venus | 41,390,000 km | NASA fact sheet, mean distance at inferior conjunction |
+| Earth–Sun | 1 au | IAU conventional length for the mean Sun–Earth distance |
+| Earth–Mars example | 225,000,000 km | A round figure for the often cited average of about 140 million miles |
+| Earth–Europa | 629,481,000 km | NASA mean Jupiter opposition, 628.81 million km, plus Europa’s 671,000 km orbit |
+| Earth–Titan | 1,283,665,000 km | Difference of the NASA Saturn and Earth semimajor axes, plus Titan’s 1,222,000 km orbit |
+| Proxima Centauri | 4.2465 ly | Alpha Centauri C, the nearest star of the system, from the Gaia DR3 parallax. Not Alpha Centauri A or B |
 | 1,000 light-years | 1,000 ly | An illustrative interstellar distance. The prefilled example. |
+
+The timeline circles are numbered 1, 2 and 3. Each connecting leg shows that leg’s duration. The list under the graphic repeats those leg durations for assistive technology. Exact one-way and round-trip seconds stay in the closed sources disclosure. Displayed durations use at most two decimal places.
 
 1,000 light-years gives a one-way time of 1,000 Julian years and a reply in 2,000. Zero distance gives zero for both. A negative, empty, non-finite, or overflowing distance clears both times and the timeline.
 

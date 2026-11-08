@@ -10,10 +10,18 @@ with Interfaces;
 --  149_597_870_700 m. A light-year is one Julian year of that travel
 --  (365.25 days of 86_400 s), so one light-year takes exactly one Julian year.
 --
---  Presets are chosen examples held here, not a live ephemeris:
+--  Presets are chosen alignments, not a live ephemeris. Outer planets use
+--  the separation of published mean orbital radii (a mean opposition). A moon
+--  is then placed on the far side of its planet by its own orbital radius,
+--  so the distance is not the planet's distance from the Sun.
 --    1  Earth-Moon average, 384_400 km
---    2  a round average Earth-Mars example, 225_000_000 km
---    3  an illustrative interstellar distance, 1_000 light-years
+--    2  Earth-Venus at NASA's mean inferior conjunction, 41_390_000 km
+--    3  Earth-Sun, 1 astronomical unit
+--    4  a round average Earth-Mars example, 225_000_000 km
+--    5  Earth-Europa, Jupiter's mean opposition plus Europa's orbit
+--    6  Earth-Titan, Saturn's semimajor-axis separation plus Titan's orbit
+--    7  Proxima Centauri, Alpha Centauri C, 4.2465 light-years
+--    8  an illustrative 1_000 light-years
 package Ath_Delay is
    pragma Compile_Time_Error
      (Long_Float'Size /= 64,
@@ -35,7 +43,7 @@ package Ath_Delay is
    Astronomical_Unit_Metres : constant Long_Float := 149_597_870_700.0;
    Julian_Year_Seconds : constant Long_Float := 31_557_600.0;
 
-   Preset_Count : constant := 3;
+   Preset_Count : constant := 8;
 
    subtype Preset_Index is Integer range 1 .. Preset_Count;
 
@@ -48,4 +56,10 @@ package Ath_Delay is
 
    function Preset_Distance (Index : Preset_Index) return Long_Float;
    function Preset_Unit (Index : Preset_Index) return Long_Float;
+
+   --  Duration of the leg that ends at event Index, for Index 2 and 3.
+   --  Leg 2 is arrival minus departure. Leg 3 is reply minus arrival.
+   function Leg_Duration
+     (One_Way, Round_Trip : Long_Float;
+      Index : Integer) return Long_Float;
 end Ath_Delay;

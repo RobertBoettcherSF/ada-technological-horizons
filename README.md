@@ -8,7 +8,9 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.7** adds light-time under Phantomology / Teletaxy and Phantomultiplication. Ada computes how long a signal takes to cross a fixed vacuum distance, and how long an immediate reply takes to come back. The prefilled example is an illustrative 1,000 light-years: 1,000 years one way and 2,000 years for the reply. Earth–Moon and Earth–Mars presets are chosen published averages, and the Mars figure is not the distance today.
+Version **0.1.8** keeps that light-time model and numbers the three timeline steps. Each leg shows its own duration, rounded to at most two decimal places, with the exact seconds in the closed sources. Presets now also include Earth–Sun, Earth–Venus, Earth–Europa, Earth–Titan and Proxima Centauri (Alpha Centauri C). Europa and Titan are placed beyond their planets. None of the variable distances is today’s sky.
+
+Version 0.1.7 added the light-time calculator. The prefilled example remains an illustrative 1,000 light-years: 1,000 years one way and 2,000 years for the reply.
 
 Version 0.1.6 remains the growth chart that extends through a reachable target while the quantity stays at the elapsed time you enter. Those defaults still give quantity 4 and factor 4 at 2056.
 
@@ -71,7 +73,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.7`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.8`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

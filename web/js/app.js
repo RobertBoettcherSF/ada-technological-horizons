@@ -932,36 +932,52 @@ function clearDelayView() {
     }
   }
   document.getElementById("delay-events")?.replaceChildren();
-  document.getElementById("delay-bar")?.replaceChildren();
+  document.getElementById("delay-track")?.replaceChildren();
+}
+
+function durationLabel(seconds) {
+  const shown = formatDuration(seconds, state.lang);
+  return `${shown.text} ${t(state.lang, `delay.unitWord.${shown.unit}`)}`;
 }
 
 function renderDelay(outcome) {
   const one = document.getElementById("delay-one-way");
   const round = document.getElementById("delay-round");
   const list = document.getElementById("delay-events");
-  const bar = document.getElementById("delay-bar");
+  const track = document.getElementById("delay-track");
   const labels = ["delay.send", "delay.oneWay", "delay.roundTrip"];
-  const oneText = formatDuration(outcome.oneWay, state.lang);
-  const roundText = formatDuration(outcome.roundTrip, state.lang);
-  one.textContent = `${oneText.text} ${t(state.lang, `delay.unitWord.${oneText.unit}`)}`;
-  round.textContent = `${roundText.text} ${t(state.lang, `delay.unitWord.${roundText.unit}`)}`;
+  one.textContent = durationLabel(outcome.oneWay);
+  round.textContent = durationLabel(outcome.roundTrip);
   one.dataset.exact = formatCanonical(outcome.oneWay);
   round.dataset.exact = formatCanonical(outcome.roundTrip);
   document.getElementById("delay-exact-one").textContent = formatCanonical(outcome.oneWay);
   document.getElementById("delay-exact-round").textContent = formatCanonical(outcome.roundTrip);
   list.replaceChildren();
-  bar.replaceChildren();
-  const end = outcome.events.at(-1);
+  track.replaceChildren();
   outcome.events.forEach((time, index) => {
     const item = document.createElement("li");
-    const shown = formatDuration(time, state.lang);
-    item.textContent = `${t(state.lang, labels[index] ?? "delay.send")} — ${shown.text} ${t(state.lang, `delay.unitWord.${shown.unit}`)}`;
+    const leg = index === 0 ? null : outcome.legs[index - 1];
+    const when = durationLabel(time);
+    item.textContent = leg === null
+      ? `${t(state.lang, labels[index])} — ${when}`
+      : `${t(state.lang, labels[index])} — ${durationLabel(leg)}`;
     list.append(item);
-    const mark = document.createElement("span");
-    mark.className = index === outcome.events.length - 1 ? "delay-mark reply" : "delay-mark";
-    const fraction = !end ? 0 : time / end;
-    mark.style.left = `${fraction * 100}%`;
-    bar.append(mark);
+    if (index > 0) {
+      const legNode = document.createElement("span");
+      legNode.className = "delay-leg";
+      legNode.textContent = durationLabel(outcome.legs[index - 1]);
+      track.append(legNode);
+    }
+    const node = document.createElement("span");
+    node.className = "delay-node";
+    const number = document.createElement("span");
+    number.className = index === outcome.events.length - 1 ? "delay-num reply" : "delay-num";
+    number.textContent = String(index + 1);
+    const name = document.createElement("span");
+    name.className = "delay-name";
+    name.textContent = t(state.lang, labels[index]);
+    node.append(number, name);
+    track.append(node);
   });
 }
 

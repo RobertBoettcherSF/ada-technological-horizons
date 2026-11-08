@@ -30,4 +30,8 @@ package Ath_Delay_Exports is
    function Ath_Delay_Preset_Unit
      (Index : Interfaces.Integer_32) return Long_Float
    with Export, Convention => C, External_Name => "ath_delay_preset_unit";
+
+   function Ath_Delay_Leg_Time
+     (Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_delay_leg_time";
 end Ath_Delay_Exports;

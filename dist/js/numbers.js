@@ -59,7 +59,13 @@ export function formatDuration(seconds, lang) {
     unit = "min";
   }
   const sign = seconds < 0 ? "-" : "";
-  return { text: `${sign}${formatReadable(value, lang)}`, unit };
+  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  const text = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    useGrouping: false,
+  }).format(value);
+  return { text: `${sign}${text}`, unit };
 }
 
 export function formatReadable(value, lang, kind = "quantity") {

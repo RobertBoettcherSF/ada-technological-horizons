@@ -86,8 +86,27 @@ begin
      ("moon", Ath_Delay.Preset_Distance (1), Ath_Delay.Preset_Unit (1),
       Ath_Delay.Ok, Moon_Seconds, Moon_Seconds * 2.0);
    Expect
-     ("mars", Ath_Delay.Preset_Distance (2), Ath_Delay.Preset_Unit (2),
+     ("mars", Ath_Delay.Preset_Distance (4), Ath_Delay.Preset_Unit (4),
       Ath_Delay.Ok, Mars_Seconds, Mars_Seconds * 2.0);
+   Expect
+     ("venus", Ath_Delay.Preset_Distance (2), Ath_Delay.Preset_Unit (2),
+      Ath_Delay.Ok, 41_390_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light,
+      2.0 * 41_390_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light);
+   Expect
+     ("sun", Ath_Delay.Preset_Distance (3), Ath_Delay.Preset_Unit (3),
+      Ath_Delay.Ok, Au_Seconds, Au_Seconds * 2.0);
+   Expect
+     ("europa", Ath_Delay.Preset_Distance (5), Ath_Delay.Preset_Unit (5),
+      Ath_Delay.Ok, 629_481_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light,
+      2.0 * 629_481_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light);
+   Expect
+     ("titan", Ath_Delay.Preset_Distance (6), Ath_Delay.Preset_Unit (6),
+      Ath_Delay.Ok, 1_283_665_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light,
+      2.0 * 1_283_665_000.0 * 1_000.0 / Ath_Delay.Speed_Of_Light);
+   Expect
+     ("proxima", Ath_Delay.Preset_Distance (7), Ath_Delay.Preset_Unit (7),
+      Ath_Delay.Ok, 4.2465 * Ath_Delay.Julian_Year_Seconds,
+      2.0 * 4.2465 * Ath_Delay.Julian_Year_Seconds);
    Expect
      ("one-au", 1.0, Ath_Delay.Unit_Astronomical, Ath_Delay.Ok,
       Au_Seconds, Au_Seconds * 2.0);
@@ -98,12 +117,23 @@ begin
    Expect
      ("overflow", 1.0e307, Ath_Delay.Unit_Light_Years, Ath_Delay.Result_Not_Finite);
 
-   if Ath_Delay.Preset_Distance (1) /= 384_400.0
+   if Ath_Delay.Preset_Count /= 8
+     or else Ath_Delay.Preset_Distance (1) /= 384_400.0
      or else Ath_Delay.Preset_Unit (1) /= Ath_Delay.Unit_Kilometres
-     or else Ath_Delay.Preset_Distance (2) /= 225_000_000.0
+     or else Ath_Delay.Preset_Distance (2) /= 41_390_000.0
      or else Ath_Delay.Preset_Unit (2) /= Ath_Delay.Unit_Kilometres
-     or else Ath_Delay.Preset_Distance (3) /= 1_000.0
-     or else Ath_Delay.Preset_Unit (3) /= Ath_Delay.Unit_Light_Years
+     or else Ath_Delay.Preset_Distance (3) /= 1.0
+     or else Ath_Delay.Preset_Unit (3) /= Ath_Delay.Unit_Astronomical
+     or else Ath_Delay.Preset_Distance (4) /= 225_000_000.0
+     or else Ath_Delay.Preset_Unit (4) /= Ath_Delay.Unit_Kilometres
+     or else Ath_Delay.Preset_Distance (5) /= 629_481_000.0
+     or else Ath_Delay.Preset_Unit (5) /= Ath_Delay.Unit_Kilometres
+     or else Ath_Delay.Preset_Distance (6) /= 1_283_665_000.0
+     or else Ath_Delay.Preset_Unit (6) /= Ath_Delay.Unit_Kilometres
+     or else Ath_Delay.Preset_Distance (7) /= 4.2465
+     or else Ath_Delay.Preset_Unit (7) /= Ath_Delay.Unit_Light_Years
+     or else Ath_Delay.Preset_Distance (8) /= 1_000.0
+     or else Ath_Delay.Preset_Unit (8) /= Ath_Delay.Unit_Light_Years
    then
       Fail ("presets");
    end if;
@@ -121,8 +151,21 @@ begin
        Ath_Delay_Exports.Ath_Delay_One_Way
      or else Ath_Delay_Exports.Ath_Delay_Event_Time (3) /=
        Ath_Delay_Exports.Ath_Delay_Round_Trip
-     or else Ath_Delay_Exports.Ath_Delay_Preset_Count /= 3
+     or else Ath_Delay_Exports.Ath_Delay_Preset_Count /= 8
      or else Ath_Delay_Exports.Ath_Delay_Preset_Distance (1) /= 384_400.0
+     or else Ath_Delay_Exports.Ath_Delay_Preset_Distance (8) /= 1_000.0
+     or else Ath_Delay.Leg_Duration
+       (Ath_Delay_Exports.Ath_Delay_One_Way,
+        Ath_Delay_Exports.Ath_Delay_Round_Trip, 2) /=
+       Ath_Delay_Exports.Ath_Delay_One_Way
+     or else Ath_Delay.Leg_Duration
+       (Ath_Delay_Exports.Ath_Delay_One_Way,
+        Ath_Delay_Exports.Ath_Delay_Round_Trip, 3) /=
+       Ath_Delay_Exports.Ath_Delay_One_Way
+     or else Ath_Delay_Exports.Ath_Delay_Leg_Time (2) /=
+       Ath_Delay_Exports.Ath_Delay_One_Way
+     or else Ath_Delay_Exports.Ath_Delay_Leg_Time (3) /=
+       Ath_Delay_Exports.Ath_Delay_One_Way
    then
       Fail ("export thousand");
    end if;

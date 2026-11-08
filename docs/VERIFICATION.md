@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.8 numbered timeline and more presets
+
+`bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, `GROWTH OK`, and `DELAY OK`. The eight presets are the distances named in `docs/PLAN-4.md`. For 1,000 light-years each leg equals the one-way time. Moon display rounds to 1.28 s and 2.56 s, with both legs 1.28 s. Lifetime and growth behaviour is unchanged.
+
+Node suites passed, including Wasm preset and leg checks. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`, including a 320px timeline. The catalogue still counts 3 working calculators.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.7 light-time
 
 `bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, `GROWTH OK`, and `DELAY OK`. One thousand light-years is exactly 1,000 Julian years one way and 2,000 for the reply. Zero distance is zero. The Moon preset is 384,400 km and the Mars preset is 225,000,000 km. A negative distance, a bad unit, and an overflowing distance clear the previous times. Wasm replay matched those bits. The lifetime and growth fixtures are unchanged, including exact 6523 and the extended growth horizon.

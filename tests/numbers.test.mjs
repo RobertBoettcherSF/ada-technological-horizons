@@ -44,6 +44,8 @@ test("duration formatting follows the size of the light-time", async () => {
   assert.deepEqual(formatDuration(31557600 * 1000, "en-GB"), { text: "1000", unit: "y" });
   assert.deepEqual(formatDuration(31557600 * 2000, "de"), { text: "2000", unit: "y" });
   assert.equal(formatDuration(90, "en-GB").unit, "min");
+  assert.equal(formatDuration(1.28222, "en-GB").text, "1.28");
+  assert.equal(formatDuration(1.28222, "de").text, "1,28");
 });
 
 test("canonical rendering is unambiguous and ignores language", () => {

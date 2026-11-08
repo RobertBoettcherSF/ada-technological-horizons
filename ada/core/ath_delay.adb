@@ -76,8 +76,20 @@ package body Ath_Delay is
          when 1 =>
             return 384_400.0;
          when 2 =>
-            return 225_000_000.0;
+            return 41_390_000.0;
          when 3 =>
+            return 1.0;
+         when 4 =>
+            return 225_000_000.0;
+         when 5 =>
+            --  628.81 million km at opposition, plus 671,000 km.
+            return 629_481_000.0;
+         when 6 =>
+            --  1,282.443 million km, plus 1,222,000 km.
+            return 1_283_665_000.0;
+         when 7 =>
+            return 4.2465;
+         when 8 =>
             return 1_000.0;
       end case;
    end Preset_Distance;
@@ -85,10 +97,26 @@ package body Ath_Delay is
    function Preset_Unit (Index : Preset_Index) return Long_Float is
    begin
       case Index is
-         when 1 | 2 =>
+         when 1 | 2 | 4 | 5 | 6 =>
             return Unit_Kilometres;
          when 3 =>
+            return Unit_Astronomical;
+         when 7 | 8 =>
             return Unit_Light_Years;
       end case;
    end Preset_Unit;
+
+   function Leg_Duration
+     (One_Way, Round_Trip : Long_Float;
+      Index : Integer) return Long_Float is
+   begin
+      case Index is
+         when 2 =>
+            return One_Way;
+         when 3 =>
+            return Round_Trip - One_Way;
+         when others =>
+            return 0.0;
+      end case;
+   end Leg_Duration;
 end Ath_Delay;
