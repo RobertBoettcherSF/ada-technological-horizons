@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.13 chosen rate and debug report
+
+Choosing the 1000BASE-T line rate puts that rate first on the chart: **1000000000 bits/s — 10 µs**, marked chosen. The human figure stays **25 bits/s — 400 s** and the bacterial figure stays **at least 1000 bits/s — at most 10 s**. The headline ratio is **40000000**, labelled chosen rate divided by the human figure. The linear shares are **1**, **2.5e-8** and **0.000001**, the true fractions, with no padded minimum. The note names the line rate and says it is not machine understanding. The nominal-rate labels are cyan `rgb(143, 208, 222)`. Debug and F9 open a dialog, not Technical details. Saving downloads a text report that includes the release, commit, locale, active address, Wasm status and the expectation comment. Nothing is uploaded.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/78f6302b79c0a572d760902ba65300744cb9e147/dist/index.html
+
+The page showed release `0.1.13`, that commit, and `application/wasm`. Constructing Life was the only calculator on that address. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (68279 bytes, SHA-256 `87cf9eae2f336c475de8381c3daa1d1db3c07ea3f59938455fb786a8d96e4300`, `access-control-allow-origin: *`).
+
 ## v0.1.12 information-rate chart
 
 The linear bars are rates. For the historical figures the bacterial bar is 40 times the human bar: 1,000 bits/s and 25 bits/s. The times stay beside them, 400 s and at most 10 s. The digital reference is the nominal 1000 Mb/s line rate in IEEE Std 802.3 for 1000BASE-T, 1,000,000,000 bits/s. It is not framed payload and not a processing speed. Ten thousand bits at that ideal constant rate take 10 µs. The logarithmic chart may include the link and says that its lengths are not the 40-to-1 ratio. Chapter selection and F9 remain.
