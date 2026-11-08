@@ -6,7 +6,11 @@
 
 Node suites: 25 passed, including bit-matched Wasm replay of that extended case. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The page showed quantity 4.41636 and factor 4.41636 at year 2056, chart end 2087, and the target year 2086.507. At 320px, `scrollWidth - clientWidth` was at most 1.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/6e5533ccf57bb18489e8da6a127c5372961bc1fa/dist/index.html
+
+The page showed release `0.1.6`, that commit, `application/wasm`, headline **6500** with exact mean **6523**, and closed Technical details. With doubling time 14, elapsed time 30, start 2026 and target 20, the quantity and factor were **4.41636** at year **2056**, the chart ended at **2087**, and the target was reached in **2086.507**. Both curves were drawn through 2087. Lowering the target to 4 restored the chart end to **2056**, left the quantity at **4.41636**, and showed the target in **2054**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (40908 bytes, SHA-256 `3934138457f4c18216b02d41c9dd45e2948c6733e48877a3e5379162b684b504`, `access-control-allow-origin: *`).
 
 ## v0.1.5 calendar, baseline, and target year
 

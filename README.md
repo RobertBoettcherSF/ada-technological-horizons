@@ -95,4 +95,8 @@ Verified v0.1.5 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/86a341b1541993fcafc28617572242d8fb421924/dist/index.html
 
-A browser may meet raw.githack’s confirmation screen first. After the page itself loads, the default growth quantity is 4 and the factor is 4, at the year 2056. The civilisation headline remains 6500 years. Details are in `docs/VERIFICATION.md`.
+Verified v0.1.6 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/6e5533ccf57bb18489e8da6a127c5372961bc1fa/dist/index.html
+
+A browser may meet raw.githack’s confirmation screen first. After the page itself loads, the default growth quantity is 4 and the factor is 4, at the year 2056. A later reachable target extends the chart past that year. The civilisation headline remains 6500 years. Details are in `docs/VERIFICATION.md`.
