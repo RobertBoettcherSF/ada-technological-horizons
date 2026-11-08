@@ -167,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.18/);
+  assert.match(report, /Release: 0\.1\.19/);
   assert.match(report, /Preset: historical/);
   assert.match(report, /Preset: coin/);
   assert.match(report, /The selected rate should lead the chart/);
@@ -180,11 +180,13 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#choice-per").textContent(), "1 bit");
   assert.equal(await page.locator("#choice-count").textContent(), "256");
   assert.equal(await page.locator("#choice-preset-coin").getAttribute("aria-pressed"), "true");
-  assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), "Total information");
-  assert.equal(await page.locator("#choice-legend li").nth(1).innerText(), "Reported total");
+  assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), "Information needed");
+  assert.equal(await page.locator("#choice-legend li").nth(1).innerText(), "Result for the times you entered");
   assert.equal(await page.locator("#choice-plot polyline").count(), 1);
   assert.equal(await page.locator("#choice-plot .choice-mark").count(), 1);
-  assert.match(await page.locator("#choice-code").textContent(), /not the ideal information/);
+  assert.match(await page.locator("#choice-note").textContent(), /Eight coin tosses can produce 256 different sequences/);
+  assert.match(await page.locator("#choice-note").textContent(), /takes 8 bits/);
+  assert.match(await page.locator("#choice-code").textContent(), /not the theoretical amount/);
   assert.match(await page.locator("[data-i18n='choice.assumptions']").textContent(), /equally likely/);
   assert.match(await page.locator("[data-i18n='choice.sourceText']").textContent(), /about 100/);
   assert.doesNotMatch(await page.locator("[data-i18n='choice.sourceText']").textContent(), /Lem quoted|coin from the book/);
@@ -192,15 +194,21 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "36");
   assert.equal(await page.locator("#choice-n").inputValue(), "6");
   assert.equal(await page.locator("#choice-k").inputValue(), "2");
+  assert.equal(await page.locator("#choice-per").textContent(), "2.58496 bits");
+  assert.match(await page.locator("#choice-note").textContent(), /theoretical measure/);
+  assert.match(await page.locator("#choice-note").textContent(), /36/);
   assert.match(await page.locator("#choice-code").textContent(), /3 bits/);
+  assert.equal(await page.locator("#choice-preset-die").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#choice-preset-coin").getAttribute("aria-pressed"), "false");
   await page.click("#choice-preset-alphabet");
   await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "17576");
   assert.equal(await page.locator("#choice-n").inputValue(), "26");
-  assert.match(await page.locator("#choice-note").textContent(), /teaching/);
+  assert.match(await page.locator("#choice-note").textContent(), /one of 26/);
+  assert.match(await page.locator("#choice-note").textContent(), /17576/);
   await page.fill("#choice-k", "4");
   await page.waitForFunction(() => document.querySelector("#choice-preset-alphabet")?.getAttribute("aria-pressed") === "false");
-  assert.match(await page.locator("#choice-note").textContent(), /your count/i);
+  assert.match(await page.locator("#choice-note").textContent(), /Repeated 4 times/);
+  assert.doesNotMatch(await page.locator("#choice-note").textContent(), /Three letters/);
   await page.fill("#choice-k", "0");
   await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "1");
   assert.equal(await page.locator("#choice-total").textContent(), "0 bits");
@@ -734,7 +742,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.18");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.19");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -766,21 +774,20 @@ async function exercise(page, label) {
   );
   assert.deepEqual(dilemmaLinks, ["#dilemmas/part-1", "#dilemmas/part-2", "#dilemmas/part-3"]);
 
-  await page.locator('a[href="#dilemmas/part-1"]').first().focus();
-  await page.keyboard.press("Enter");
+  await page.locator('#reading-pager a[href="#dilemmas/part-1"]').click();
   await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "dilemmas/part-1");
   assert.equal(await page.locator("#reading-prev").getAttribute("aria-disabled"), "true");
   assert.equal(await page.locator("#reading-next").getAttribute("href"), "#dilemmas/part-2");
 
-  await page.locator('a[href="#cosmic-civilisations/formulating-the-method"]').first().focus();
-  await page.keyboard.press("Enter");
+  await page.locator('a[href="#cosmic-civilisations"]').click();
+  await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "cosmic-civilisations");
+  await page.locator('#reading-pager a[href="#cosmic-civilisations/formulating-the-method"]').click();
   await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "cosmic-civilisations/formulating-the-method");
   const bookNext = await page.locator("#reading-next").getAttribute("href");
   assert.equal(bookNext, "#cosmic-civilisations/statistics-of-cosmic-civilisations");
   const tools = page.locator("#catalogue-tools");
   if (!(await tools.evaluate((element) => element.open))) {
-    await tools.locator("summary").focus();
-    await page.keyboard.press("Enter");
+    await tools.locator("summary").click();
     await page.waitForFunction(() => document.querySelector("#catalogue-tools").open);
   }
   await page.selectOption("#sort", "title");
@@ -842,9 +849,40 @@ async function exercise(page, label) {
   assert.equal(await cardVisible("#throughput-card"), true);
   assert.equal(await cardVisible("#choice-card"), true);
   await page.locator('a[href="#creating-worlds"]').click();
-  await page.waitForFunction(() => document.querySelector("#choice-card") && !document.querySelector("#choice-card").hidden && document.querySelector("#lifetime-card").hidden && document.querySelector("#throughput-card").hidden);
+  await page.waitForFunction(() => {
+    const reading = document.querySelector("#reading");
+    const dock = document.querySelector(".debug-dock");
+    if (!reading || reading.hidden || reading.querySelector("#reading-title")?.textContent !== "Creating Worlds") return false;
+    const top = reading.getBoundingClientRect().top;
+    const limit = dock.getBoundingClientRect().height;
+    return top >= limit - 8 && top < limit + 120;
+  });
   assert.equal(await page.locator("#choice-count").textContent(), "256");
-  assert.equal(await page.locator('[data-chapter-link="creating-worlds"]').getAttribute("data-calculator"), "ready");
+  assert.equal(await page.locator("#reading-section-title").textContent(), "Cultivating Information");
+  assert.equal(await page.locator("#catalogue-results").isHidden(), true);
+  assert.equal(await page.evaluate(() => location.hash), "#creating-worlds");
+  assert.equal(await page.locator('[data-chapter-link="creating-worlds"]').getAttribute("aria-current"), "true");
+  const dock = await page.locator(".debug-dock").boundingBox();
+  const readingBox = await page.locator("#reading").boundingBox();
+  const choiceBox = await page.locator("#choice-card").boundingBox();
+  assert.ok(dock && readingBox && choiceBox);
+  assert.ok(readingBox.y >= dock.height - 8);
+  assert.ok(readingBox.y < dock.height + 120);
+  assert.ok(choiceBox.y > readingBox.y);
+  await shotElement(page, label, "choice-section-desktop.png", "#selected-stage");
+  await page.locator('#reading-pager a[href="#creating-worlds/cultivating-information"]').click();
+  await page.waitForFunction(() => document.querySelector("#reading-title")?.textContent === "Cultivating Information");
+  assert.equal(await page.locator("#choice-card").isHidden(), false);
+  assert.equal(await page.locator("#throughput-card").isHidden(), true);
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "#creating-worlds");
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "");
+  assert.equal(await page.locator("#reading").isHidden(), true);
+  assert.equal(await page.locator("#catalogue-results").isHidden(), false);
+  assert.equal(await page.locator("#lifetime-card").isHidden(), false);
+  await page.locator('a[href="#choice-card"]').click();
+  await page.waitForFunction(() => document.querySelector("#reading-title")?.textContent === "Cultivating Information" && !document.querySelector("#choice-card").hidden && document.querySelector("#lifetime-card").hidden);
   await page.click("#show-all");
   await page.waitForFunction(() => document.querySelector("#show-all")?.getAttribute("aria-pressed") === "true");
   assert.equal(await cardVisible("#choice-card"), true);
@@ -906,6 +944,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-time-label").textContent(), t("de", "throughput.timeLabel"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("de", "throughput.preset.page"));
   assert.equal(await page.locator("#choice-preset-coin").textContent(), t("de", "choice.preset.coin"));
+  assert.match(await page.locator("#choice-note").textContent(), /Acht Münzwürfe/);
   assert.equal(await page.locator("#choice-total").textContent(), "8 Bit");
   assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), t("de", "choice.series"));
   assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), `${t("de", "throughput.humanBar")} (${t("de", "throughput.chosen")})`);
@@ -1017,6 +1056,24 @@ async function exercise(page, label) {
 
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow overflow");
+  await page.locator('a[href="#creating-worlds"]').click();
+  await page.waitForFunction(() => {
+    const reading = document.querySelector("#reading");
+    const dock = document.querySelector(".debug-dock");
+    if (!reading || reading.hidden || document.querySelector("#reading-title")?.textContent !== "Creating Worlds") return false;
+    if (document.querySelector("#choice-card").hidden || !document.querySelector("#lifetime-card").hidden) return false;
+    const top = reading.getBoundingClientRect().top;
+    const limit = dock.getBoundingClientRect().height;
+    return top >= limit - 8 && top < limit + 120;
+  });
+  const narrowReading = await page.locator("#reading").boundingBox();
+  const narrowDock = await page.locator(".debug-dock").boundingBox();
+  assert.ok(narrowReading && narrowDock);
+  assert.ok(narrowReading.y >= narrowDock.height - 8);
+  assert.ok(narrowReading.y < narrowDock.height + 120);
+  await shotElement(page, label, "choice-section-narrow.png", "#selected-stage");
+  await page.click("#show-all");
+  await page.waitForFunction(() => location.hash === "" && !document.querySelector("#lifetime-card").hidden);
   const debugBox = await page.locator("#debug-toggle").boundingBox();
   assert.ok(debugBox);
   assert.ok(debugBox.x >= 0 && debugBox.y >= 0);

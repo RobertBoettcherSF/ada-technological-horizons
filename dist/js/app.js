@@ -180,6 +180,8 @@ function applyVisibility() {
     const node = document.getElementById(item.cardId);
     if (node) node.hidden = !show;
   }
+  const catalogueResults = document.getElementById("catalogue-results");
+  if (catalogueResults) catalogueResults.hidden = Boolean(route);
   const note = document.getElementById("selection-note");
   if (note) {
     if (!limited) {
@@ -291,6 +293,16 @@ function renderReading(route) {
     title.textContent = "";
     summary.textContent = "";
     meta.textContent = "";
+    const sectionTitle = document.getElementById("reading-section-title");
+    const sectionSummary = document.getElementById("reading-section-summary");
+    if (sectionTitle) {
+      sectionTitle.hidden = true;
+      sectionTitle.textContent = "";
+    }
+    if (sectionSummary) {
+      sectionSummary.hidden = true;
+      sectionSummary.textContent = "";
+    }
     pager.replaceChildren();
     return;
   }
@@ -306,6 +318,15 @@ function renderReading(route) {
       : chapterHasCalculator
         ? t(state.lang, `chapter.${chapter.id}.blurb`)
         : t(state.lang, "summary.planned");
+    const working = sections.find((item) => item.chapterId === chapter.id && CALCULATOR_CARDS.some((card) => card.sectionId === item.id));
+    const sectionTitle = document.getElementById("reading-section-title");
+    const sectionSummary = document.getElementById("reading-section-summary");
+    if (sectionTitle && sectionSummary) {
+      sectionTitle.hidden = !working;
+      sectionSummary.hidden = !working;
+      sectionTitle.textContent = working ? working.title[state.lang] : "";
+      sectionSummary.textContent = working ? t(state.lang, working.summaryKey) : "";
+    }
     const list = h("ul", { class: "section-jump" });
     for (const section of sections.filter((item) => item.chapterId === chapter.id)) {
       list.append(
@@ -323,6 +344,10 @@ function renderReading(route) {
     return;
   }
 
+  const sectionTitle = document.getElementById("reading-section-title");
+  const sectionSummary = document.getElementById("reading-section-summary");
+  if (sectionTitle) sectionTitle.hidden = true;
+  if (sectionSummary) sectionSummary.hidden = true;
   const entry = entries.find((item) => item.id === route);
   if (!entry) {
     title.textContent = t(state.lang, "reading.prompt");
@@ -1578,17 +1603,17 @@ function showRoute(route, options = {}) {
   }
   renderReading(route);
   renderResults();
-  if (options.focus && route) {
-    document.getElementById("reading-title")?.focus();
-  }
-  if (!route) return;
-  const card = CALCULATOR_CARDS.find((item) => item.sectionId === route);
-  const cardNode = card ? document.getElementById(card.cardId) : null;
-  if (cardNode && !cardNode.hidden) {
-    cardNode.scrollIntoView({ block: "nearest" });
-    return;
-  }
-  document.getElementById("reading")?.scrollIntoView({ block: "nearest" });
+  const alignSelection = () => {
+    const dock = document.querySelector(".debug-dock");
+    const offset = (dock?.getBoundingClientRect().height ?? 0) + 12;
+    const target = route ? document.getElementById("reading") : document.getElementById("chapters-label");
+    if (!target || target.hidden) return;
+    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, top), left: 0 });
+    if (route && options.focus) document.getElementById("reading-title")?.focus({ preventScroll: true });
+  };
+  alignSelection();
+  requestAnimationFrame(alignSelection);
 }
 
 const CHOICE_PRESETS = {
@@ -1614,6 +1639,31 @@ function choiceCountText(outcome) {
     return `${t(state.lang, "choice.countBeyond")} ${estimate} ${log}`;
   }
   return `${t(state.lang, "choice.countBeyond")} ${log}`;
+}
+
+function fillTemplate(template, values) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
+}
+
+function choiceSummary(outcome) {
+  const possibilities = Number(state.choice.possibilities);
+  const repeats = Number(state.choice.repeats);
+  const values = {
+    n: formatReadable(possibilities, state.lang),
+    k: formatReadable(repeats, state.lang),
+    count: outcome.combinationsExact ? formatCanonical(outcome.combinations) : "",
+    total: bitsPhrase(outcome.totalBits),
+    per: bitsPhrase(outcome.bitsPer),
+  };
+  let key = "choice.summary.sequence";
+  if (possibilities === 1) key = "choice.summary.oneOutcome";
+  else if (repeats === 0) key = "choice.summary.zeroTimes";
+  else if (!outcome.combinationsExact) key = "choice.summary.huge";
+  else if (state.choice.preset === "coin") key = "choice.summary.coin";
+  else if (state.choice.preset === "die") key = "choice.summary.die";
+  else if (state.choice.preset === "alphabet") key = "choice.summary.alphabet";
+  else if (repeats === 1) key = "choice.summary.once";
+  return fillTemplate(t(state.lang, key), values);
 }
 
 function choiceMessage(code) {
@@ -1661,11 +1711,8 @@ function renderChoice(outcome) {
       .replace("{per}", bitsPhrase(outcome.codePer))
       .replace("{total}", totalText);
   }
-  const noteKey = ["coin", "die", "alphabet"].includes(state.choice.preset)
-    ? `choice.note.${state.choice.preset}`
-    : "choice.note.custom";
   const note = document.getElementById("choice-note");
-  if (note) note.textContent = t(state.lang, noteKey);
+  if (note) note.textContent = choiceSummary(outcome);
   for (const name of ["coin", "die", "alphabet"]) {
     document.getElementById(`choice-preset-${name}`)?.setAttribute("aria-pressed", state.choice.preset === name ? "true" : "false");
   }

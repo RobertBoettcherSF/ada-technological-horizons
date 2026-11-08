@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.18">
+  <meta name="ath-release" content="0.1.19">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.18</p>
+        <p class="release-pill" id="header-version">0.1.19</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -40,6 +40,16 @@
       <p id="selection-note" class="note" aria-live="polite" data-i18n="nav.showingAll">Showing every calculator.</p>
       <ul id="chapter-list" class="chapter-list"></ul>
     </nav>
+
+    <div id="selected-stage">
+    <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>
+      <h2 id="reading-title" tabindex="-1"></h2>
+      <p id="reading-meta"></p>
+      <p id="reading-summary"></p>
+      <h3 id="reading-section-title" hidden></h3>
+      <p id="reading-section-summary" hidden></p>
+      <div id="reading-pager" class="pager"></div>
+    </article>
 
     <section id="lifetime-card" class="lifetime-card" aria-labelledby="lifetime-title">
       <p class="kicker" data-i18n="lifetime.path">Cosmic Civilisations · Statistics of Cosmic Civilisations</p>
@@ -296,53 +306,52 @@
 
     <section id="choice-card" class="lifetime-card" aria-labelledby="choice-title">
       <p class="kicker" data-i18n="choice.path">Creating Worlds · Cultivating Information</p>
-      <h2 id="choice-title" data-i18n="choice.title">How many bits are in a set of equally likely choices?</h2>
-      <p data-i18n="choice.lead">One selection among N equally likely possibilities carries log2(N) bits. k independent repetitions have N to the power k combinations and k times that many bits. This is ideal information, not a meaning and not intelligence.</p>
-      <p class="note" data-i18n="choice.assumptions">Assumptions: the N possibilities are equally likely, and each repetition is independent of the others.</p>
+      <h2 id="choice-title" data-i18n="choice.title">How many yes-or-no answers does it take to say which sequence happened?</h2>
+      <p data-i18n="choice.lead">A bit is one yes-or-no. A coin has 2 outcomes each toss, a die has 6 faces, and this alphabet has 26 letters. Choose how many outcomes are possible each time, and how many times that happens.</p>
       <form id="choice-form">
         <div class="fields">
           <div>
-            <label for="choice-n" data-i18n="choice.possibilities">Possibilities, N</label>
+            <label for="choice-n" data-i18n="choice.possibilities">Possible outcomes each time</label>
             <input id="choice-n" data-choice="possibilities" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2">
           </div>
           <div>
-            <label for="choice-k" data-i18n="choice.repeats">Repetitions, k</label>
+            <label for="choice-k" data-i18n="choice.repeats">Number of times</label>
             <input id="choice-k" data-choice="repeats" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="8">
           </div>
         </div>
         <div class="button-row preset-row">
-          <button type="button" class="secondary" id="choice-preset-coin" data-choice-preset="coin" data-i18n="choice.preset.coin">Fair coin (default)</button>
-          <button type="button" class="secondary" id="choice-preset-die" data-choice-preset="die" data-i18n="choice.preset.die">Six-sided die</button>
-          <button type="button" class="secondary" id="choice-preset-alphabet" data-choice-preset="alphabet" data-i18n="choice.preset.alphabet">26-letter alphabet</button>
+          <button type="button" class="secondary" id="choice-preset-coin" data-choice-preset="coin" aria-pressed="true" data-i18n="choice.preset.coin">Fair coin — 2 outcomes, 8 times</button>
+          <button type="button" class="secondary" id="choice-preset-die" data-choice-preset="die" aria-pressed="false" data-i18n="choice.preset.die">Die — 6 faces, 2 rolls</button>
+          <button type="button" class="secondary" id="choice-preset-alphabet" data-choice-preset="alphabet" aria-pressed="false" data-i18n="choice.preset.alphabet">Alphabet — 26 letters, 3 times</button>
         </div>
-        <p id="choice-preset-help" class="note" data-i18n="choice.presetHelp">The coin, the die and the alphabet are teaching examples. They are not quotations from the book. Editing either number makes this your own count.</p>
+        <p id="choice-preset-help" class="note" data-i18n="choice.presetHelp">Each button fills both numbers. The selected button stays marked. Changing a number clears that selection.</p>
         <p id="choice-note" class="note"></p>
         <div class="live-result growth-metrics">
           <div>
-            <p class="live-label" data-i18n="choice.perLabel">Ideal information, one selection</p>
+            <p class="live-label" data-i18n="choice.perLabel">Information for one turn</p>
             <output id="choice-per" for="choice-n"></output>
           </div>
           <div>
-            <p class="live-label" data-i18n="choice.totalLabel">Ideal information, all repetitions</p>
+            <p class="live-label" data-i18n="choice.totalLabel">Information for the whole sequence</p>
             <output id="choice-total" for="choice-n choice-k"></output>
           </div>
           <div>
-            <p class="live-label" data-i18n="choice.countLabel">Combinations</p>
+            <p class="live-label" data-i18n="choice.countLabel">Possible sequences</p>
             <output id="choice-count"></output>
           </div>
         </div>
-        <p id="choice-code" class="note"></p>
         <p id="choice-status" role="status" aria-live="polite"></p>
-        <h3 id="choice-chart-label" data-i18n="choice.chart">Total information</h3>
+        <h3 id="choice-chart-label" data-i18n="choice.chart">Information needed</h3>
+        <p class="note" data-i18n="choice.chartNote">Left to right is the number of times. Upwards is the information needed to record the sequence. The line is that information. The dot is the result for the number of times you entered.</p>
         <div id="choice-chart-block">
           <div class="throughput-plot-wrap">
-            <p id="choice-y-label" class="axis-name" data-i18n="choice.axisInfo">Total information (bits)</p>
+            <p id="choice-y-label" class="axis-name" data-i18n="choice.axisInfo">Information needed (bits)</p>
             <div id="choice-y-ticks" class="throughput-y-ticks"></div>
             <div class="throughput-plot-frame">
               <svg id="choice-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="choice-chart-label" aria-describedby="choice-legend"></svg>
             </div>
             <div id="choice-x-ticks" class="throughput-x-ticks"></div>
-            <p id="choice-x-label" class="axis-name" data-i18n="choice.axisRepeats">Repetitions</p>
+            <p id="choice-x-label" class="axis-name" data-i18n="choice.axisRepeats">Number of times</p>
           </div>
           <ul id="choice-legend" class="plot-legend"></ul>
         </div>
@@ -352,9 +361,12 @@
         </div>
       </form>
       <details id="choice-sources">
-        <summary data-i18n="choice.sources">Source and what is not claimed</summary>
+        <summary data-i18n="choice.sources">Technical and math details</summary>
+        <p class="note" data-i18n="choice.assumptions">The count treats every outcome as equally likely, and every turn as independent of the others. It does not measure meaning, knowledge, or how a real file would be compressed.</p>
+        <p class="note" data-i18n="choice.formula">One turn is log2 of the number of outcomes. The whole sequence multiplies that by the number of times. The number of sequences is the outcomes raised to that number of times.</p>
+        <p id="choice-code" class="note"></p>
         <p class="note" data-i18n="choice.sourceText">Creating Worlds, Cultivating Information, discusses selective information with a logarithmic measure, and contrasts a small set of element statements, about 100, with a vocabulary-sized set. This page does not treat 100 as a quoted exact vocabulary, and it does not quote a coin, a die or an alphabet from the book.</p>
-        <p class="note" data-i18n="choice.codeNote">Ideal information can be a fraction of a bit. A fixed-length binary code rounds up to a whole number of bits per selection. The two quantities are not the same, and neither is a measure of meaning.</p>
+        <p class="note" data-i18n="choice.codeNote">The result above can be a fraction of a bit. That is the theoretical amount. A fixed-length code stores a whole number of yes-or-no bits per turn, which can be more. A die is about 2.585 bits in theory and 3 stored bits in that kind of code. Those are different numbers.</p>
         <dl class="diagnostics">
           <div><dt data-i18n="choice.exactPer">Ideal bits, one selection</dt><dd id="choice-exact-per"></dd></div>
           <div><dt data-i18n="choice.exactTotal">Ideal bits, all repetitions</dt><dd id="choice-exact-total"></dd></div>
@@ -479,13 +491,7 @@
         </dl>
       </details>
     </section>
-
-    <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>
-      <h2 id="reading-title" tabindex="-1"></h2>
-      <p id="reading-meta"></p>
-      <p id="reading-summary"></p>
-      <div id="reading-pager" class="pager"></div>
-    </article>
+    </div>
 
     <section id="catalogue" aria-labelledby="catalogue-label">
       <h2 id="catalogue-label" data-i18n="catalogue.heading">Sections</h2>

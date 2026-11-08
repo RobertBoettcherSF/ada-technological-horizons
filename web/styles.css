@@ -180,6 +180,12 @@ button.collapse {
 }
 
 .chapter-tile[aria-current="true"],
+.preset-row button[aria-pressed="true"] {
+  background: var(--lime);
+  color: var(--lime-ink);
+  border-color: transparent;
+}
+
 .chapter-tile[aria-pressed="true"] {
   outline: 2px solid var(--lime);
   outline-offset: 2px;
@@ -207,8 +213,9 @@ button.collapse {
 
 .lifetime-card,
 #technical-details,
-#reading {
-  scroll-margin-top: 4.25rem;
+#reading,
+#selected-stage {
+  scroll-margin-top: 6rem;
 }
 
 .chapter-tile.is-ready {

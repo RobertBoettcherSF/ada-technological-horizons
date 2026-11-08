@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.19** opens a chosen chapter at its heading, with the introduction before the calculator. The choices page says what a bit is in everyday language, and the coin, die and alphabet buttons say which numbers they fill in.
+
 Version **0.1.18** computes ideal information for equally likely choices: log2(N) bits for one selection, and k times that for k independent repetitions. A fair coin, a six-sided die and a 26-letter alphabet are teaching examples. The book’s logarithmic measure is cited under Cultivating Information; those examples are not quotations.
 
 Version **0.1.17** draws a near-zero reference clear of the axis and labels that drawing not to scale. The listed rate and time stay exact.
@@ -91,7 +93,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.18`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.19`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 
