@@ -4,7 +4,11 @@
 
 All chapters is the default: the four calculators are on the page together. Choosing Phantomology leaves only the light-time calculator. Choosing two chapters in the catalogue leaves only those calculators. A direct `#growth-card` address leaves only the growth calculator. All chapters restores the four without clearing their edited values. The Technical details button and F9 open and close the same disclosure. Escape closes it when focus is inside it. It starts closed.
 
-The immutable raw.githack check for this release is recorded after that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/1eb76f803512bb57fcff9e1e518935d8a34a2c82/dist/index.html
+
+The page showed release `0.1.11`, that commit, and `application/wasm`. Technical details started closed. All four calculators were visible. Choosing Phantomology left only the light-time card, still reading **1000 years** and **Reply arrives — 2000 years**. The other results stayed in place: headline **6500**, growth quantity **4**, and **400 s**. F9 opened Technical details and Escape closed it. All chapters showed the growth card again. At 320px, `scrollWidth - clientWidth` was 0 and the Technical details button was visible. `curl` received `text/html` with `access-control-allow-origin: *`.
 
 ## v0.1.10 constant-rate information
 
