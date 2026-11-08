@@ -73,4 +73,8 @@ The v0.1.0 snapshot remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/fecd1d9154dfbef5a69a306ef3409d9219d7958e/dist/index.html
 
-The v0.1.1 opening is recorded in `docs/VERIFICATION.md` with the commit that contains it. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5.
+Verified v0.1.1 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7ed60133a77e6b1a3ac22c9dc0b390e2823a064f/dist/index.html
+
+A browser meets raw.githack’s confirmation screen first. After “Open the page”, the Ada module loads and the default sum is 5. Details are in `docs/VERIFICATION.md`.

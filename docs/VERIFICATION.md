@@ -11,7 +11,11 @@ Checked on the same Ubuntu 24.04.5 host after `bash tools/build.sh`.
 - The addition card is before the section list, shows prefilled `2` and `3`, and shows result `5` from Ada. Chapter tiles expose a description in the active language.
 - Search, order and filters start closed. Enter on that summary opens them. The existing language, filter, sort, reset, collapse, error and load-failure checks still pass. At 320px, `scrollWidth - clientWidth` is at most 1.
 
-The immutable 0.1.1 raw.githack URL is recorded below once that commit has been loaded in a browser.
+Verified in a browser on 8 November 2026, after raw.githack’s “Open the page” confirmation, at:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7ed60133a77e6b1a3ac22c9dc0b390e2823a064f/dist/index.html
+
+The page showed release `0.1.1`, that commit, execution `Ada WebAssembly`, `application/wasm`, one Ada call, and result `5`. Technical details and the search disclosure were closed. Ten chapter tiles were present. `curl` received `text/html` for the page and `application/wasm` for the 6818-byte module, with `access-control-allow-origin: *`.
 
 ## v0.1.0
 
