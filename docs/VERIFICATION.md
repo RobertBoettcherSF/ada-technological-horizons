@@ -6,7 +6,11 @@
 
 Node suites: 24 passed, including bit-exact Wasm replay of the addition, lifetime, rebalance and growth fixtures. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The default growth card showed quantity 4 and factor 4, with the table endpoint equal to that quantity. Elapsed time 15 showed 2 and 2. Reset restored 1, 15 and 30. Invalid doubling, a negative elapsed time, a negative start, NaN, an empty field and the overflow case cleared the quantity, factor and curve. The civilisation card still showed 6500 with exact mean 6523, and editing 60 to 30 still showed 15, 30, 25, 30. Technical details stayed closed until opened. The catalogue counted 2 working calculators. At 320px, `scrollWidth - clientWidth` was at most 1.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/5d55a2adbf1b4f04d4076f24d975a57ad4fdd3cd/dist/index.html
+
+The page showed release `0.1.4`, that commit, `application/wasm`, quantity **4**, factor **4**, headline **6500** with exact mean **6523**, two working calculators, and closed Technical details. The curve table had 11 rows and its last quantity was 4. Editing the elapsed time to 15 showed quantity **2** and factor **2**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (31832 bytes, SHA-256 `7f9036f33539b86fb8f36ad2e5461b2ddf1cebc6730b534fe5846ed64c4093bf`, `access-control-allow-origin: *`).
 
 ## v0.1.3 rebalance and headline
 
