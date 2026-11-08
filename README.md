@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.17** draws a near-zero reference clear of the axis and labels that drawing not to scale. The listed rate and time stay exact.
+
 Version **0.1.16** names each curve on the chart. The legend uses the same colour and stroke as the line, and it names the dashed target and the crossing dot.
 
 Version **0.1.15** plots information transmitted against time. Lem’s example restores 10,000 bits at 25 bits/s for 400 seconds. On a log chart, zero is left off rather than drawn as a tiny positive value.
@@ -87,7 +89,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.16`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.17`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

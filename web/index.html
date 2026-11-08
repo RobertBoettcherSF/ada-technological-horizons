@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.16">
+  <meta name="ath-release" content="0.1.17">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.16</p>
+        <p class="release-pill" id="header-version">0.1.17</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -372,7 +372,10 @@
         <div id="throughput-plot-wrap" class="throughput-plot-wrap">
           <p id="throughput-y-label" class="axis-name" data-i18n="throughput.axisInfo">Information transmitted (bits)</p>
           <div id="throughput-y-ticks" class="throughput-y-ticks"></div>
-          <svg id="throughput-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="throughput-scale-label" aria-describedby="throughput-legend throughput-compare"></svg>
+          <div class="throughput-plot-frame">
+            <svg id="throughput-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="throughput-scale-label" aria-describedby="throughput-legend throughput-compare"></svg>
+            <div id="throughput-plot-labels" class="plot-labels"></div>
+          </div>
           <div id="throughput-x-ticks" class="throughput-x-ticks"></div>
           <p id="throughput-x-label" class="axis-name" data-i18n="throughput.axisTime">Time (unit on each tick)</p>
         </div>

@@ -1167,6 +1167,16 @@ function seriesSwatch(className, mark = false) {
     dot.setAttribute("r", "2.6");
     swatch.append(dot);
   } else {
+    if (className.includes("series-near-zero")) {
+      const series = className.split(" ").find((name) => name.startsWith("series-") && name !== "series-chosen" && name !== "series-near-zero");
+      const halo = document.createElementNS(SVG_NS, "line");
+      halo.setAttribute("class", `${series} series-halo`);
+      halo.setAttribute("x1", "1");
+      halo.setAttribute("x2", "35");
+      halo.setAttribute("y1", "5");
+      halo.setAttribute("y2", "5");
+      swatch.append(halo);
+    }
     const line = document.createElementNS(SVG_NS, "line");
     line.setAttribute("class", className);
     line.setAttribute("x1", "1");
@@ -1194,6 +1204,7 @@ function clearThroughputView() {
     if (node) node.textContent = "";
   }
   document.getElementById("throughput-plot")?.replaceChildren();
+  document.getElementById("throughput-plot-labels")?.replaceChildren();
   document.getElementById("throughput-compare")?.replaceChildren();
   const legend = document.getElementById("throughput-legend");
   legend?.replaceChildren();
@@ -1277,6 +1288,7 @@ function renderThroughput(outcome) {
   const xTicks = document.getElementById("throughput-x-ticks");
   const yTicks = document.getElementById("throughput-y-ticks");
   plot?.replaceChildren();
+  document.getElementById("throughput-plot-labels")?.replaceChildren();
   xTicks?.replaceChildren();
   yTicks?.replaceChildren();
   if (plot) plot.dataset.scale = logarithmic ? "log" : "linear";
@@ -1338,6 +1350,11 @@ function renderThroughput(outcome) {
     targetDrawn = true;
   }
   const plotted = [];
+  const labels = document.getElementById("throughput-plot-labels");
+  const plotHeight = plot.clientHeight || 256;
+  const minVisiblePx = 8;
+  const liftUnits = (minVisiblePx / plotHeight) * 100;
+  let labelStack = 0;
   rows.forEach((row, index) => {
     const chosen = throughputChosen(outcome, row);
     const points = (row.samples || []).flatMap((sample) => {
@@ -1348,15 +1365,48 @@ function renderThroughput(outcome) {
     });
     if (!points.length) return;
     const series = THROUGHPUT_SERIES[row.kind] || "series-custom";
-    plotted.push({ row, chosen, series });
+    const ys = points.map((pair) => Number(pair.split(",")[1]));
+    const risePx = ((100 - Math.min(...ys)) / 100) * plotHeight;
+    const positive = (row.samples || []).some((sample) => sample.info > 0);
+    const nearZero = !logarithmic && positive && risePx < minVisiblePx;
+    const drawn = nearZero
+      ? points.map((pair) => {
+        const [x, y] = pair.split(",").map(Number);
+        return `${x},${Math.max(2, y - liftUnits)}`;
+      })
+      : points;
+    plotted.push({ row, chosen, series, nearZero });
+    const className = `${series}${chosen ? " series-chosen" : ""}${nearZero ? " series-near-zero" : ""}`;
+    if (nearZero) {
+      const halo = document.createElementNS(svg, "polyline");
+      halo.setAttribute("class", `${series} series-halo`);
+      halo.setAttribute("fill", "none");
+      halo.setAttribute("points", drawn.join(" "));
+      plot.append(halo);
+    }
     const polyline = document.createElementNS(svg, "polyline");
-    polyline.setAttribute("class", `${series}${chosen ? " series-chosen" : ""}`);
+    polyline.setAttribute("class", className);
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("data-kind", String(row.kind));
     polyline.setAttribute("data-rate", formatCanonical(row.rate));
     polyline.setAttribute("data-inside", row.inside ? "true" : "false");
-    polyline.setAttribute("points", points.join(" "));
+    if (nearZero) polyline.setAttribute("data-display", "near-zero");
+    polyline.setAttribute("points", drawn.join(" "));
+    const tip = document.createElementNS(svg, "title");
+    const exact = `${t(state.lang, THROUGHPUT_KIND[row.kind])} — ${rateLabel(row.rate, row.lower)}`;
+    tip.textContent = nearZero ? `${exact}. ${t(state.lang, "throughput.nearZero")}` : exact;
+    polyline.append(tip);
     plot.append(polyline);
+    if (nearZero && labels) {
+      const tag = document.createElement("p");
+      tag.className = "near-zero-label";
+      tag.dataset.kind = String(row.kind);
+      const endY = Number(drawn[drawn.length - 1].split(",")[1]);
+      tag.style.bottom = `calc(${100 - endY}% + ${labelStack * 1.35}rem + 0.35rem)`;
+      tag.textContent = `${t(state.lang, THROUGHPUT_KIND[row.kind])} — ${t(state.lang, "throughput.nearZero")}`;
+      labels.append(tag);
+      labelStack += 1;
+    }
     if (row.inside && row.seconds !== null && targetY !== null && xOf(row.seconds) !== null) {
       const mark = document.createElementNS(svg, "circle");
       mark.setAttribute("class", "target-mark");
@@ -1373,9 +1423,10 @@ function renderThroughput(outcome) {
     for (const entry of plotted) {
       const name = t(state.lang, THROUGHPUT_KIND[entry.row.kind]);
       const status = t(state.lang, entry.chosen ? "throughput.chosen" : "throughput.reference");
+      const near = entry.nearZero ? ` — ${t(state.lang, "throughput.nearZero")}` : "";
       legend.append(legendEntry(
-        `${entry.series}${entry.chosen ? " series-chosen" : ""}`,
-        `${name} (${status})`,
+        `${entry.series}${entry.chosen ? " series-chosen" : ""}${entry.nearZero ? " series-near-zero" : ""}`,
+        `${name} (${status})${near}`,
         { kind: entry.row.kind, role: entry.chosen ? "chosen" : "reference" },
       ));
     }

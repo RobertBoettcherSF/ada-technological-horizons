@@ -55,7 +55,7 @@ async function shotElement(page, label, name, selector) {
 }
 
 async function assertLegendMatches(page) {
-  const curves = await page.locator("#throughput-plot polyline").evaluateAll((nodes) => nodes.map((node) => {
+  const curves = await page.locator("#throughput-plot polyline[data-kind]").evaluateAll((nodes) => nodes.map((node) => {
     const style = getComputedStyle(node);
     return {
       kind: node.dataset.kind,
@@ -67,7 +67,7 @@ async function assertLegendMatches(page) {
     };
   }));
   const entries = await page.locator("#throughput-legend li[data-kind]").evaluateAll((nodes) => nodes.map((node) => {
-    const line = node.querySelector("line");
+    const line = node.querySelector("line:not(.series-halo)");
     const style = getComputedStyle(line);
     return {
       kind: node.dataset.kind,
@@ -167,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.16/);
+  assert.match(report, /Release: 0\.1\.17/);
   assert.match(report, /Preset: historical/);
   assert.match(report, /The selected rate should lead the chart/);
   assert.match(report, /Headline: 6500/);
@@ -430,11 +430,12 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
   assert.equal(await page.locator("#throughput-compare li").nth(1).textContent(), "Bacterial figure — at least 1000 bits/s — at most 10 s");
   assert.equal(await page.locator("#throughput-compare li").first().textContent(), "Human figure (chosen) — 25 bits/s — 400 s");
-  const curves = await page.locator("#throughput-plot polyline").evaluateAll((nodes) => nodes.map((node) => node.dataset.rate));
+  const curves = await page.locator("#throughput-plot polyline[data-kind]").evaluateAll((nodes) => nodes.map((node) => node.dataset.rate));
   assert.deepEqual(curves, ["25", "1000"]);
   assert.equal(await page.locator("#throughput-plot .target-line").count(), 1);
   assert.equal(await page.locator("#throughput-plot .target-mark").count(), 2);
   await assertLegendMatches(page);
+  assert.equal(await page.locator(".near-zero-label").count(), 0);
   assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (chosen)");
   assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), "Bacterial figure (reference)");
   assert.match(await page.locator("#throughput-legend li[data-role='target']").innerText(), /Target — 10000 bits/);
@@ -449,18 +450,18 @@ async function exercise(page, label) {
   assert.match(await page.locator("#throughput-link").textContent(), /not machine understanding/);
   await page.click("#throughput-log");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.scale === "log");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.match(await page.locator("#throughput-scale-note").textContent(), /not the 40-to-1/);
   assert.equal(await page.locator("#throughput-plot").getAttribute("data-scale"), "log");
   await assertLegendMatches(page);
-  const logPoints = await page.locator("#throughput-plot polyline").first().getAttribute("points");
+  const logPoints = await page.locator("#throughput-plot polyline[data-kind]").first().getAttribute("points");
   assert.doesNotMatch(logPoints, /^0,100/);
   await page.click("#throughput-linear");
-  await page.waitForFunction(() => document.querySelectorAll("#throughput-plot polyline").length === 2);
+  await page.waitForFunction(() => document.querySelectorAll("#throughput-plot polyline[data-kind]").length === 2);
   await page.click("#throughput-preset-link");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "10 µs");
   assert.equal(await page.locator("#throughput-rate-unit").inputValue(), "3");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.equal(await page.locator("#throughput-ratio").textContent(), "40000000");
   assert.equal(await page.locator("#throughput-ratio-label").textContent(), "Chosen rate ÷ human figure");
   assert.match(await page.locator("#throughput-note").textContent(), /1000BASE-T/);
@@ -472,6 +473,19 @@ async function exercise(page, label) {
   await assertLegendMatches(page);
   assert.equal(await page.locator("#throughput-legend li[data-kind='3']").getAttribute("data-role"), "chosen");
   assert.equal(await page.locator("#throughput-legend li[data-kind='1']").getAttribute("data-role"), "reference");
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind='1']").getAttribute("data-display"), "near-zero");
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind='3']").getAttribute("data-display"), null);
+  const humanYs = (await page.locator("#throughput-plot polyline[data-kind='1']").getAttribute("points")).split(" ").map((pair) => Number(pair.split(",")[1]));
+  assert.ok(Math.max(...humanYs) < 98);
+  assert.ok(Math.min(...humanYs) > 80);
+  assert.equal(await page.locator(".near-zero-label[data-kind='1']").innerText(), "Human figure — near zero, not to scale");
+  assert.match(await page.locator("#throughput-legend li[data-kind='1']").innerText(), /near zero, not to scale/);
+  assert.match(await page.locator("#throughput-compare li").nth(1).innerText(), /25 bits\/s — 400 s — after this chart/);
+  const humanStroke = await page.locator("#throughput-plot polyline[data-kind='1']").evaluate((node) => getComputedStyle(node).stroke);
+  const legendStroke = await page.locator("#throughput-legend li[data-kind='1'] line:not(.series-halo)").evaluate((node) => getComputedStyle(node).stroke);
+  assert.equal(humanStroke, legendStroke);
+  assert.equal(humanStroke, "rgb(200, 242, 90)");
+  await shotElement(page, label, "throughput-machine-visible.png", "#throughput-chart-block");
   assert.equal(await page.locator("#throughput-compare li").nth(1).getAttribute("data-inside"), "false");
   assert.match(await page.locator("#throughput-compare li").nth(1).textContent(), /after this chart/);
   assert.equal(await page.locator("#throughput-compare li").first().getAttribute("data-inside"), "true");
@@ -483,7 +497,7 @@ async function exercise(page, label) {
   assert.match(await page.locator("[data-i18n='throughput.limit']").textContent(), /unlike/);
   await shot(page, label, "throughput-card.png");
   await page.click("#throughput-preset-human");
-  await page.waitForFunction(() => document.querySelectorAll("#throughput-plot polyline").length === 1);
+  await page.waitForFunction(() => document.querySelectorAll("#throughput-plot polyline[data-kind]").length === 1);
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-ratio-label").textContent(), "Bacterial figure ÷ this rate");
   assert.equal(await page.locator("#throughput-preset-human").getAttribute("aria-pressed"), "true");
@@ -493,23 +507,26 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-legend li[data-kind='2']").count(), 0);
   await page.click("#throughput-preset-bacterial");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "at most 10 s");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.equal(await page.locator("#throughput-compare li").first().textContent(), "Bacterial figure (chosen) — at least 1000 bits/s — at most 10 s");
   assert.match(await page.locator("#throughput-compare li").nth(1).textContent(), /Human figure — 25 bits\/s/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /1000BASE-T/);
   await assertLegendMatches(page);
   assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), "Bacterial figure (chosen)");
-  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (reference)");
+  assert.match(await page.locator("#throughput-legend li[data-kind='1']").innerText(), /^Human figure \(reference\)/);
   assert.equal(await page.locator("#throughput-legend li[data-kind='3']").count(), 0);
   await shotElement(page, label, "throughput-bacterial-legend.png", "#throughput-chart-block");
   await page.click("#throughput-preset-link");
   await page.waitForFunction(() => document.querySelector("#throughput-compare li")?.textContent?.includes("1000000000"));
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial/);
   await page.click("#throughput-log");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.scale === "log");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.equal(await page.locator("#throughput-compare li").nth(1).getAttribute("data-inside"), "true");
+  assert.equal(await page.locator(".near-zero-label").count(), 0);
+  assert.equal(await page.locator("#throughput-plot polyline[data-display='near-zero']").count(), 0);
+  assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /not to scale|nicht maßstäblich|no a escala|hors échelle/);
   await assertLegendMatches(page);
   assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /Bacterial/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial/);
@@ -522,7 +539,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-duration").inputValue(), "400");
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.match(await page.locator("#throughput-compare").textContent(), /Bacterial figure/);
   await page.fill("#throughput-rate", "50");
   await page.waitForFunction(() => document.querySelector("#throughput-compare li")?.textContent?.startsWith("Your rate"));
@@ -548,15 +565,17 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-total").textContent(), "0 bits");
   assert.match(await page.locator("#throughput-compare").textContent(), /Unreachable/);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial/);
+  assert.equal(await page.locator("#throughput-plot polyline[data-display='near-zero']").count(), 0);
+  assert.equal(await page.locator(".near-zero-label").count(), 0);
   await page.click("#throughput-log");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.scale === "log");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 1);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 1);
   await assertLegendMatches(page);
   assert.equal(await page.locator("#throughput-legend li[data-kind='0']").count(), 0);
   assert.doesNotMatch(await page.locator("#throughput-legend").innerText(), /Bacterial/);
   await page.fill("#throughput-quantity", "0");
   await page.waitForFunction(() => document.querySelector("#throughput-plot")?.dataset.ready === "false");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 0);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 0);
   assert.equal(await page.locator("#throughput-legend li").count(), 0);
   assert.match(await page.locator("#throughput-plot-empty").textContent(), /Zero is not drawn/);
   await page.click("#throughput-linear");
@@ -573,7 +592,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-rate").inputValue(), "25");
   await page.fill("#throughput-duration", "1e308");
   await page.waitForFunction(() => document.querySelector("#throughput-status")?.dataset.status === "4");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 0);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 0);
   assert.equal(await page.locator("#throughput-time").textContent(), "");
   await page.click("#throughput-reset");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
@@ -654,7 +673,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.16");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.17");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -932,10 +951,22 @@ async function exercise(page, label) {
   assert.ok((await overflow(page)) <= 1, "narrow growth");
   await page.locator("#throughput-card").scrollIntoViewIfNeeded();
   await shot(page, label, "throughput-narrow.png");
+  await page.click("#throughput-preset-link");
+  await page.waitForFunction(() => document.querySelector(".near-zero-label")?.textContent?.includes("Human figure"));
+  await shotElement(page, label, "throughput-machine-visible-narrow.png", "#throughput-chart-block");
+  const narrowLabel = await page.locator(".near-zero-label").boundingBox();
+  const narrowPlot = await page.locator("#throughput-plot").boundingBox();
+  assert.ok(narrowLabel && narrowPlot);
+  assert.ok(narrowLabel.x >= narrowPlot.x - 1);
+  assert.ok(narrowLabel.x + narrowLabel.width <= narrowPlot.x + narrowPlot.width + 1);
+  assert.ok(narrowLabel.y >= narrowPlot.y - 1);
+  assert.ok(narrowLabel.y + narrowLabel.height <= narrowPlot.y + narrowPlot.height + 1);
+  await page.click("#throughput-preset-page");
+  await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
   await page.click("#throughput-preset-bacterial");
   await page.waitForFunction(() => document.querySelector("#throughput-legend li[data-kind='2']")?.dataset.role === "chosen");
   await shotElement(page, label, "throughput-bacterial-legend-narrow.png", "#throughput-chart-block");
-  assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), "Human figure (reference)");
+  assert.match(await page.locator("#throughput-legend li[data-kind='1']").innerText(), /^Human figure \(reference\)/);
   await page.click("#throughput-preset-page");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");
   await shotElement(page, label, "throughput-default-plot-narrow.png", "#throughput-plot-wrap");
@@ -943,7 +974,7 @@ async function exercise(page, label) {
   await page.click("#throughput-preset-link");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "10 µs");
   await shotElement(page, label, "throughput-machine-plot-narrow.png", "#throughput-plot-wrap");
-  assert.equal(await page.locator("#throughput-plot polyline").count(), 2);
+  assert.equal(await page.locator("#throughput-plot polyline[data-kind]").count(), 2);
   assert.doesNotMatch(await page.locator("#throughput-compare").textContent(), /Bacterial|bacterian|bactérien|bakteriell/i);
   await page.click("#throughput-preset-page");
   await page.waitForFunction(() => document.querySelector("#throughput-time")?.textContent === "400 s");

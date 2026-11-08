@@ -402,9 +402,14 @@ button.collapse {
   right: 0;
   white-space: nowrap;
 }
-.throughput-plot {
+.throughput-plot-frame {
   grid-column: 3;
   grid-row: 1;
+  position: relative;
+  min-width: 0;
+  height: 16rem;
+}
+.throughput-plot {
   display: block;
   width: 100%;
   height: 16rem;
@@ -412,6 +417,27 @@ button.collapse {
   border-radius: 12px;
   overflow: hidden;
 }
+.plot-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.near-zero-label {
+  position: absolute;
+  right: 0.45rem;
+  left: 34%;
+  margin: 0;
+  text-align: right;
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.2;
+  color: var(--ink);
+  text-shadow: 0 0 2px #0b1220, 0 1px 2px #0b1220;
+}
+.near-zero-label[data-kind="1"] { color: var(--lime); }
+.near-zero-label[data-kind="2"] { color: var(--cyan); }
+.near-zero-label[data-kind="3"] { color: #d7dde8; }
+.near-zero-label[data-kind="0"] { color: #f2d48a; }
 .throughput-x-ticks {
   grid-column: 3;
   grid-row: 2;
@@ -441,6 +467,10 @@ button.collapse {
 .legend-swatch .series-custom { stroke: #f2d48a; stroke-width: 2.5; stroke-dasharray: 7 2.4 1.4 2.4; }
 .throughput-plot .series-chosen,
 .legend-swatch .series-chosen { stroke-width: 4; }
+.throughput-plot .series-near-zero,
+.legend-swatch .series-near-zero { stroke-width: 4.5; }
+.throughput-plot .series-halo,
+.legend-swatch .series-halo { stroke: #e7eef8; stroke-width: 8; }
 .throughput-plot .target-line,
 .legend-swatch .target-line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .throughput-plot .target-mark,
