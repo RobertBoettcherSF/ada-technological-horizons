@@ -28,7 +28,9 @@ import {
   resetDemo,
   resetGrowth,
   resetLifetime,
+  resetChoice,
   resetThroughput,
+  setChoiceInput,
   setDelayInput,
   setDemoInput,
   setGrowthInput,
@@ -38,7 +40,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callDelay, callExplore, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -131,6 +133,7 @@ const CALCULATOR_CARDS = [
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "delay-card", sectionId: "phantomology/teletaxy-and-phantomultiplication" },
   { cardId: "throughput-card", sectionId: "a-lampoon-of-evolution/constructing-life" },
+  { cardId: "choice-card", sectionId: "creating-worlds/cultivating-information" },
 ];
 
 const CARD_TO_SECTION = Object.fromEntries(CALCULATOR_CARDS.map((item) => [item.cardId, item.sectionId]));
@@ -222,7 +225,7 @@ function renderChapterNav() {
   );
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
-    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics" || chapter.id === "phantomology" || chapter.id === "a-lampoon-of-evolution";
+    const ready = CALCULATOR_CARDS.some((item) => item.sectionId.startsWith(`${chapter.id}/`));
     const statusKey = chapter.kind === "closing" ? "tile.retrospective" : ready ? "tile.calculator" : "tile.planned";
     list.append(
       h("li", {}, [
@@ -392,6 +395,9 @@ function renderCard(entry) {
   if (entry.id === "a-lampoon-of-evolution/constructing-life") {
     body.append(h("p", {}, [h("a", { href: "#throughput-card", dataset: { i18n: "throughput.open" } })]));
   }
+  if (entry.id === "creating-worlds/cultivating-information") {
+    body.append(h("p", {}, [h("a", { href: "#choice-card", dataset: { i18n: "choice.open" } })]));
+  }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
     body,
@@ -418,6 +424,7 @@ function renderResults() {
     updateGrowth();
     updateDelay();
     updateThroughput();
+    updateChoice();
     applyVisibility();
     return;
   }
@@ -462,6 +469,7 @@ function renderResults() {
   updateGrowth();
   updateDelay();
   updateThroughput();
+  updateChoice();
   applyVisibility();
 }
 
@@ -1154,14 +1162,14 @@ function throughputChosen(outcome, row) {
   return outcome.match === 0 ? row.kind === 0 : row.kind === outcome.match;
 }
 
-function seriesSwatch(className, mark = false) {
+function seriesSwatch(className, mark = false, markClass = "target-mark") {
   const swatch = document.createElementNS(SVG_NS, "svg");
   swatch.setAttribute("class", "legend-swatch");
   swatch.setAttribute("viewBox", "0 0 36 10");
   swatch.setAttribute("aria-hidden", "true");
   if (mark) {
     const dot = document.createElementNS(SVG_NS, "circle");
-    dot.setAttribute("class", "target-mark");
+    dot.setAttribute("class", markClass);
     dot.setAttribute("cx", "18");
     dot.setAttribute("cy", "5");
     dot.setAttribute("r", "2.6");
@@ -1194,7 +1202,7 @@ function legendEntry(className, text, data) {
   if (data.role) item.dataset.role = data.role;
   const label = document.createElement("span");
   label.textContent = text;
-  item.append(seriesSwatch(className, data.mark === true), label);
+  item.append(seriesSwatch(className, data.mark === true, data.markClass || "target-mark"), label);
   return item;
 }
 
@@ -1583,6 +1591,162 @@ function showRoute(route, options = {}) {
   document.getElementById("reading")?.scrollIntoView({ block: "nearest" });
 }
 
+const CHOICE_PRESETS = {
+  coin: { possibilities: "2", repeats: "8" },
+  die: { possibilities: "6", repeats: "2" },
+  alphabet: { possibilities: "26", repeats: "3" },
+};
+
+function bitsPhrase(value) {
+  const one = Math.abs(value - 1) < 1e-9;
+  const unit = t(state.lang, state.lang === "de" || !one ? "choice.bits" : "choice.bit");
+  if (state.lang === "de") {
+    return `${formatReadable(value, state.lang)} ${t(state.lang, "choice.bit")}`;
+  }
+  return `${formatReadable(value, state.lang)} ${unit}`;
+}
+
+function choiceCountText(outcome) {
+  if (outcome.combinationsExact) return formatCanonical(outcome.combinations);
+  const log = `${t(state.lang, "choice.log10")} ${formatReadable(outcome.log10Count, state.lang)}`;
+  if (outcome.combinations !== null) {
+    const estimate = t(state.lang, "choice.countEstimate").replace("{value}", outcome.combinations.toExponential(6));
+    return `${t(state.lang, "choice.countBeyond")} ${estimate} ${log}`;
+  }
+  return `${t(state.lang, "choice.countBeyond")} ${log}`;
+}
+
+function choiceMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "choice.empty";
+  if (code === "malformed") return "choice.malformed";
+  if (code === 0) return "choice.ok";
+  if (code === 1) return "choice.nonFinite";
+  if (code === 2) return "choice.notInteger";
+  if (code === 3) return "choice.notPositive";
+  if (code === 4) return "choice.negativeRepeats";
+  if (code === 5) return "choice.outOfRange";
+  if (code === 6) return "choice.overflow";
+  return "demo.loadFailed";
+}
+
+function clearChoiceView() {
+  for (const id of ["choice-per", "choice-total", "choice-count", "choice-code", "choice-exact-per", "choice-exact-total", "choice-exact-code", "choice-exact-count"]) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = "";
+  }
+  document.getElementById("choice-plot")?.replaceChildren();
+  document.getElementById("choice-legend")?.replaceChildren();
+  document.getElementById("choice-x-ticks")?.replaceChildren();
+  document.getElementById("choice-y-ticks")?.replaceChildren();
+}
+
+function renderChoice(outcome) {
+  document.getElementById("choice-per").textContent = bitsPhrase(outcome.bitsPer);
+  document.getElementById("choice-total").textContent = bitsPhrase(outcome.totalBits);
+  document.getElementById("choice-count").textContent = choiceCountText(outcome);
+  document.getElementById("choice-exact-per").textContent = formatCanonical(outcome.bitsPer);
+  document.getElementById("choice-exact-total").textContent = formatCanonical(outcome.totalBits);
+  document.getElementById("choice-exact-code").textContent = outcome.codeTotal === null
+    ? ""
+    : `${formatCanonical(outcome.codePer)} / ${formatCanonical(outcome.codeTotal)}`;
+  document.getElementById("choice-exact-count").textContent = outcome.combinationsExact
+    ? formatCanonical(outcome.combinations)
+    : formatCanonical(outcome.log10Count);
+  const code = document.getElementById("choice-code");
+  if (code) {
+    const totalText = outcome.codeTotal === null ? "—" : bitsPhrase(outcome.codeTotal);
+    code.textContent = t(state.lang, "choice.codeLine")
+      .replace("{per}", bitsPhrase(outcome.codePer))
+      .replace("{total}", totalText);
+  }
+  const noteKey = ["coin", "die", "alphabet"].includes(state.choice.preset)
+    ? `choice.note.${state.choice.preset}`
+    : "choice.note.custom";
+  const note = document.getElementById("choice-note");
+  if (note) note.textContent = t(state.lang, noteKey);
+  for (const name of ["coin", "die", "alphabet"]) {
+    document.getElementById(`choice-preset-${name}`)?.setAttribute("aria-pressed", state.choice.preset === name ? "true" : "false");
+  }
+  const plot = document.getElementById("choice-plot");
+  const legend = document.getElementById("choice-legend");
+  const xTicks = document.getElementById("choice-x-ticks");
+  const yTicks = document.getElementById("choice-y-ticks");
+  if (!plot || !legend || !outcome.samples.length) return;
+  const xOf = (value) => (outcome.xMax === 0 ? 0 : (value / outcome.xMax) * 100);
+  const yOf = (value) => (outcome.yMax === 0 ? 100 : 100 - (value / outcome.yMax) * 100);
+  const points = outcome.samples.map((sample) => `${xOf(sample.repeats)},${yOf(sample.bits)}`);
+  const line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("class", "series-choice");
+  line.setAttribute("fill", "none");
+  line.setAttribute("data-series", "choice");
+  line.setAttribute("points", points.join(" "));
+  plot.append(line);
+  const end = outcome.samples[outcome.samples.length - 1];
+  const mark = document.createElementNS(SVG_NS, "circle");
+  mark.setAttribute("class", "choice-mark");
+  mark.setAttribute("cx", String(xOf(end.repeats)));
+  mark.setAttribute("cy", String(yOf(end.bits)));
+  mark.setAttribute("r", "1.8");
+  plot.append(mark);
+  legend.append(legendEntry("series-choice", t(state.lang, "choice.series"), { role: "series" }));
+  legend.append(legendEntry("", t(state.lang, "choice.marker"), { role: "marker", mark: true, markClass: "choice-mark" }));
+  const xValues = [0, end.repeats].filter((value, index, all) => all.indexOf(value) === index);
+  for (const value of xValues) {
+    const tick = document.createElement("span");
+    tick.textContent = formatReadable(value, state.lang);
+    xTicks?.append(tick);
+  }
+  const yValues = [outcome.yMax, outcome.totalBits, 0].filter((value, index, all) => all.indexOf(value) === index);
+  for (const value of yValues) {
+    const tick = document.createElement("span");
+    const y = yOf(value);
+    tick.textContent = bitsPhrase(value);
+    tick.style.top = `${y}%`;
+    tick.style.transform = y <= 0 ? "translateY(0)" : y >= 100 ? "translateY(-100%)" : "translateY(-50%)";
+    yTicks?.append(tick);
+  }
+}
+
+function syncChoiceForm() {
+  document.getElementById("choice-n").value = state.choice.possibilities;
+  document.getElementById("choice-k").value = state.choice.repeats;
+}
+
+function updateChoice() {
+  const statusNode = document.getElementById("choice-status");
+  if (!statusNode) return;
+  clearChoiceView();
+  let code = "loading";
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const possibilities = interpretOperand(state.choice.possibilities);
+    const repeats = interpretOperand(state.choice.repeats);
+    if (possibilities.kind === "empty" || repeats.kind === "empty") code = "empty";
+    else if (possibilities.kind !== "value" || repeats.kind !== "value") code = "malformed";
+    else {
+      const outcome = callChoice(session, possibilities.value, repeats.value);
+      code = outcome.status;
+      if (outcome.status === 0) {
+        try {
+          renderChoice(outcome);
+        } catch (error) {
+          clearChoiceView();
+          code = "load-failed";
+          console.error(error);
+        }
+      }
+    }
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, choiceMessage(code));
+  updateDiagnostics();
+}
+
 function debugReport() {
   const comment = document.getElementById("debug-expectation")?.value ?? "";
   const textOf = (id) => document.getElementById(id)?.textContent ?? "";
@@ -1646,6 +1810,16 @@ function debugReport() {
     `Link time: ${textOf("throughput-link-time")}`,
     `Status: ${textOf("throughput-status")}`,
     `Note: ${textOf("throughput-note")}`,
+    "",
+    "Choices",
+    `Possibilities: ${valueOf("choice-n")}`,
+    `Repetitions: ${valueOf("choice-k")}`,
+    `Preset: ${state.choice.preset}`,
+    `Ideal per selection: ${textOf("choice-per")}`,
+    `Ideal total: ${textOf("choice-total")}`,
+    `Combinations: ${textOf("choice-count")}`,
+    `Code: ${textOf("choice-code")}`,
+    `Status: ${textOf("choice-status")}`,
     "",
     "Addition",
     `Left: ${valueOf("operand-left")}`,
@@ -1713,6 +1887,7 @@ async function boot() {
   updateGrowth();
   updateDelay();
   updateThroughput();
+  updateChoice();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -1734,6 +1909,7 @@ async function boot() {
   updateGrowth();
   updateDelay();
   updateThroughput();
+  updateChoice();
 }
 
 function simulateFailure() {
@@ -1746,6 +1922,7 @@ function simulateFailure() {
   updateGrowth();
   updateDelay();
   updateThroughput();
+  updateChoice();
 }
 
 function bind() {
@@ -1999,6 +2176,33 @@ function bind() {
       document.getElementById(`years-${index + 1}`).value = state.lifetime.durations[index];
     }
     updateLifetime();
+  });
+  document.getElementById("choice-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.choice) return;
+    state = setChoiceInput(state, field.dataset.choice, field.value);
+    state = setChoiceInput(state, "preset", "custom");
+    updateChoice();
+  });
+  document.getElementById("choice-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateChoice();
+  });
+  document.getElementById("choice-reset").addEventListener("click", () => {
+    state = resetChoice(state);
+    syncChoiceForm();
+    updateChoice();
+  });
+  document.getElementById("choice-form").addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest("[data-choice-preset]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const preset = CHOICE_PRESETS[button.dataset.choicePreset];
+    if (!preset) return;
+    state = setChoiceInput(state, "possibilities", preset.possibilities);
+    state = setChoiceInput(state, "repeats", preset.repeats);
+    state = setChoiceInput(state, "preset", button.dataset.choicePreset);
+    syncChoiceForm();
+    updateChoice();
   });
   document.getElementById("throughput-form").addEventListener("input", (event) => {
     const field = event.target;

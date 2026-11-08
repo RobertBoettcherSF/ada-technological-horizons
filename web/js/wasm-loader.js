@@ -373,6 +373,40 @@ export function throughputPreset(session, index) {
   };
 }
 
+export function callChoice(session, possibilities, repeats) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_choice_f64(possibilities, repeats);
+  session.invocations += 1;
+  const ready = status === 0;
+  const count = ready ? session.exports.ath_choice_sample_count() : 0;
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      repeats: session.exports.ath_choice_sample_repeat(index),
+      bits: session.exports.ath_choice_sample_bits(index),
+    });
+  }
+  return {
+    status,
+    bitsPer: ready ? session.exports.ath_choice_bits_per() : null,
+    totalBits: ready ? session.exports.ath_choice_total_bits() : null,
+    codePer: ready ? session.exports.ath_choice_code_per() : null,
+    codeTotal: ready && session.exports.ath_choice_code_total_valid() === 1
+      ? session.exports.ath_choice_code_total()
+      : null,
+    combinations: ready && session.exports.ath_choice_combinations_valid() === 1
+      ? session.exports.ath_choice_combinations()
+      : null,
+    combinationsExact: ready && session.exports.ath_choice_combinations_exact() === 1,
+    log10Count: ready ? session.exports.ath_choice_log10_count() : null,
+    xMax: ready ? session.exports.ath_choice_x_max() : null,
+    yMax: ready ? session.exports.ath_choice_y_max() : null,
+    samples,
+  };
+}
+
 export function callAddition(session, left, right) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");

@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.18** computes ideal information for equally likely choices: log2(N) bits for one selection, and k times that for k independent repetitions. A fair coin, a six-sided die and a 26-letter alphabet are teaching examples. The book’s logarithmic measure is cited under Cultivating Information; those examples are not quotations.
+
 Version **0.1.17** draws a near-zero reference clear of the axis and labels that drawing not to scale. The listed rate and time stay exact.
 
 Version **0.1.16** names each curve on the chart. The legend uses the same colour and stroke as the line, and it names the dashed target and the crossing dot.
@@ -33,7 +35,7 @@ Version 0.1.6 remains the growth chart that extends through a reachable target w
 Version 0.1.3 remains the four-fate calculator under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes that mean and rebalances the other probabilities when one of them is edited. The headline mean is shown to the nearest 100 years, so those defaults read 6500 while the exact value remains 6523. The addition check stays inside Technical details, closed until opened.
 
 - Eight book chapters, plus Conclusion and Afterword, with the planned sections named in `docs/DESIGN.md`.
-- A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all. Four sections are working calculators.
+- A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all. Five sections are working calculators.
 - Shell text in UK English (`en-GB`, the default), German (`de`), Spanish (`es`), and French (`fr`).
 - One technical demonstration: Ada adds two finite binary64 values, natively and in the browser.
 
@@ -89,7 +91,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.17`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.18`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

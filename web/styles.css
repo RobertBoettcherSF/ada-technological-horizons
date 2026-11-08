@@ -453,6 +453,7 @@ button.collapse {
 .throughput-plot polyline,
 .throughput-plot .target-line,
 .throughput-plot .target-mark,
+.throughput-plot .choice-mark,
 .legend-swatch line,
 .legend-swatch circle {
   vector-effect: non-scaling-stroke;
@@ -498,6 +499,10 @@ button.collapse {
   flex: 0 0 auto;
   overflow: visible;
 }
+#choice-plot .series-choice,
+.legend-swatch .series-choice { stroke: var(--lime); stroke-width: 2.5; }
+#choice-plot .choice-mark,
+.legend-swatch .choice-mark { fill: var(--ink); stroke: none; }
 .growth-curve .series-baseline {
   stroke: var(--cyan);
   stroke-dasharray: 3 1.6;

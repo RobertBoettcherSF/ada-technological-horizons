@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -413,6 +413,41 @@ test("constant-rate exports match the native fixture bits", async (t) => {
   assert.equal(stalled.status, 5);
   assert.equal(stalled.time, null);
   assert.equal(stalled.total, 0);
+});
+
+test("choice exports keep finite information when the count overflows", async (t) => {
+  if (!fs.existsSync(wasmPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const coin = callChoice(session, 2, 8);
+  assert.equal(coin.status, 0);
+  assert.equal(coin.bitsPer, 1);
+  assert.equal(coin.totalBits, 8);
+  assert.equal(coin.combinations, 256);
+  assert.equal(coin.combinationsExact, true);
+  assert.equal(coin.samples.at(-1).bits, 8);
+  const huge = callChoice(session, 10, 400);
+  assert.equal(huge.status, 0);
+  assert.equal(huge.combinations, null);
+  assert.equal(huge.combinationsExact, false);
+  assert.ok(huge.totalBits > 1300 && huge.totalBits < 1400);
+  assert.ok(Math.abs(huge.log10Count - 400) < 1e-6);
+  assert.equal(callChoice(session, 1, 5).totalBits, 0);
+  assert.equal(callChoice(session, 2, 0).combinations, 1);
+  assert.equal(callChoice(session, 0, 1).status, 3);
 });
 
 test("a failed module load does not invent a sum", async () => {

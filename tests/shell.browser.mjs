@@ -167,14 +167,75 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.17/);
+  assert.match(report, /Release: 0\.1\.18/);
   assert.match(report, /Preset: historical/);
+  assert.match(report, /Preset: coin/);
   assert.match(report, /The selected rate should lead the chart/);
   assert.match(report, /Headline: 6500/);
   assert.doesNotMatch(report, /localStorage|cookie|password/i);
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => document.querySelector("#debug-dialog")?.open === false);
   assert.equal(await page.locator("#debug-toggle").evaluate((node) => document.activeElement === node), true);
+  await page.waitForFunction(() => document.querySelector("#choice-total")?.textContent === "8 bits");
+  assert.equal(await page.locator("#choice-per").textContent(), "1 bit");
+  assert.equal(await page.locator("#choice-count").textContent(), "256");
+  assert.equal(await page.locator("#choice-preset-coin").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), "Total information");
+  assert.equal(await page.locator("#choice-legend li").nth(1).innerText(), "Reported total");
+  assert.equal(await page.locator("#choice-plot polyline").count(), 1);
+  assert.equal(await page.locator("#choice-plot .choice-mark").count(), 1);
+  assert.match(await page.locator("#choice-code").textContent(), /not the ideal information/);
+  assert.match(await page.locator("[data-i18n='choice.assumptions']").textContent(), /equally likely/);
+  assert.match(await page.locator("[data-i18n='choice.sourceText']").textContent(), /about 100/);
+  assert.doesNotMatch(await page.locator("[data-i18n='choice.sourceText']").textContent(), /Lem quoted|coin from the book/);
+  await page.click("#choice-preset-die");
+  await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "36");
+  assert.equal(await page.locator("#choice-n").inputValue(), "6");
+  assert.equal(await page.locator("#choice-k").inputValue(), "2");
+  assert.match(await page.locator("#choice-code").textContent(), /3 bits/);
+  assert.equal(await page.locator("#choice-preset-coin").getAttribute("aria-pressed"), "false");
+  await page.click("#choice-preset-alphabet");
+  await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "17576");
+  assert.equal(await page.locator("#choice-n").inputValue(), "26");
+  assert.match(await page.locator("#choice-note").textContent(), /teaching/);
+  await page.fill("#choice-k", "4");
+  await page.waitForFunction(() => document.querySelector("#choice-preset-alphabet")?.getAttribute("aria-pressed") === "false");
+  assert.match(await page.locator("#choice-note").textContent(), /your count/i);
+  await page.fill("#choice-k", "0");
+  await page.waitForFunction(() => document.querySelector("#choice-count")?.textContent === "1");
+  assert.equal(await page.locator("#choice-total").textContent(), "0 bits");
+  await page.fill("#choice-n", "1");
+  await page.fill("#choice-k", "5");
+  await page.waitForFunction(() => document.querySelector("#choice-per")?.textContent === "0 bits");
+  assert.equal(await page.locator("#choice-total").textContent(), "0 bits");
+  assert.equal(await page.locator("#choice-count").textContent(), "1");
+  await page.fill("#choice-n", "0");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "3");
+  assert.equal(await page.locator("#choice-per").textContent(), "");
+  assert.equal(await page.locator("#choice-legend li").count(), 0);
+  await page.fill("#choice-n", "2.5");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "2");
+  await page.fill("#choice-k", "-1");
+  await page.fill("#choice-n", "2");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "4");
+  await page.fill("#choice-n", "");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "empty");
+  await page.fill("#choice-n", "10");
+  await page.fill("#choice-k", "400");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "0");
+  assert.match(await page.locator("#choice-count").textContent(), /log10/);
+  assert.match(await page.locator("#choice-count").textContent(), /400/);
+  assert.match(await page.locator("#choice-total").textContent(), /bits/);
+  assert.equal(await page.locator("#choice-plot polyline").count(), 1);
+  await page.fill("#choice-n", "9007199254740994");
+  await page.waitForFunction(() => document.querySelector("#choice-status")?.dataset.status === "5");
+  assert.equal(await page.locator("#choice-plot polyline").count(), 0);
+  await page.click("#choice-reset");
+  await page.waitForFunction(() => document.querySelector("#choice-total")?.textContent === "8 bits");
+  assert.equal(await page.locator("#choice-n").inputValue(), "2");
+  assert.equal(await page.locator("#choice-k").inputValue(), "8");
+  await page.locator("#choice-chart-block").scrollIntoViewIfNeeded();
+  await shotElement(page, label, "choice-coin.png", "#choice-chart-block");
   await page.locator("#years-4").focus();
   await page.keyboard.press("F9");
   await page.waitForFunction(() => document.querySelector("#debug-dialog")?.open);
@@ -673,7 +734,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.17");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.18");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -731,7 +792,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "4");
+  assert.equal(await page.locator("#working-count").textContent(), "5");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -748,13 +809,14 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "4");
+  assert.equal(await page.locator("#working-count").textContent(), "5");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
   assert.equal(await cardVisible("#growth-card"), true);
   assert.equal(await cardVisible("#delay-card"), true);
   assert.equal(await cardVisible("#throughput-card"), true);
+  assert.equal(await cardVisible("#choice-card"), true);
   assert.equal(await page.locator("#show-all").getAttribute("aria-pressed"), "true");
   await page.locator('a[href="#phantomology"]').click();
   await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "phantomology");
@@ -762,6 +824,7 @@ async function exercise(page, label) {
   assert.equal(await cardVisible("#lifetime-card"), false);
   assert.equal(await cardVisible("#growth-card"), false);
   assert.equal(await cardVisible("#throughput-card"), false);
+  assert.equal(await cardVisible("#choice-card"), false);
   assert.equal(await page.locator('[data-chapter-link="phantomology"]').getAttribute("aria-current"), "true");
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 years");
   await page.click("#delay-preset-moon");
@@ -777,12 +840,22 @@ async function exercise(page, label) {
   assert.equal(await cardVisible("#growth-card"), true);
   assert.equal(await cardVisible("#delay-card"), true);
   assert.equal(await cardVisible("#throughput-card"), true);
+  assert.equal(await cardVisible("#choice-card"), true);
+  await page.locator('a[href="#creating-worlds"]').click();
+  await page.waitForFunction(() => document.querySelector("#choice-card") && !document.querySelector("#choice-card").hidden && document.querySelector("#lifetime-card").hidden && document.querySelector("#throughput-card").hidden);
+  assert.equal(await page.locator("#choice-count").textContent(), "256");
+  assert.equal(await page.locator('[data-chapter-link="creating-worlds"]').getAttribute("data-calculator"), "ready");
+  await page.click("#show-all");
+  await page.waitForFunction(() => document.querySelector("#show-all")?.getAttribute("aria-pressed") === "true");
+  assert.equal(await cardVisible("#choice-card"), true);
+  assert.equal(await cardVisible("#lifetime-card"), true);
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 years");
   assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
   await page.locator('input[data-filter-category="chapter"][value="cosmic-civilisations"]').check();
   await page.locator('input[data-filter-category="chapter"][value="intellectronics"]').check();
   await page.waitForFunction(() => document.querySelector("#lifetime-card") && !document.querySelector("#lifetime-card").hidden && document.querySelector("#growth-card") && !document.querySelector("#growth-card").hidden && document.querySelector("#delay-card").hidden);
   assert.equal(await cardVisible("#throughput-card"), false);
+  assert.equal(await cardVisible("#choice-card"), false);
   assert.equal(await page.locator('[data-chapter-link="cosmic-civilisations"]').getAttribute("aria-current"), "true");
   assert.equal(await page.locator('[data-chapter-link="intellectronics"]').getAttribute("aria-current"), "true");
   await page.goto(`${page.context()._base}#growth-card`);
@@ -790,6 +863,7 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4" && document.querySelector("#lifetime-card")?.hidden && !document.querySelector("#growth-card")?.hidden);
   assert.equal(await page.locator("#reading").getAttribute("data-route"), "intellectronics/return-to-earth");
   assert.equal(await page.locator("#delay-card").isVisible(), false);
+  assert.equal(await page.locator("#choice-card").isVisible(), false);
   await page.click("#show-all");
   await page.waitForFunction(() => document.querySelector("#show-all")?.getAttribute("aria-pressed") === "true");
   assert.equal(await cardVisible("#delay-card"), true);
@@ -831,6 +905,9 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-time-label").textContent(), t("de", "throughput.timeLabel"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("de", "throughput.preset.page"));
+  assert.equal(await page.locator("#choice-preset-coin").textContent(), t("de", "choice.preset.coin"));
+  assert.equal(await page.locator("#choice-total").textContent(), "8 Bit");
+  assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), t("de", "choice.series"));
   assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), `${t("de", "throughput.humanBar")} (${t("de", "throughput.chosen")})`);
   assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), `${t("de", "throughput.bacterialBar")} (${t("de", "throughput.reference")})`);
   assert.match(await page.locator("#throughput-legend li[data-role='target']").innerText(), new RegExp(t("de", "throughput.legendTarget")));
@@ -912,6 +989,7 @@ async function exercise(page, label) {
   await page.selectOption("#language", "fr");
   assert.equal(await page.locator(".credit").first().textContent(), t("fr", "app.credit"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("fr", "throughput.preset.page"));
+  assert.equal(await page.locator("#choice-preset-die").textContent(), t("fr", "choice.preset.die"));
   assert.equal(await page.locator("#throughput-legend li[data-kind='2']").innerText(), `${t("fr", "throughput.bacterialBar")} (${t("fr", "throughput.reference")})`);
   assert.equal(
     await page.locator("#delay-events li").nth(2).textContent(),
@@ -920,6 +998,7 @@ async function exercise(page, label) {
   await page.selectOption("#language", "es");
   assert.equal(await page.locator("#clear-filters").textContent(), t("es", "catalogue.clear"));
   assert.equal(await page.locator("#throughput-preset-page").textContent(), t("es", "throughput.preset.page"));
+  assert.equal(await page.locator("#choice-preset-alphabet").textContent(), t("es", "choice.preset.alphabet"));
   assert.equal(await page.locator("#throughput-legend li[data-kind='1']").innerText(), `${t("es", "throughput.humanBar")} (${t("es", "throughput.chosen")})`);
   assert.equal(
     await page.locator("#delay-events li").nth(2).textContent(),
@@ -949,6 +1028,10 @@ async function exercise(page, label) {
   await page.locator("#growth-card").scrollIntoViewIfNeeded();
   await shot(page, label, "growth-narrow.png");
   assert.ok((await overflow(page)) <= 1, "narrow growth");
+  await page.locator("#choice-card").scrollIntoViewIfNeeded();
+  await shotElement(page, label, "choice-coin-narrow.png", "#choice-chart-block");
+  assert.equal(await page.locator("#choice-total").textContent(), "8 bits");
+  assert.ok((await overflow(page)) <= 1, "narrow choice");
   await page.locator("#throughput-card").scrollIntoViewIfNeeded();
   await shot(page, label, "throughput-narrow.png");
   await page.click("#throughput-preset-link");

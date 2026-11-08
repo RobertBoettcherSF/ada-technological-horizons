@@ -1,6 +1,6 @@
 // Rewritten in dist/ by tools/build.sh. Source stays unstamped.
 export const buildInfo = {
-  version: "0.1.17",
+  version: "0.1.18",
   builtFrom: "not-stamped",
   wasmSha256: "not-stamped",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
