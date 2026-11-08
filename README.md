@@ -8,20 +8,22 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.3** keeps the four-fate calculator under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes the mean and rebalances the other probabilities when one of them is edited. The headline mean is shown to the nearest 100 years, so the defaults read 6500 while the exact value remains 6523. The addition check is inside Technical details, closed until opened. Version 0.1.2 was the same calculator before rebalancing and headline rounding.
+Version **0.1.4** adds the scientific-information growth calculator under Intellectronics / Return to Earth. Ada computes N = N₀ · 2^(t / d), the factor 2^(t / d), and the sampled curve. The defaults are a normalised index of 1, a 15-year doubling time and 30 elapsed years, which give quantity 4 and factor 4. The starting 1 is a presentation choice, not a historical count, and the exponential is the scenario, not a forecast.
+
+Version 0.1.3 remains the four-fate calculator under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes that mean and rebalances the other probabilities when one of them is edited. The headline mean is shown to the nearest 100 years, so those defaults read 6500 while the exact value remains 6523. The addition check stays inside Technical details, closed until opened.
 
 - Eight book chapters, plus Conclusion and Afterword, with the planned sections named in `docs/DESIGN.md`.
-- A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all.
+- A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all. Two sections are working calculators.
 - Shell text in UK English (`en-GB`, the default), German (`de`), Spanish (`es`), and French (`fr`).
-- One technical demonstration: Ada adds two finite binary64 values, natively and in the browser. It is not a scientific calculator.
+- One technical demonstration: Ada adds two finite binary64 values, natively and in the browser.
 
-Not in this release: the historical four-fate weighted mean, any civilisation-lifetime model, any other scientific calculator, chapter essays, book text, scans, or a backend.
+Not in this release: the researcher/discoveries comparison, logistic or resource limits, spacing, contact, recurrence, chapter essays, book text, scans, or a backend.
 
-`docs/PLAN-1.md` is the scope of this increment. `docs/DESIGN.md` is the longer design, including later queue items that are not implemented here.
+`docs/PLAN-3.md` is the scope of this increment. `docs/DESIGN.md` is the longer design. Queue items after item 3 are not implemented.
 
 ## Layout
 
-- `ada/core/` — plain Ada addition and validation.
+- `ada/core/` — plain Ada addition, lifetime, growth, and validation.
 - `ada/browser/` — the fixed-width export used by WebAssembly.
 - `tests/native/` — the native fixture.
 - `tests/` — catalogue, translation, state, and browser checks.
@@ -67,7 +69,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.0`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.4`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

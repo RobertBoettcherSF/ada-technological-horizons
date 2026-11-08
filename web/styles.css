@@ -276,6 +276,7 @@ button.collapse {
 
 .live-result.addition-live .live-label { color: var(--cyan); }
 
+#growth-status,
 #lifetime-status, #addition-status {
   padding: 0.65rem 0.75rem;
   border-radius: 12px;
@@ -283,6 +284,14 @@ button.collapse {
   color: var(--ink);
 }
 
+#growth-status[data-status="empty"],
+#growth-status[data-status="malformed"],
+#growth-status[data-status="1"],
+#growth-status[data-status="2"],
+#growth-status[data-status="3"],
+#growth-status[data-status="4"],
+#growth-status[data-status="5"],
+#growth-status[data-status="load-failed"],
 #lifetime-status[data-status="empty"],
 #lifetime-status[data-status="malformed"],
 #lifetime-status[data-status="1"],
@@ -298,6 +307,22 @@ button.collapse {
 #addition-status[data-status="load-failed"] {
   background: var(--danger-bg);
   color: var(--danger-ink);
+}
+
+.growth-curve {
+  width: 100%;
+  height: 12rem;
+  display: block;
+  margin: 0.4rem 0 0.8rem;
+  background: #10192b;
+  border-radius: 14px;
+}
+
+.growth-curve polyline {
+  fill: none;
+  stroke: var(--lime);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
 }
 
 .bars { display: grid; gap: 0.55rem; margin: 0.4rem 0 1rem; }

@@ -24,14 +24,16 @@ import {
   expandCard,
   openAll,
   resetDemo,
+  resetGrowth,
   resetLifetime,
   setDemoInput,
+  setGrowthInput,
   setLanguage,
   setLifetimeInput,
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callLifetime, callRebalance, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callGrowth, callLifetime, callRebalance, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -124,7 +126,7 @@ function renderChapterNav() {
   list.replaceChildren();
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
-    const ready = chapter.id === "cosmic-civilisations";
+    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics";
     const statusKey = chapter.kind === "closing" ? "tile.retrospective" : ready ? "tile.calculator" : "tile.planned";
     list.append(
       h("li", {}, [
@@ -281,6 +283,9 @@ function renderCard(entry) {
   if (entry.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
     body.append(h("p", {}, [h("a", { href: "#lifetime-card", dataset: { i18n: "lifetime.open" } })]));
   }
+  if (entry.id === "intellectronics/return-to-earth") {
+    body.append(h("p", {}, [h("a", { href: "#growth-card", dataset: { i18n: "growth.open" } })]));
+  }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
     body,
@@ -304,6 +309,7 @@ function renderResults() {
     applyI18n();
     updateDemo();
     updateLifetime();
+    updateGrowth();
     return;
   }
 
@@ -344,6 +350,7 @@ function renderResults() {
   applyI18n();
   updateDemo();
   updateLifetime();
+  updateGrowth();
 }
 
 function updateDiagnostics() {
@@ -531,6 +538,107 @@ function updateLifetime() {
   updateDiagnostics();
 }
 
+function clearGrowthView() {
+  const quantity = document.getElementById("growth-quantity");
+  const factor = document.getElementById("growth-factor");
+  const samples = document.getElementById("growth-samples");
+  const curve = document.getElementById("growth-curve");
+  if (quantity) quantity.textContent = "";
+  if (factor) factor.textContent = "";
+  if (samples) samples.replaceChildren();
+  if (curve) curve.replaceChildren();
+}
+
+function growthMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "growth.empty";
+  if (code === "malformed") return "growth.malformed";
+  if (code === 0) return "growth.ok";
+  if (code === 1) return "growth.nonFinite";
+  if (code === 2) return "growth.quantityNegative";
+  if (code === 3) return "growth.elapsedNegative";
+  if (code === 4) return "growth.doublingInvalid";
+  if (code === 5) return "growth.overflow";
+  return "demo.loadFailed";
+}
+
+function renderGrowthCurve(samples) {
+  const curve = document.getElementById("growth-curve");
+  const body = document.getElementById("growth-samples");
+  if (!curve || !body) return;
+  curve.replaceChildren();
+  body.replaceChildren();
+  const maxTime = samples.reduce((max, sample) => Math.max(max, sample.time), 0);
+  const maxQuantity = samples.reduce((max, sample) => Math.max(max, sample.quantity), 0);
+  const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+  polyline.setAttribute("fill", "none");
+  polyline.setAttribute("stroke", "currentColor");
+  polyline.setAttribute("points", samples.map((sample) => {
+    const x = maxTime === 0 ? 0 : (sample.time / maxTime) * 100;
+    const y = maxQuantity === 0 ? 100 : 100 - (sample.quantity / maxQuantity) * 100;
+    return `${x},${y}`;
+  }).join(" "));
+  curve.append(polyline);
+  for (const sample of samples) {
+    const row = document.createElement("tr");
+    const time = document.createElement("td");
+    const quantity = document.createElement("td");
+    time.textContent = formatCanonical(sample.time);
+    quantity.textContent = formatCanonical(sample.quantity);
+    row.append(time, quantity);
+    body.append(row);
+  }
+}
+
+function updateGrowth() {
+  const statusNode = document.getElementById("growth-status");
+  const quantityNode = document.getElementById("growth-quantity");
+  const factorNode = document.getElementById("growth-factor");
+  if (!statusNode || !quantityNode || !factorNode) return;
+  clearGrowthView();
+  let code = "loading";
+  let shown = false;
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const initial = interpretOperand(state.growth.initial);
+    const doubling = interpretOperand(state.growth.doubling);
+    const elapsed = interpretOperand(state.growth.elapsed);
+    if (initial.kind === "empty" || doubling.kind === "empty" || elapsed.kind === "empty") {
+      code = "empty";
+    } else if (initial.kind !== "value" || doubling.kind !== "value" || elapsed.kind !== "value") {
+      code = "malformed";
+    } else {
+      const outcome = callGrowth(session, initial.value, doubling.value, elapsed.value);
+      code = outcome.status;
+      if (outcome.status === 0 && outcome.quantity !== null && outcome.factor !== null && outcome.samples) {
+        try {
+          quantityNode.textContent = formatCanonical(outcome.quantity);
+          factorNode.textContent = formatCanonical(outcome.factor);
+          quantityNode.dataset.exactQuantity = formatCanonical(outcome.quantity);
+          factorNode.dataset.exactFactor = formatCanonical(outcome.factor);
+          renderGrowthCurve(outcome.samples);
+          shown = true;
+        } catch {
+          clearGrowthView();
+          code = 5;
+        }
+      }
+    }
+  }
+  if (!shown) {
+    clearGrowthView();
+    quantityNode.dataset.exactQuantity = "";
+    factorNode.dataset.exactFactor = "";
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, growthMessage(code));
+  updateDiagnostics();
+}
+
 function statusMessage(code) {
   if (code === "loading") return "demo.loading";
   if (code === "load-failed") return "demo.loadFailed";
@@ -544,7 +652,7 @@ function statusMessage(code) {
 
 function routeFromHash() {
   const route = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (route === "lifetime-card" || route === "about" || route === "content") {
+  if (route === "lifetime-card" || route === "growth-card" || route === "about" || route === "content") {
     return "";
   }
   return route;
@@ -576,6 +684,7 @@ async function boot() {
   session.mime = "";
   updateDemo();
   updateLifetime();
+  updateGrowth();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -594,6 +703,7 @@ async function boot() {
   }
   updateDemo();
   updateLifetime();
+  updateGrowth();
 }
 
 function simulateFailure() {
@@ -603,6 +713,7 @@ function simulateFailure() {
   session.message = "simulated";
   updateDemo();
   updateLifetime();
+  updateGrowth();
 }
 
 function bind() {
@@ -727,6 +838,23 @@ function bind() {
   });
   document.getElementById("retry-load").addEventListener("click", () => {
     boot();
+  });
+  document.getElementById("growth-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.dataset.growth) return;
+    state = setGrowthInput(state, field.dataset.growth, field.value);
+    updateGrowth();
+  });
+  document.getElementById("growth-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateGrowth();
+  });
+  document.getElementById("growth-reset").addEventListener("click", () => {
+    state = resetGrowth(state);
+    document.getElementById("growth-initial").value = state.growth.initial;
+    document.getElementById("growth-doubling").value = state.growth.doubling;
+    document.getElementById("growth-elapsed").value = state.growth.elapsed;
+    updateGrowth();
   });
   document.getElementById("lifetime-form").addEventListener("input", (event) => {
     const field = event.target;

@@ -3,12 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callLifetime, callRebalance, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callGrowth, callLifetime, callRebalance, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
 const fixturePath = path.join(root, "build", "native", "fixtures.txt");
 const lifetimePath = path.join(root, "build", "native", "lifetime-fixtures.txt");
+const growthPath = path.join(root, "build", "native", "growth-fixtures.txt");
 
 function bitsToFloat(hex) {
   const buffer = new ArrayBuffer(8);
@@ -139,6 +140,53 @@ test("rebalance exports match the native fixture bits", async (t) => {
     assert.equal(outcome.status, status, name);
     if (status === 0) {
       assert.deepEqual(outcome.probabilities.map(floatToBits), results, name);
+    }
+  }
+});
+
+test("growth exports match the native fixture bits", async (t) => {
+  if (!fs.existsSync(wasmPath) || !fs.existsSync(growthPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const lines = fs.readFileSync(growthPath, "utf8").split("\n").filter((line) => line.startsWith("GROW "));
+  assert.ok(lines.length >= 8);
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const status = Number(parts[2]);
+    const quantity = parts[3];
+    const factor = parts[4];
+    const initial = bitsToFloat(parts[5]);
+    const doubling = bitsToFloat(parts[6]);
+    const elapsed = bitsToFloat(parts[7]);
+    const samples = [];
+    for (let index = 8; index < parts.length; index += 2) {
+      samples.push({ time: parts[index], quantity: parts[index + 1] });
+    }
+    const outcome = callGrowth(session, initial, doubling, elapsed);
+    assert.equal(outcome.status, status, name);
+    if (status === 0) {
+      assert.equal(floatToBits(outcome.quantity), quantity, name);
+      assert.equal(floatToBits(outcome.factor), factor, name);
+      assert.equal(outcome.samples.length, samples.length, name);
+      assert.equal(floatToBits(outcome.samples.at(-1).quantity), quantity, `${name} endpoint`);
+      assert.equal(floatToBits(outcome.samples[0].time), samples[0].time, `${name} start`);
+    } else {
+      assert.equal(outcome.quantity, null, name);
+      assert.equal(floatToBits(session.exports.ath_growth_quantity()), "0000000000000000", name);
     }
   }
 });

@@ -52,6 +52,8 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
   await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6500");
   assert.equal(await page.locator("#lifetime-result").getAttribute("data-exact-mean"), "6523");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4");
+  assert.equal(await page.locator("#growth-factor").textContent(), "4");
   assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#header-version").isVisible(), true);
   const layout = await page.evaluate(() => {
@@ -68,6 +70,10 @@ async function exercise(page, label) {
   assert.equal(layout.cardBeforeCatalogue, true);
   assert.equal(
     await page.locator('[data-chapter-link="cosmic-civilisations"]').getAttribute("data-calculator"),
+    "ready",
+  );
+  assert.equal(
+    await page.locator('[data-chapter-link="intellectronics"]').getAttribute("data-calculator"),
     "ready",
   );
   const blurbs = await page.locator(".tile-blurb").evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
@@ -131,6 +137,61 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#prob-1").inputValue(), "5");
   await page.click("#lifetime-reset");
   await page.waitForFunction(() => document.querySelector("#prob-2").value === "60");
+  await page.locator("#growth-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "growth-card.png");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "4");
+  const endpoint = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#growth-samples tr")];
+    const last = rows.at(-1);
+    return {
+      rows: rows.length,
+      lastQuantity: last?.children[1]?.textContent,
+      firstTime: rows[0]?.children[0]?.textContent,
+    };
+  });
+  assert.equal(endpoint.rows, 11);
+  assert.equal(endpoint.lastQuantity, "4");
+  assert.equal(endpoint.firstTime, "0");
+  assert.equal(await page.locator("#growth-curve").getAttribute("aria-hidden"), "true");
+  assert.equal(await page.locator("#growth-table caption").count(), 1);
+  await page.fill("#growth-elapsed", "15");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "2");
+  assert.equal(await page.locator("#growth-factor").textContent(), "2");
+  await shot(page, label, "growth-edited.png");
+  await page.fill("#growth-elapsed", "0");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "1");
+  assert.equal(await page.locator("#growth-factor").textContent(), "1");
+  await page.fill("#growth-initial", "0");
+  await page.fill("#growth-elapsed", "30");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "0");
+  assert.equal(await page.locator("#growth-factor").textContent(), "4");
+  await page.fill("#growth-doubling", "0");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "4");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "");
+  assert.equal(await page.locator("#growth-factor").textContent(), "");
+  assert.equal(await page.locator("#growth-samples tr").count(), 0);
+  await page.fill("#growth-doubling", "-2");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "4");
+  await page.fill("#growth-doubling", "15");
+  await page.fill("#growth-elapsed", "-1");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "3");
+  await page.fill("#growth-elapsed", "30");
+  await page.fill("#growth-initial", "-1");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "2");
+  await page.fill("#growth-initial", "NaN");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "1");
+  await page.fill("#growth-initial", "");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "empty");
+  await page.fill("#growth-initial", "1");
+  await page.fill("#growth-elapsed", "20000");
+  await page.fill("#growth-doubling", "1");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "5");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "");
+  assert.equal(await page.locator("#growth-curve polyline").count(), 0);
+  await page.click("#growth-reset");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4");
+  assert.equal(await page.locator("#growth-doubling").inputValue(), "15");
+  assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
   await page.locator("#technical-details summary").scrollIntoViewIfNeeded();
   await shot(page, label, "technical-collapsed.png");
   await page.locator("#technical-details summary").focus();
@@ -142,7 +203,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.3");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.4");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -200,7 +261,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "1");
+  assert.equal(await page.locator("#working-count").textContent(), "2");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -217,7 +278,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "1");
+  assert.equal(await page.locator("#working-count").textContent(), "2");
 
   if (!(await page.locator("#technical-details").evaluate((element) => element.open))) {
     await page.locator("#technical-details summary").focus();
@@ -228,8 +289,17 @@ async function exercise(page, label) {
   await page.fill("#operand-right", "-3");
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
   const beforeLang = await page.locator("a.section-link").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
+  await page.fill("#growth-elapsed", "15");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "2");
+  await page.click("#close-all");
+  await page.click("#open-all");
+  assert.equal(await page.locator("#growth-elapsed").inputValue(), "15");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "2");
   await page.selectOption("#language", "de");
   await page.waitForFunction(() => document.documentElement.lang === "de");
+  assert.equal(await page.locator("#growth-elapsed").inputValue(), "15");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "2");
+  assert.match(await page.locator("#growth-status").textContent(), /Ada/);
   assert.equal(await page.locator("#operand-left").inputValue(), "8");
   assert.equal(await page.locator("#operand-right").inputValue(), "-3");
   assert.equal(await page.locator("#addition-result").textContent(), "5");
@@ -305,6 +375,9 @@ async function exercise(page, label) {
   assert.ok((await overflow(page)) <= 1, "narrow overflow");
   await page.locator("#lifetime-card").scrollIntoViewIfNeeded();
   await shot(page, label, "narrow.png");
+  await page.locator("#growth-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "growth-narrow.png");
+  assert.ok((await overflow(page)) <= 1, "narrow growth");
   await page.locator("#addition-form button[type=submit]").scrollIntoViewIfNeeded();
   assert.equal(await page.locator("#addition-form button[type=submit]").isVisible(), true);
 }

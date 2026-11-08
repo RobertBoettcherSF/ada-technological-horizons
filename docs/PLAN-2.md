@@ -36,7 +36,7 @@ The assumptions are historical and subjective. They describe a communication-ori
 
 ## Out of scope
 
-Spacing, contact age, recurrence, survival curves, and the zero-weight fifth case are not implemented. The design queue in `docs/DESIGN.md` is otherwise unchanged.
+Spacing, contact age, recurrence, survival curves, and the zero-weight fifth case are not implemented. Release 0.1.4 adds the separate growth calculator. It does not change this mean, the rebalance rule, or the headline rounding.
 
 ## Presentation
 

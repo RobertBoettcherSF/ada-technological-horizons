@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.4 scientific-information growth
+
+`bash tools/build.sh` printed `NATIVE OK`, `LIFETIME OK` and `GROWTH OK`. The lifetime and rebalance fixtures are unchanged. Growth checks: defaults quantity 4 and factor 4; one doubling gives 2 and 2; elapsed 0 keeps the starting quantity and factor 1; starting quantity 0 gives quantity 0 and factor 4; doubling 0 or a negative doubling is status 4; a negative elapsed time is status 3; a negative starting quantity is status 2; NaN is status 1; t = 20000 with d = 1 is status 5 and clears the previous result. The last of the 11 samples matches the reported quantity.
+
+Node suites: 24 passed, including bit-exact Wasm replay of the addition, lifetime, rebalance and growth fixtures. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The default growth card showed quantity 4 and factor 4, with the table endpoint equal to that quantity. Elapsed time 15 showed 2 and 2. Reset restored 1, 15 and 30. Invalid doubling, a negative elapsed time, a negative start, NaN, an empty field and the overflow case cleared the quantity, factor and curve. The civilisation card still showed 6500 with exact mean 6523, and editing 60 to 30 still showed 15, 30, 25, 30. Technical details stayed closed until opened. The catalogue counted 2 working calculators. At 320px, `scrollWidth - clientWidth` was at most 1.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.3 rebalance and headline
 
 `bash tools/build.sh` printed `NATIVE OK` and `LIFETIME OK`. Rebalance checks: 60 edited to 30 becomes 15, 30, 25, 30; 5 edited to 95 becomes 95, 5, 0, 0; a single 100 leaves the others at 0; 100 edited to 0 shares the remainder equally and the total stays within `1.0e-9` of 100. The exact default mean remains 6523 and the 20000-year case remains 8523. Wasm replay matched the addition, lifetime, and rebalance bits.

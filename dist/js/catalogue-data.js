@@ -140,6 +140,14 @@ export const sections = RAW.map((entry, index) => {
       summaryKey: "summary.lifetime",
     };
   }
+  if (withOrder.id === "intellectronics/return-to-earth") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.growth",
+    };
+  }
   return withOrder;
 });
 

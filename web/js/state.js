@@ -1,6 +1,12 @@
 export const DEMO_LEFT = "2";
 export const DEMO_RIGHT = "3";
 
+export const GROWTH_DEFAULTS = {
+  initial: "1",
+  doubling: "15",
+  elapsed: "30",
+};
+
 export const LIFETIME_DEFAULTS = {
   probabilities: ["5", "60", "15", "20"],
   durations: ["100", "30", "30000", "10000"],
@@ -28,6 +34,7 @@ export function createState() {
     collapsedCards: new Set(),
     demo: { left: DEMO_LEFT, right: DEMO_RIGHT },
     lifetime: lifetimeDefaults(),
+    growth: { ...GROWTH_DEFAULTS },
   };
 }
 
@@ -59,6 +66,14 @@ export function setLifetimeInput(state, kind, index, value) {
 
 export function resetLifetime(state) {
   return { ...state, lifetime: lifetimeDefaults() };
+}
+
+export function setGrowthInput(state, field, value) {
+  return { ...state, growth: { ...state.growth, [field]: value } };
+}
+
+export function resetGrowth(state) {
+  return { ...state, growth: { ...GROWTH_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {

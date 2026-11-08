@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.3">
+  <meta name="ath-release" content="0.1.4">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,11 +13,11 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.3</p>
+        <p class="release-pill" id="header-version">0.1.4</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
-        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Statistics of Cosmic Civilisations is the one calculator ready in this release. The other sections are planned.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Two calculators are ready: Statistics of Cosmic Civilisations, and Return to Earth. The other sections are planned.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -125,6 +125,55 @@
           <tr><th scope="row" data-i18n="fate.4">Loss of scientific or technical interest</th><td id="shown-prob-4"></td><td id="shown-years-4"></td><td id="contrib-4"></td></tr>
         </tbody>
       </table>
+      </div>
+    </section>
+
+    <section id="growth-card" class="lifetime-card" aria-labelledby="growth-title">
+      <p class="kicker" data-i18n="growth.path">Intellectronics · Return to Earth</p>
+      <h2 id="growth-title" data-i18n="growth.title">What does persistent doubling imply?</h2>
+      <p data-i18n="growth.lead">A normalised starting index of 1 and a 15-year doubling time follow a historical discussion of scientific periodicals. Ada computes unrestricted exponential growth. That is the scenario, not a forecast, and the starting 1 is not a historical count.</p>
+      <p class="formula" data-i18n="growth.formula">N = N₀ · 2^(t / d)</p>
+      <p class="note" data-i18n="growth.factorPolicy">The factor is 2^(t / d) even when the starting quantity is zero. The quantity is then zero.</p>
+      <form id="growth-form">
+        <div class="fate">
+          <div>
+            <label for="growth-initial" data-i18n="growth.initial">Starting quantity</label>
+            <input id="growth-initial" data-growth="initial" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="growth-doubling" data-i18n="growth.doubling">Doubling time (years)</label>
+            <input id="growth-doubling" data-growth="doubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="15">
+          </div>
+          <div>
+            <label for="growth-elapsed" data-i18n="growth.elapsed">Elapsed time (years)</label>
+            <input id="growth-elapsed" data-growth="elapsed" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+        </div>
+        <div id="growth-live" class="live-result">
+          <p class="live-label" data-i18n="growth.quantity">Quantity</p>
+          <output id="growth-quantity" for="growth-initial growth-doubling growth-elapsed"></output>
+          <p class="live-label" data-i18n="growth.factor">Growth factor</p>
+          <output id="growth-factor"></output>
+        </div>
+        <p id="growth-status" role="status" aria-live="polite"></p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="growth-reset" class="secondary" data-i18n="growth.reset">Reset example</button>
+        </div>
+      </form>
+      <h3 data-i18n="growth.curve">Growth curve</h3>
+      <svg id="growth-curve" class="growth-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="table-scroll">
+        <table id="growth-table">
+          <caption class="note" data-i18n="growth.tableCaption">Samples returned by Ada. The last row is the reported quantity.</caption>
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="growth.elapsed">Elapsed time (years)</th>
+              <th scope="col" data-i18n="growth.quantity">Quantity</th>
+            </tr>
+          </thead>
+          <tbody id="growth-samples"></tbody>
+        </table>
       </div>
     </section>
 

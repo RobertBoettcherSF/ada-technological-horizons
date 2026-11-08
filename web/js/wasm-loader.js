@@ -55,6 +55,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_rebalance_f64 !== "function") {
     throw new Error("Ada module is missing ath_rebalance_f64");
   }
+  if (typeof instance.exports.ath_growth_f64 !== "function") {
+    throw new Error("Ada module is missing ath_growth_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -106,6 +109,31 @@ export function callLifetime(session, percentages, durations) {
     status,
     mean: session.exports.ath_lifetime_mean(),
     contributions: [1, 2, 3, 4].map((index) => session.exports.ath_lifetime_contribution(index)),
+  };
+}
+
+export function callGrowth(session, initial, doubling, elapsed) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_growth_f64(initial, doubling, elapsed);
+  session.invocations += 1;
+  if (status !== STATUS_OK) {
+    return { status, quantity: null, factor: null, samples: null };
+  }
+  const count = session.exports.ath_growth_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      time: session.exports.ath_growth_sample_time(index),
+      quantity: session.exports.ath_growth_sample_quantity(index),
+    });
+  }
+  return {
+    status,
+    quantity: session.exports.ath_growth_quantity(),
+    factor: session.exports.ath_growth_factor(),
+    samples,
   };
 }
 
