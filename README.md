@@ -111,4 +111,8 @@ Verified v0.1.8 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/2c548eda8f3a2d8640b9c50852351a21d31ec554/dist/index.html
 
-A browser may meet raw.githack’s confirmation screen first. After the page itself loads, 1,000 light-years shows 1000 years one way and 2000 years for the reply. Earth–Moon shows 1.28 s and 2.56 s. The civilisation headline remains 6500 years. Details are in `docs/VERIFICATION.md`.
+Verified v0.1.9 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/6df84abf338462fe643c55d636bf5ca1a7bf65e4/dist/index.html
+
+A browser may meet raw.githack’s confirmation screen first. After the page itself loads, Earth–Venus lists the reply at 4.6 min, matching the headline, while each leg stays 2.3 min. The civilisation headline remains 6500 years. Details are in `docs/VERIFICATION.md`.

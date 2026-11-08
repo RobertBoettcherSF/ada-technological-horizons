@@ -6,7 +6,11 @@ The event list shows time since the signal leaves. For Earth–Venus the reply l
 
 `bash tools/test.sh` is recorded with this release. Headless Chromium checks the list against the reply result on desktop and at 320px.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/6df84abf338462fe643c55d636bf5ca1a7bf65e4/dist/index.html
+
+The page showed release `0.1.9`, that commit, and `application/wasm`. Earth–Venus listed **Signal leaves — 0 s**, **Signal arrives — 2.3 min**, and **Reply arrives — 4.6 min**. The headline reply was **4.6 min**. Both connecting legs stayed **2.3 min**, and the circles stayed 1, 2 and 3. The headline mean stayed **6500**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` with `access-control-allow-origin: *`. The Wasm module is unchanged from 0.1.8 (44567 bytes, SHA-256 `5e5290d84fe58e7af3a32fb3c9ad5593fad4261c5dd3860c43de4235e3c497f1`).
 
 ## v0.1.8 numbered timeline and more presets
 
