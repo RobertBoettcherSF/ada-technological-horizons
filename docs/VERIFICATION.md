@@ -8,7 +8,11 @@ Native lifetime checks include defaults **6523** years with contributions 5, 18,
 
 Node suites: 21 passed. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. That run checked the closed Technical details disclosure, the lifetime card showing 6523, an edit to 8523, reset, chapter tiles, filters, languages, the addition proof after the disclosure is opened, and a 320px viewport.
 
-The immutable review URL is added here after that commit is loaded in a browser.
+Verified in a browser on 8 November 2026, after raw.githack’s “Open the page” confirmation:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c7a2ea1e7df52e4a649402c698a5bd23fababf68/dist/index.html
+
+The page showed release `0.1.2`, that commit, `application/wasm`, two Ada calls, mean **6523**, and closed Technical details. Editing the last duration to 20000 changed the mean to **8523**. `curl` received `text/html` and `application/wasm` (10361 bytes, `access-control-allow-origin: *`).
 
 ## v0.1.1 opening
 

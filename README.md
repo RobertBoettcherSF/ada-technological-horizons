@@ -77,4 +77,8 @@ The v0.1.1 opening remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7ed60133a77e6b1a3ac22c9dc0b390e2823a064f/dist/index.html
 
-The verified v0.1.2 address is in `docs/VERIFICATION.md` after that commit has been loaded. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default mean is 6523 years.
+Verified v0.1.2 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c7a2ea1e7df52e4a649402c698a5bd23fababf68/dist/index.html
+
+A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default mean is 6523 years. Details are in `docs/VERIFICATION.md`.
