@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.16 curve legend
+
+The bacterial chart names the steep cyan dotted line **Bacterial figure (chosen)** and the low lime line **Human figure (reference)**. The dashed line is **Target — 10000 bits**. The white dot is **Target reached**. Those swatches use the same stroke as the plotted series. A curve that is not drawn is not left in the legend. Lem’s example, the human figure, the line rate, a custom rate, and both scales follow the same rule. The exact time list remains.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/52f9411e728b7936896146ddfd1febd4bc7d8466/dist/index.html
+
+The page showed release `0.1.16`, commit `52f9411e728b7936896146ddfd1febd4bc7d8466`, and `application/wasm`. The bacterial legend read **Bacterial figure (chosen)**, **Human figure (reference)**, **Target — 10000 bits**, and **Target reached**. The bacterial stroke was `rgb(143, 208, 222)` with dash `1.4px, 3.2px` on both the curve and the swatch. The human stroke was lime `rgb(200, 242, 90)`, solid. The target stroke was `rgb(183, 201, 220)`, dashed. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (81923 bytes, SHA-256 `bba920516c88c2c730951bf9c173bcdecb37933dc07e6f9f906db8a71bdab081`, `access-control-allow-origin: *`).
+
 ## v0.1.15 information transmitted against time
 
 Lem’s example draws two curves for 10,000 bits. The chosen human figure is **25 bits/s — 400 s**. The bacterial lower bound is **at least 1000 bits/s — at most 10 s**. Both cross the dashed 10,000-bit line on the linear chart, and the ratio is **40**. Information stays rate times time. A log chart keeps only positive time and positive information; zero is omitted, and each constant rate is a slope of 1. The 1000BASE-T choice draws **1000000000 bits/s — 10 µs** with the human figure and no bacterial curve. On the linear window the human crossing is after the chart, at 400 s. On the log window both crossings are on the chart, so the human curve is not drawn as zero. Reset and Lem’s example restore 10,000 bits, 25 bits/s and 400 s.
