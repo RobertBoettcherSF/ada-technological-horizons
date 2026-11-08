@@ -225,14 +225,16 @@ begin
    begin
       Ath_Throughput.Build_Comparison
         (Ath_Throughput.Link_Bits_Per_Second, 0.0, 10_000.0,
+         Ath_Throughput.Mode_Link,
          Match, Over_Human, Over_Bacterial, Ratio_Valid,
          Linear_Count, Log_Count, Linear_Rows, Log_Rows);
       if Match /= Ath_Throughput.Match_Link
-        or else Linear_Count /= 3
+        or else Linear_Count /= 2
         or else Linear_Rows (1).Kind /= Ath_Throughput.Match_Link
         or else Linear_Rows (1).Linear /= 1.0
         or else Linear_Rows (2).Kind /= Ath_Throughput.Match_Human
         or else Linear_Rows (2).Rate /= 25.0
+        or else Linear_Rows (2).Linear >= 0.001
         or else not Ratio_Valid
         or else Over_Human /= 40_000_000.0
         or else Over_Bacterial /= 1_000_000.0
@@ -241,16 +243,30 @@ begin
       end if;
       Ath_Throughput.Build_Comparison
         (25.0, 0.0, 10_000.0,
+         Ath_Throughput.Mode_Historical,
          Match, Over_Human, Over_Bacterial, Ratio_Valid,
          Linear_Count, Log_Count, Linear_Rows, Log_Rows);
       if Match /= Ath_Throughput.Match_Human
         or else Linear_Count /= 2
         or else Linear_Rows (1).Kind /= Ath_Throughput.Match_Human
+        or else Linear_Rows (2).Kind /= Ath_Throughput.Match_Bacterial
         or else Linear_Rows (2).Linear /= 1.0
-        or else Log_Count /= 3
-        or else Log_Rows (3).Kind /= Ath_Throughput.Match_Link
+        or else Log_Count /= 2
       then
          Fail ("human-comparison");
+      end if;
+      Ath_Throughput.Build_Comparison
+        (1_000.0, 1.0, 10_000.0,
+         Ath_Throughput.Mode_Bacterial,
+         Match, Over_Human, Over_Bacterial, Ratio_Valid,
+         Linear_Count, Log_Count, Linear_Rows, Log_Rows);
+      if Match /= Ath_Throughput.Match_Bacterial
+        or else Linear_Rows (1).Kind /= Ath_Throughput.Match_Bacterial
+        or else Linear_Rows (1).Linear /= 1.0
+        or else Linear_Rows (2).Kind /= Ath_Throughput.Match_Human
+        or else Over_Human /= 40.0
+      then
+         Fail ("bacterial-comparison");
       end if;
    end;
 

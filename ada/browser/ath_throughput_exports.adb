@@ -16,6 +16,7 @@ package body Ath_Throughput_Exports is
    Stored_Time_Upper : Boolean := False;
    Stored_Total_Lower : Boolean := False;
    Stored_Bound : Long_Float := 0.0;
+   Stored_Mode : Interfaces.Integer_32 := Ath_Throughput.Mode_Historical;
    Stored_Match : Interfaces.Integer_32 := 0;
    Stored_Over_Human : Long_Float := 0.0;
    Stored_Over_Bacterial : Long_Float := 0.0;
@@ -58,6 +59,24 @@ package body Ath_Throughput_Exports is
       Stored_Log := (others => <>);
    end Clear;
 
+   function Ath_Throughput_Set_Mode
+     (Mode : Interfaces.Integer_32) return Interfaces.Integer_32 is
+   begin
+      if Mode < Ath_Throughput.Mode_Historical or else Mode > Ath_Throughput.Mode_Custom then
+         Stored_Mode := Ath_Throughput.Mode_Custom;
+      else
+         Stored_Mode := Mode;
+      end if;
+      if Stored_Chart_Valid then
+         Ath_Throughput.Build_Comparison
+           (Stored_Rate, Stored_Bound, Stored_Quantity, Stored_Mode,
+            Stored_Match, Stored_Over_Human, Stored_Over_Bacterial,
+            Stored_Ratio_Valid, Stored_Linear_Count, Stored_Log_Count,
+            Stored_Linear, Stored_Log);
+      end if;
+      return Stored_Mode;
+   end Ath_Throughput_Set_Mode;
+
    function Ath_Throughput_F64
      (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit : Long_Float)
       return Interfaces.Integer_32
@@ -78,7 +97,7 @@ package body Ath_Throughput_Exports is
       else
          Stored_Bound := Bound;
          Ath_Throughput.Build_Comparison
-           (Stored_Rate, Stored_Bound, Stored_Quantity,
+           (Stored_Rate, Stored_Bound, Stored_Quantity, Stored_Mode,
             Stored_Match, Stored_Over_Human, Stored_Over_Bacterial,
             Stored_Ratio_Valid, Stored_Linear_Count, Stored_Log_Count,
             Stored_Linear, Stored_Log);

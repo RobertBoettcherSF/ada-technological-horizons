@@ -378,11 +378,13 @@ package body Ath_Throughput is
 
    procedure Build_Comparison
      (Rate_Bits, Bound, Quantity_Bits : Long_Float;
+      Mode                            : Interfaces.Integer_32;
       Match                           : out Interfaces.Integer_32;
       Over_Human, Over_Bacterial      : out Long_Float;
       Ratio_Valid                     : out Boolean;
       Linear_Count, Log_Count         : out Interfaces.Integer_32;
       Linear_Rows, Log_Rows           : out Comparison_Table) is
+      Use_Mode : Interfaces.Integer_32 := Mode;
    begin
       Match := Match_Code (Rate_Bits, Bound);
       Over_Human := 0.0;
@@ -393,33 +395,41 @@ package body Ath_Throughput is
          Over_Bacterial := Rate_Bits / Bacterial_Bits_Per_Second;
          Ratio_Valid := Is_Finite (Over_Human) and then Is_Finite (Over_Bacterial);
       end if;
+      if Use_Mode = Mode_Custom then
+         if Match = Match_Human then
+            Use_Mode := Mode_Human;
+         elsif Match = Match_Bacterial then
+            Use_Mode := Mode_Bacterial;
+         elsif Match = Match_Link then
+            Use_Mode := Mode_Link;
+         end if;
+      elsif Use_Mode < Mode_Historical or else Use_Mode > Mode_Custom then
+         Use_Mode := Mode_Custom;
+      end if;
       Linear_Rows := (others => <>);
       Log_Rows := (others => <>);
-      if Match = Match_Human then
+      if Use_Mode = Mode_Historical then
          Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
          Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
          Linear_Count := 2;
-      elsif Match = Match_Bacterial then
+      elsif Use_Mode = Mode_Human then
+         Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
+         Linear_Count := 1;
+      elsif Use_Mode = Mode_Bacterial then
          Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
          Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
          Linear_Count := 2;
-      elsif Match = Match_Link then
+      elsif Use_Mode = Mode_Link then
          Fill_Row (Match_Link, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
          Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
-         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (3));
-         Linear_Count := 3;
+         Linear_Count := 2;
       else
          Fill_Row (Match_Custom, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (1));
          Fill_Row (Match_Human, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (2));
-         Fill_Row (Match_Bacterial, Rate_Bits, Bound, Quantity_Bits, Linear_Rows (3));
-         Linear_Count := 3;
+         Linear_Count := 2;
       end if;
-      Log_Rows := Linear_Rows;
       Log_Count := Linear_Count;
-      if Match = Match_Human or else Match = Match_Bacterial then
-         Fill_Row (Match_Link, Rate_Bits, Bound, Quantity_Bits, Log_Rows (3));
-         Log_Count := 3;
-      end if;
+      Log_Rows := Linear_Rows;
       Apply_Shares (Linear_Rows, Linear_Count, False);
       Apply_Shares (Log_Rows, Log_Count, True);
    end Build_Comparison;

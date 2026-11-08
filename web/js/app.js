@@ -1173,9 +1173,13 @@ function renderThroughput(outcome) {
     totalNode.textContent = outcome.totalLower ? `${t(state.lang, "throughput.atLeast")} ${bits}` : bits;
   }
   const ratioLabel = document.getElementById("throughput-ratio-label");
-  if (outcome.match === 1 || outcome.match === 2) {
+  const preset = state.throughput.preset;
+  if (preset === "historical") {
     if (ratioLabel) ratioLabel.textContent = t(state.lang, "throughput.ratioLabel");
-    ratioNode.textContent = formatReadable(outcome.ratio, state.lang);
+    ratioNode.textContent = outcome.ratio === null ? "" : formatReadable(outcome.ratio, state.lang);
+  } else if (preset === "human" || (preset === "custom" && outcome.match === 1)) {
+    if (ratioLabel) ratioLabel.textContent = t(state.lang, "throughput.ratioFromHuman");
+    ratioNode.textContent = outcome.ratio === null ? "" : formatReadable(outcome.ratio, state.lang);
   } else if (outcome.overHuman !== null) {
     if (ratioLabel) ratioLabel.textContent = t(state.lang, "throughput.ratioToHuman");
     ratioNode.textContent = formatReadable(outcome.overHuman, state.lang);
@@ -1197,14 +1201,25 @@ function renderThroughput(outcome) {
   document.getElementById("throughput-linear")?.setAttribute("aria-pressed", logarithmic ? "false" : "true");
   document.getElementById("throughput-log")?.setAttribute("aria-pressed", logarithmic ? "true" : "false");
   if (scaleNote) {
+    const humanFocus = state.throughput.preset === "human"
+      || (state.throughput.preset === "custom" && outcome.match === 1);
     scaleNote.textContent = logarithmic
       ? t(state.lang, "throughput.logNote")
-      : (outcome.match === 1 || outcome.match === 2)
+      : state.throughput.preset === "historical"
         ? t(state.lang, "throughput.linearNote")
-        : t(state.lang, "throughput.linearWide");
+        : humanFocus
+          ? t(state.lang, "throughput.humanNote")
+          : t(state.lang, "throughput.linearWide");
   }
   const note = document.getElementById("throughput-note");
-  if (note) note.textContent = t(state.lang, throughputNoteKey(outcome.match));
+  if (note) {
+    note.textContent = state.throughput.preset === "custom"
+      ? t(state.lang, "throughput.note.assumption")
+      : t(state.lang, throughputNoteKey(outcome.match));
+  }
+  for (const [name, id] of [["historical", "throughput-preset-page"], ["human", "throughput-preset-human"], ["bacterial", "throughput-preset-bacterial"], ["link", "throughput-preset-link"]]) {
+    document.getElementById(id)?.setAttribute("aria-pressed", state.throughput.preset === name ? "true" : "false");
+  }
   if (outcome.linkTime !== null && outcome.linkRate !== null) {
     document.getElementById("throughput-link-rate").textContent = rateLabel(outcome.linkRate, false);
     document.getElementById("throughput-link-time").textContent = timeLabel(outcome.linkTime, false);
@@ -1279,6 +1294,7 @@ function updateThroughput() {
     if (empty) code = "empty";
     else if (malformed) code = "malformed";
     else {
+      const presetMode = { historical: 0, human: 1, bacterial: 2, link: 3, custom: 4 };
       outcome = callThroughput(
         session,
         parsed.quantity,
@@ -1288,6 +1304,7 @@ function updateThroughput() {
         parsed.bound,
         parsed.duration,
         parsed.durationUnit,
+        presetMode[state.throughput.preset] ?? 4,
       );
       code = outcome.status;
       if (outcome.status === 0 || outcome.status === 5 || outcome.status === 6) {
@@ -1413,6 +1430,7 @@ function debugReport() {
     `Duration: ${valueOf("throughput-duration")}`,
     `Duration unit: ${valueOf("throughput-duration-unit")}`,
     `Scale: ${state.throughput.scale}`,
+    `Preset: ${state.throughput.preset}`,
     `Time: ${textOf("throughput-time")}`,
     `Total: ${textOf("throughput-total")}`,
     `Ratio label: ${textOf("throughput-ratio-label")}`,
@@ -1783,6 +1801,7 @@ function bind() {
     if (field.dataset.throughput === "rate" || field.dataset.throughput === "rateUnit") {
       state = setThroughputInput(state, "bound", "0");
     }
+    state = setThroughputInput(state, "preset", "custom");
     updateThroughput();
   });
   document.getElementById("throughput-form").addEventListener("change", (event) => {
@@ -1792,6 +1811,7 @@ function bind() {
     if (field.dataset.throughput === "rate" || field.dataset.throughput === "rateUnit") {
       state = setThroughputInput(state, "bound", "0");
     }
+    state = setThroughputInput(state, "preset", "custom");
     updateThroughput();
   });
   document.getElementById("throughput-form").addEventListener("submit", (event) => {
@@ -1815,14 +1835,20 @@ function bind() {
     const button = event.target instanceof HTMLElement ? event.target.closest("[data-throughput-preset]") : null;
     if (!(button instanceof HTMLButtonElement) || !session.exports) return;
     const preset = throughputPreset(session, Number(button.dataset.throughputPreset));
-    if (preset.setsQuantity) {
-      state = setThroughputInput(state, "quantity", formatCanonical(preset.quantity));
-      state = setThroughputInput(state, "quantityUnit", String(preset.quantityUnit));
-    }
-    if (preset.setsRate) {
-      state = setThroughputInput(state, "rate", formatCanonical(preset.rate));
-      state = setThroughputInput(state, "rateUnit", String(preset.rateUnit));
-      state = setThroughputInput(state, "bound", String(preset.bound));
+    const presetName = { 1: "historical", 2: "human", 3: "bacterial", 4: "link" }[Number(button.dataset.throughputPreset)];
+    if (presetName === "historical") {
+      state = resetThroughput(state);
+    } else {
+      if (preset.setsQuantity) {
+        state = setThroughputInput(state, "quantity", formatCanonical(preset.quantity));
+        state = setThroughputInput(state, "quantityUnit", String(preset.quantityUnit));
+      }
+      if (preset.setsRate) {
+        state = setThroughputInput(state, "rate", formatCanonical(preset.rate));
+        state = setThroughputInput(state, "rateUnit", String(preset.rateUnit));
+        state = setThroughputInput(state, "bound", String(preset.bound));
+      }
+      state = setThroughputInput(state, "preset", presetName);
     }
     syncThroughputForm();
     updateThroughput();

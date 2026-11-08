@@ -3,6 +3,10 @@ with Interfaces;
 --  Fixed-width constant-rate export. A rejected input clears every result.
 --  Unreachable and indeterminate leave the time invalid and keep a total.
 package Ath_Throughput_Exports is
+   function Ath_Throughput_Set_Mode
+     (Mode : Interfaces.Integer_32) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_set_mode";
+
    function Ath_Throughput_F64
      (Quantity, Quantity_Unit, Rate, Rate_Unit, Bound, Duration, Duration_Unit : Long_Float)
       return Interfaces.Integer_32

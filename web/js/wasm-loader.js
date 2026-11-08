@@ -266,10 +266,12 @@ export function callThroughput(
   bound,
   duration,
   durationUnit,
+  mode = 0,
 ) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");
   }
+  session.exports.ath_throughput_set_mode(mode);
   const status = session.exports.ath_throughput_f64(
     quantity,
     quantityUnit,

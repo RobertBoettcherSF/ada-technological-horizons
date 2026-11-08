@@ -15,6 +15,7 @@ export const THROUGHPUT_DEFAULTS = {
   duration: "400",
   durationUnit: "0",
   scale: "linear",
+  preset: "historical",
 };
 
 export const GROWTH_DEFAULTS = {

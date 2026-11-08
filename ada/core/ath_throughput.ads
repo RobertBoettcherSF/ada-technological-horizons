@@ -124,8 +124,18 @@ package Ath_Throughput is
 
    type Comparison_Table is array (1 .. Max_Comparison_Rows) of Comparison_Row;
 
+   --  Which rows the chosen scenario shows. 0 historical pair, 1 human
+   --  figure alone, 2 bacterial figure with the human reference, 3 line
+   --  rate with the human reference, 4 a custom rate resolved from Match.
+   Mode_Historical : constant Interfaces.Integer_32 := 0;
+   Mode_Human      : constant Interfaces.Integer_32 := 1;
+   Mode_Bacterial  : constant Interfaces.Integer_32 := 2;
+   Mode_Link       : constant Interfaces.Integer_32 := 3;
+   Mode_Custom     : constant Interfaces.Integer_32 := 4;
+
    procedure Build_Comparison
      (Rate_Bits, Bound, Quantity_Bits : Long_Float;
+      Mode                            : Interfaces.Integer_32;
       Match                           : out Interfaces.Integer_32;
       Over_Human, Over_Bacterial      : out Long_Float;
       Ratio_Valid                     : out Boolean;
