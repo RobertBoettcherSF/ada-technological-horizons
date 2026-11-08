@@ -14,7 +14,7 @@ A Lampoon of Evolution / Constructing Life. The design queue already places this
 
 Ada divides quantity by rate, and multiplies rate by duration. A kilobit is 1,000 bits. One page unit is the historical 10,000-bit page. Bits per minute are divided by 60. Hours are 3,600 seconds. The prefilled example is one such page at 25 bits/s for 400 seconds: the time is 400 seconds and the total is 10,000 bits. The same page at the bacterial figure takes at most 10 seconds. The rate ratio is 40.
 
-The chart repeats those two historical times for the current quantity. The bacterial bar is an upper bound on time because 1,000 bits/s is a lower bound on the rate. A rate of zero with a positive quantity is unreachable: no finite time is shown. Zero divided by zero is not given a fabricated time.
+The chart shows those two historical rates on a linear scale. The bacterial bar is 40 times the human bar. The times remain beside the rates, and the bacterial time is an upper bound because 1,000 bits/s is a lower bound. A separate nominal 1000 Mb/s 1000BASE-T line rate, from IEEE Std 802.3, gives the ideal constant-rate time for the same quantity. It is not placed on the linear bars. A logarithmic scale can include it and is labelled as not the 40-to-1 ratio. A rate of zero with a positive quantity is unreachable: no finite time is shown. Zero divided by zero is not given a fabricated time.
 
 ## What it does not do
 

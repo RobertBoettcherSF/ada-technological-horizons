@@ -609,6 +609,17 @@ button.collapse {
 }
 
 .bar-fill.bound { background: var(--cyan); }
+.bar-fill.link { background: var(--muted); }
+
+.link-reference {
+  margin: 0.8rem 0 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.link-reference h3 { margin: 0 0 0.35rem; }
+.link-reference output { display: block; font-size: 1.35rem; font-weight: 700; }
 
 .table-scroll {
   width: 100%;

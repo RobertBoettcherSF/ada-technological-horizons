@@ -294,6 +294,17 @@ export function callThroughput(
     ratio: chartValid ? session.exports.ath_throughput_ratio() : null,
     quantityBits: totalValid || chartValid ? session.exports.ath_throughput_quantity_bits() : null,
     rateBits: totalValid ? session.exports.ath_throughput_rate_bits() : null,
+    humanRate: chartValid ? session.exports.ath_throughput_human_rate() : null,
+    bacterialRate: chartValid ? session.exports.ath_throughput_bacterial_rate() : null,
+    linkRate: chartValid ? session.exports.ath_throughput_link_rate() : null,
+    humanLinear: chartValid ? session.exports.ath_throughput_human_linear() : null,
+    bacterialLinear: chartValid ? session.exports.ath_throughput_bacterial_linear() : null,
+    humanLog: chartValid ? session.exports.ath_throughput_human_log() : null,
+    bacterialLog: chartValid ? session.exports.ath_throughput_bacterial_log() : null,
+    linkLog: chartValid ? session.exports.ath_throughput_link_log() : null,
+    linkTime: session.exports.ath_throughput_link_valid() === 1
+      ? session.exports.ath_throughput_link_time()
+      : null,
   };
 }
 

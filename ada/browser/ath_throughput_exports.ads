@@ -74,4 +74,34 @@ package Ath_Throughput_Exports is
    function Ath_Throughput_Preset_Sets_Rate
      (Index : Interfaces.Integer_32) return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_throughput_preset_sets_rate";
+
+   function Ath_Throughput_Human_Rate return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_human_rate";
+
+   function Ath_Throughput_Bacterial_Rate return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_bacterial_rate";
+
+   function Ath_Throughput_Link_Rate return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_link_rate";
+
+   function Ath_Throughput_Human_Linear return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_human_linear";
+
+   function Ath_Throughput_Bacterial_Linear return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_bacterial_linear";
+
+   function Ath_Throughput_Human_Log return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_human_log";
+
+   function Ath_Throughput_Bacterial_Log return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_bacterial_log";
+
+   function Ath_Throughput_Link_Log return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_link_log";
+
+   function Ath_Throughput_Link_Time return Long_Float
+   with Export, Convention => C, External_Name => "ath_throughput_link_time";
+
+   function Ath_Throughput_Link_Valid return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_throughput_link_valid";
 end Ath_Throughput_Exports;

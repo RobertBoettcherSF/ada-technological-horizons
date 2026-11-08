@@ -389,7 +389,7 @@ test("constant-rate exports match the native fixture bits", async (t) => {
       assert.equal(floatToBits(outcome.ratio), parts[10], name);
     }
   }
-  assert.equal(session.exports.ath_throughput_preset_count(), 3);
+  assert.equal(session.exports.ath_throughput_preset_count(), 4);
   assert.equal(session.exports.ath_throughput_preset_quantity(1), 1);
   assert.equal(session.exports.ath_throughput_preset_quantity_unit(1), 2);
   assert.equal(session.exports.ath_throughput_preset_rate(2), 25);
@@ -400,6 +400,15 @@ test("constant-rate exports match the native fixture bits", async (t) => {
   assert.equal(page.total, 10000);
   assert.equal(page.bacterial, 10);
   assert.equal(page.ratio, 40);
+  assert.equal(page.humanRate, 25);
+  assert.equal(page.bacterialRate, 1000);
+  assert.equal(page.linkRate, 1_000_000_000);
+  assert.equal(page.bacterialLinear, 1);
+  assert.equal(page.linkLog, 1);
+  assert.ok(Math.abs(page.bacterialLinear / page.humanLinear - 40) < 1e-9);
+  assert.equal(page.linkTime, 10000 / 1_000_000_000);
+  assert.equal(session.exports.ath_throughput_preset_rate(4), 1);
+  assert.equal(session.exports.ath_throughput_preset_rate_unit(4), 3);
   const stalled = callThroughput(session, 10000, 0, 0, 0, 0, 400, 0);
   assert.equal(stalled.status, 5);
   assert.equal(stalled.time, null);

@@ -1,3 +1,4 @@
+with Ada.Numerics.Long_Elementary_Functions;
 with Ada.Unchecked_Conversion;
 
 package body Ath_Throughput is
@@ -63,6 +64,8 @@ package body Ath_Throughput is
          return 1.0 / 60.0;
       elsif Unit = Rate_Kilobits_Per_Second then
          return 1_000.0;
+      elsif Unit = Rate_Gigabits_Per_Second then
+         return Link_Bits_Per_Second;
       else
          return -1.0;
       end if;
@@ -227,13 +230,17 @@ package body Ath_Throughput is
          return Human_Bits_Per_Second;
       elsif Index = 3 then
          return Bacterial_Bits_Per_Second;
+      elsif Index = 4 then
+         return 1.0;
       end if;
       return 0.0;
    end Preset_Rate;
 
    function Preset_Rate_Unit (Index : Preset_Index) return Long_Float is
-      pragma Unreferenced (Index);
    begin
+      if Index = 4 then
+         return Rate_Gigabits_Per_Second;
+      end if;
       return Rate_Bits_Per_Second;
    end Preset_Rate_Unit;
 
@@ -252,6 +259,37 @@ package body Ath_Throughput is
 
    function Preset_Sets_Rate (Index : Preset_Index) return Boolean is
    begin
-      return Index = 2 or else Index = 3;
+      return Index = 2 or else Index = 3 or else Index = 4;
    end Preset_Sets_Rate;
+
+   function Linear_Share (Rate : Long_Float) return Long_Float is
+   begin
+      return Rate / Bacterial_Bits_Per_Second;
+   end Linear_Share;
+
+   function Logarithmic_Share (Rate : Long_Float) return Long_Float is
+   begin
+      return Ada.Numerics.Long_Elementary_Functions.Log (Rate)
+        / Ada.Numerics.Long_Elementary_Functions.Log (Link_Bits_Per_Second);
+   end Logarithmic_Share;
+
+   procedure Reference_Seconds
+     (Quantity_Bits : Long_Float;
+      Rate          : Long_Float;
+      Seconds       : out Long_Float;
+      Valid         : out Boolean) is
+   begin
+      Seconds := 0.0;
+      Valid := False;
+      if not Is_Finite (Quantity_Bits) or else not Is_Finite (Rate) or else Rate <= 0.0
+        or else Quantity_Bits < 0.0
+      then
+         return;
+      end if;
+      Seconds := Quantity_Bits / Rate;
+      Valid := Is_Finite (Seconds);
+      if not Valid then
+         Seconds := 0.0;
+      end if;
+   end Reference_Seconds;
 end Ath_Throughput;

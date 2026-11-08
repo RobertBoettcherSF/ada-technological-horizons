@@ -17,7 +17,7 @@ import {
   visibleEntries,
 } from "./catalogue.js";
 import { t } from "./messages.js";
-import { formatCanonical, formatDuration, formatHeadlineYears, formatProbability, formatReadable, interpretOperand } from "./numbers.js";
+import { formatCanonical, formatDuration, formatHeadlineYears, formatProbability, formatReadable, formatShortDuration, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
   closeAll,
@@ -1122,10 +1122,9 @@ function bitsLabel(bits) {
 }
 
 function timeLabel(seconds, upper) {
-  const shown = Math.abs(seconds) < 3600
-    ? `${formatReadable(seconds, state.lang)} ${t(state.lang, "delay.unitWord.s")}`
-    : durationLabel(seconds);
-  return upper ? `${t(state.lang, "throughput.atMost")} ${shown}` : shown;
+  const shown = formatShortDuration(seconds, state.lang);
+  const text = `${shown.text} ${t(state.lang, shown.unit === "us" || shown.unit === "ms" ? `throughput.unitWord.${shown.unit}` : `delay.unitWord.${shown.unit}`)}`;
+  return upper ? `${t(state.lang, "throughput.atMost")} ${text}` : text;
 }
 
 function throughputNoteKey() {
@@ -1135,12 +1134,17 @@ function throughputNoteKey() {
 }
 
 function clearThroughputView() {
-  for (const id of ["throughput-time", "throughput-total", "throughput-ratio", "throughput-exact-quantity", "throughput-exact-rate", "throughput-exact-time", "throughput-exact-total"]) {
+  for (const id of ["throughput-time", "throughput-total", "throughput-ratio", "throughput-exact-quantity", "throughput-exact-rate", "throughput-exact-time", "throughput-exact-total", "throughput-link-rate", "throughput-link-time", "throughput-exact-link"]) {
     const node = document.getElementById(id);
     if (node) node.textContent = "";
   }
   document.getElementById("throughput-bars")?.replaceChildren();
   document.getElementById("throughput-compare")?.replaceChildren();
+}
+
+function rateLabel(rate, lower) {
+  const text = `${formatReadable(rate, state.lang)} ${t(state.lang, "throughput.bits")}/${t(state.lang, "delay.unitWord.s")}`;
+  return lower ? `${t(state.lang, "throughput.atLeast")} ${text}` : text;
 }
 
 function renderThroughput(outcome) {
@@ -1167,17 +1171,33 @@ function renderThroughput(outcome) {
   document.getElementById("throughput-exact-total").textContent = outcome.total === null ? "" : formatCanonical(outcome.total);
   const bars = document.getElementById("throughput-bars");
   const list = document.getElementById("throughput-compare");
+  const scaleNote = document.getElementById("throughput-scale-note");
   bars.replaceChildren();
   list.replaceChildren();
-  if (outcome.human === null || outcome.bacterial === null) return;
-  const scale = Math.max(outcome.human, outcome.bacterial);
+  const logarithmic = state.throughput.scale === "log";
+  bars.dataset.scale = logarithmic ? "log" : "linear";
+  document.getElementById("throughput-linear")?.setAttribute("aria-pressed", logarithmic ? "false" : "true");
+  document.getElementById("throughput-log")?.setAttribute("aria-pressed", logarithmic ? "true" : "false");
+  if (scaleNote) {
+    scaleNote.textContent = logarithmic ? t(state.lang, "throughput.logNote") : t(state.lang, "throughput.linearNote");
+  }
+  if (outcome.linkTime !== null && outcome.linkRate !== null) {
+    document.getElementById("throughput-link-rate").textContent = rateLabel(outcome.linkRate, false);
+    document.getElementById("throughput-link-time").textContent = timeLabel(outcome.linkTime, false);
+    document.getElementById("throughput-exact-link").textContent = formatCanonical(outcome.linkTime);
+  }
+  if (outcome.humanRate === null || outcome.bacterialRate === null) return;
   const rows = [
-    ["throughput.humanBar", outcome.human, false, ""],
-    ["throughput.bacterialBar", outcome.bacterial, outcome.bacterial > 0, "bound"],
+    ["throughput.humanBar", outcome.humanRate, outcome.humanLinear, outcome.humanLog, outcome.human, false, ""],
+    ["throughput.bacterialBar", outcome.bacterialRate, outcome.bacterialLinear, outcome.bacterialLog, outcome.bacterial, true, "bound"],
   ];
-  for (const [name, seconds, upper, klass] of rows) {
+  if (logarithmic && outcome.linkRate !== null) {
+    rows.push(["throughput.linkBar", outcome.linkRate, null, outcome.linkLog, outcome.linkTime, false, "link"]);
+  }
+  for (const [name, rate, linearShare, logShare, seconds, lower, klass] of rows) {
+    const share = logarithmic ? logShare : linearShare;
     const item = document.createElement("li");
-    item.textContent = `${t(state.lang, name)} — ${timeLabel(seconds, upper)}`;
+    item.textContent = `${t(state.lang, name)} — ${rateLabel(rate, lower)} — ${timeLabel(seconds, lower && seconds > 0)}`;
     list.append(item);
     const wrap = document.createElement("div");
     wrap.className = "bar-row";
@@ -1187,7 +1207,8 @@ function renderThroughput(outcome) {
     track.className = "bar-track";
     const fill = document.createElement("span");
     fill.className = klass ? `bar-fill ${klass}` : "bar-fill";
-    fill.style.width = `${scale === 0 ? 0 : (seconds / scale) * 100}%`;
+    fill.dataset.share = formatCanonical(share);
+    fill.style.width = `${share * 100}%`;
     track.append(fill);
     wrap.append(label, track);
     bars.append(wrap);
@@ -1652,6 +1673,14 @@ function bind() {
   document.getElementById("throughput-reset").addEventListener("click", () => {
     state = resetThroughput(state);
     syncThroughputForm();
+    updateThroughput();
+  });
+  document.getElementById("throughput-linear").addEventListener("click", () => {
+    state = setThroughputInput(state, "scale", "linear");
+    updateThroughput();
+  });
+  document.getElementById("throughput-log").addEventListener("click", () => {
+    state = setThroughputInput(state, "scale", "log");
     updateThroughput();
   });
   document.getElementById("throughput-form").addEventListener("click", (event) => {

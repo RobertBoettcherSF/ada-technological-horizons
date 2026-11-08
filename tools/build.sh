@@ -170,6 +170,16 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_throughput_preset_bound \
     -Wl,--export=ath_throughput_preset_sets_quantity \
     -Wl,--export=ath_throughput_preset_sets_rate \
+    -Wl,--export=ath_throughput_human_rate \
+    -Wl,--export=ath_throughput_bacterial_rate \
+    -Wl,--export=ath_throughput_link_rate \
+    -Wl,--export=ath_throughput_human_linear \
+    -Wl,--export=ath_throughput_bacterial_linear \
+    -Wl,--export=ath_throughput_human_log \
+    -Wl,--export=ath_throughput_bacterial_log \
+    -Wl,--export=ath_throughput_link_log \
+    -Wl,--export=ath_throughput_link_time \
+    -Wl,--export=ath_throughput_link_valid \
     -Wl,--export-memory
 )
 
@@ -185,7 +195,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.11",
+  version: "0.1.12",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -196,7 +206,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

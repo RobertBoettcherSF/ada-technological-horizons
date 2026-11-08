@@ -1,5 +1,11 @@
 # Verification
 
+## v0.1.12 information-rate chart
+
+The linear bars are rates. For the historical figures the bacterial bar is 40 times the human bar: 1,000 bits/s and 25 bits/s. The times stay beside them, 400 s and at most 10 s. The digital reference is the nominal 1000 Mb/s line rate in IEEE Std 802.3 for 1000BASE-T, 1,000,000,000 bits/s. It is not framed payload and not a processing speed. Ten thousand bits at that ideal constant rate take 10 µs. The logarithmic chart may include the link and says that its lengths are not the 40-to-1 ratio. Chapter selection and F9 remain.
+
+The immutable raw.githack check for this release is recorded after that URL has been loaded.
+
 ## v0.1.11 selection and technical details
 
 All chapters is the default: the four calculators are on the page together. Choosing Phantomology leaves only the light-time calculator. Choosing two chapters in the catalogue leaves only those calculators. A direct `#growth-card` address leaves only the growth calculator. All chapters restores the four without clearing their edited values. The Technical details button and F9 open and close the same disclosure. Escape closes it when focus is inside it. It starts closed.

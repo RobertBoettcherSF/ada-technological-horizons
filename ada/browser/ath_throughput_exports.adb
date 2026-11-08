@@ -193,4 +193,71 @@ package body Ath_Throughput_Exports is
       end if;
       return 0;
    end Ath_Throughput_Preset_Sets_Rate;
+
+   function Ath_Throughput_Human_Rate return Long_Float is
+   begin
+      return Ath_Throughput.Human_Bits_Per_Second;
+   end Ath_Throughput_Human_Rate;
+
+   function Ath_Throughput_Bacterial_Rate return Long_Float is
+   begin
+      return Ath_Throughput.Bacterial_Bits_Per_Second;
+   end Ath_Throughput_Bacterial_Rate;
+
+   function Ath_Throughput_Link_Rate return Long_Float is
+   begin
+      return Ath_Throughput.Link_Bits_Per_Second;
+   end Ath_Throughput_Link_Rate;
+
+   function Ath_Throughput_Human_Linear return Long_Float is
+   begin
+      return Ath_Throughput.Linear_Share (Ath_Throughput.Human_Bits_Per_Second);
+   end Ath_Throughput_Human_Linear;
+
+   function Ath_Throughput_Bacterial_Linear return Long_Float is
+   begin
+      return Ath_Throughput.Linear_Share (Ath_Throughput.Bacterial_Bits_Per_Second);
+   end Ath_Throughput_Bacterial_Linear;
+
+   function Ath_Throughput_Human_Log return Long_Float is
+   begin
+      return Ath_Throughput.Logarithmic_Share (Ath_Throughput.Human_Bits_Per_Second);
+   end Ath_Throughput_Human_Log;
+
+   function Ath_Throughput_Bacterial_Log return Long_Float is
+   begin
+      return Ath_Throughput.Logarithmic_Share (Ath_Throughput.Bacterial_Bits_Per_Second);
+   end Ath_Throughput_Bacterial_Log;
+
+   function Ath_Throughput_Link_Log return Long_Float is
+   begin
+      return Ath_Throughput.Logarithmic_Share (Ath_Throughput.Link_Bits_Per_Second);
+   end Ath_Throughput_Link_Log;
+
+   function Ath_Throughput_Link_Time return Long_Float is
+      Seconds : Long_Float;
+      Valid   : Boolean;
+   begin
+      if not Stored_Chart_Valid then
+         return 0.0;
+      end if;
+      Ath_Throughput.Reference_Seconds
+        (Stored_Quantity, Ath_Throughput.Link_Bits_Per_Second, Seconds, Valid);
+      if not Valid then
+         return 0.0;
+      end if;
+      return Seconds;
+   end Ath_Throughput_Link_Time;
+
+   function Ath_Throughput_Link_Valid return Interfaces.Integer_32 is
+      Seconds : Long_Float;
+      Valid   : Boolean;
+   begin
+      if not Stored_Chart_Valid then
+         return 0;
+      end if;
+      Ath_Throughput.Reference_Seconds
+        (Stored_Quantity, Ath_Throughput.Link_Bits_Per_Second, Seconds, Valid);
+      return Flag (Valid);
+   end Ath_Throughput_Link_Valid;
 end Ath_Throughput_Exports;

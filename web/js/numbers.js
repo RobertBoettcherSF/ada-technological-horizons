@@ -68,6 +68,34 @@ export function formatDuration(seconds, lang) {
   return { text: `${sign}${text}`, unit };
 }
 
+export function formatShortDuration(seconds, lang) {
+  if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+    throw new Error("Refusing to present a non-finite duration");
+  }
+  const absolute = Math.abs(seconds);
+  const sign = seconds < 0 ? "-" : "";
+  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  const write = (value, unit) => {
+    const near = Math.abs(value - Math.round(value));
+    const shown = near < 1e-6 && Math.abs(value) < 1e15 ? Math.round(value) : value;
+    const text = new Intl.NumberFormat(locale, {
+      maximumSignificantDigits: 6,
+      useGrouping: false,
+    }).format(shown);
+    return { text: `${sign}${text}`, unit };
+  };
+  if (absolute > 0 && absolute < 0.001) {
+    return write(absolute * 1e6, "us");
+  }
+  if (absolute >= 0.001 && absolute < 1) {
+    return write(absolute * 1e3, "ms");
+  }
+  if (absolute < 3600) {
+    return write(absolute, "s");
+  }
+  return formatDuration(seconds, lang);
+}
+
 export function formatReadable(value, lang, kind = "quantity") {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Refusing to present a non-finite value as a result");

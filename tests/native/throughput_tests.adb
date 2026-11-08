@@ -191,6 +191,32 @@ begin
    then
       Fail ("preset-bacterial");
    end if;
+   if Ath_Throughput.Preset_Rate (4) /= 1.0
+     or else Ath_Throughput.Preset_Rate_Unit (4) /= 3.0
+     or else Ath_Throughput.Preset_Bound (4) /= 0.0
+     or else not Ath_Throughput.Preset_Sets_Rate (4)
+   then
+      Fail ("preset-link");
+   end if;
+   if Ath_Throughput.Linear_Share (Ath_Throughput.Bacterial_Bits_Per_Second) /= 1.0
+     or else Ath_Throughput.Linear_Share (Ath_Throughput.Human_Bits_Per_Second)
+       /= Ath_Throughput.Human_Bits_Per_Second / Ath_Throughput.Bacterial_Bits_Per_Second
+     or else Ath_Throughput.Logarithmic_Share (Ath_Throughput.Link_Bits_Per_Second) /= 1.0
+   then
+      Fail ("shares");
+   end if;
+   declare
+      Link_Time : Long_Float;
+      Link_Valid : Boolean;
+   begin
+      Ath_Throughput.Reference_Seconds
+        (10_000.0, Ath_Throughput.Link_Bits_Per_Second, Link_Time, Link_Valid);
+      if not Link_Valid
+        or else Link_Time /= 10_000.0 / Ath_Throughput.Link_Bits_Per_Second
+      then
+         Fail ("link-time");
+      end if;
+   end;
 
    declare
       Export_Status : Interfaces.Integer_32;
@@ -203,6 +229,12 @@ begin
         or else Ath_Throughput_Exports.Ath_Throughput_Human /= 400.0
         or else Ath_Throughput_Exports.Ath_Throughput_Bacterial /= 10.0
         or else Ath_Throughput_Exports.Ath_Throughput_Ratio /= 40.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Link_Valid /= 1
+        or else Ath_Throughput_Exports.Ath_Throughput_Link_Rate /= 1_000_000_000.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Bacterial_Linear /= 1.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Link_Log /= 1.0
+        or else Ath_Throughput_Exports.Ath_Throughput_Link_Time
+          /= 10_000.0 / 1_000_000_000.0
       then
          Fail ("export-page");
       end if;

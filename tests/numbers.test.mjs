@@ -46,6 +46,10 @@ test("duration formatting follows the size of the light-time", async () => {
   assert.equal(formatDuration(90, "en-GB").unit, "min");
   assert.equal(formatDuration(1.28222, "en-GB").text, "1.28");
   assert.equal(formatDuration(1.28222, "de").text, "1,28");
+  const { formatShortDuration } = await import("../web/js/numbers.js");
+  assert.deepEqual(formatShortDuration(10000 / 1_000_000_000, "en-GB"), { text: "10", unit: "us" });
+  assert.deepEqual(formatShortDuration(0.0125, "de"), { text: "12,5", unit: "ms" });
+  assert.deepEqual(formatShortDuration(400, "en-GB"), { text: "400", unit: "s" });
 });
 
 test("canonical rendering is unambiguous and ignores language", () => {

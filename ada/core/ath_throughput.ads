@@ -33,9 +33,10 @@ package Ath_Throughput is
    Unit_Kilobits : constant Long_Float := 1.0;
    Unit_Pages    : constant Long_Float := 2.0;
 
-   Rate_Bits_Per_Second    : constant Long_Float := 0.0;
-   Rate_Bits_Per_Minute    : constant Long_Float := 1.0;
+   Rate_Bits_Per_Second     : constant Long_Float := 0.0;
+   Rate_Bits_Per_Minute     : constant Long_Float := 1.0;
    Rate_Kilobits_Per_Second : constant Long_Float := 2.0;
+   Rate_Gigabits_Per_Second : constant Long_Float := 3.0;
 
    Duration_Seconds : constant Long_Float := 0.0;
    Duration_Minutes : constant Long_Float := 1.0;
@@ -48,8 +49,12 @@ package Ath_Throughput is
    Human_Bits_Per_Second : constant Long_Float := 25.0;
    Bacterial_Bits_Per_Second : constant Long_Float := 1_000.0;
    Historical_Rate_Ratio : constant Long_Float := 40.0;
+   --  IEEE Std 802.3 nominal 1000 Mb/s line rate (1000BASE-T / GMII).
+   --  One megabit here is 1_000_000 bits, so the rate is 1_000_000_000 bits/s.
+   --  That is the nominal line rate, not framed payload and not a benchmark.
+   Link_Bits_Per_Second : constant Long_Float := 1_000_000_000.0;
 
-   Preset_Count : constant := 3;
+   Preset_Count : constant := 4;
 
    subtype Preset_Index is Integer range 1 .. Preset_Count;
 
@@ -82,4 +87,19 @@ package Ath_Throughput is
    function Preset_Bound (Index : Preset_Index) return Long_Float;
    function Preset_Sets_Quantity (Index : Preset_Index) return Boolean;
    function Preset_Sets_Rate (Index : Preset_Index) return Boolean;
+
+   --  Width of a linear rate bar, as a fraction of the bacterial figure.
+   --  The bacterial figure is therefore 1, and the human figure is 1/40.
+   function Linear_Share (Rate : Long_Float) return Long_Float;
+
+   --  Width of a logarithmic rate bar, as a fraction of log(link rate).
+   --  A result of 1 is the digital-link rate. These fractions are not the
+   --  linear 40-to-1 ratio.
+   function Logarithmic_Share (Rate : Long_Float) return Long_Float;
+
+   procedure Reference_Seconds
+     (Quantity_Bits : Long_Float;
+      Rate          : Long_Float;
+      Seconds       : out Long_Float;
+      Valid         : out Boolean);
 end Ath_Throughput;

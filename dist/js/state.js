@@ -14,6 +14,7 @@ export const THROUGHPUT_DEFAULTS = {
   bound: "0",
   duration: "400",
   durationUnit: "0",
+  scale: "linear",
 };
 
 export const GROWTH_DEFAULTS = {
