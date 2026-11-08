@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.14 separate rate scenarios
+
+Human figure is one full bar: **25 bits/s — 400 s**, and the ratio reads **Bacterial figure ÷ this rate** = **40**. Bacterial figure is a different chart: a full lower-bound bar **at least 1000 bits/s — at most 10 s** and a true one-fortieth human bar. 1000BASE-T is a full line-rate bar **1000000000 bits/s — 10 µs** plus that tiny human reference, and no bacterial row. The ratio is **40000000**. Historical example restores **10000** bits, rate **25** bits/s, duration **400** s, and the two-row historical comparison with ratio **40**. Typing **50** marks the row **Your rate** and gives **200 s**, twice the human figure. Reset returns the historical example. The debug report includes `Preset: historical` after that reset.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/de76eb33099ede3169ab6f5322b1ec478f1609eb/dist/index.html
+
+The page showed release `0.1.14`, that commit, and `application/wasm`. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (69073 bytes, SHA-256 `9d58e2b28aeeca115deceb5a3e0cdf89192f498d91e3c6b5cfb814bf3590bc51`, `access-control-allow-origin: *`).
+
 ## v0.1.13 chosen rate and debug report
 
 Choosing the 1000BASE-T line rate puts that rate first on the chart: **1000000000 bits/s — 10 µs**, marked chosen. The human figure stays **25 bits/s — 400 s** and the bacterial figure stays **at least 1000 bits/s — at most 10 s**. The headline ratio is **40000000**, labelled chosen rate divided by the human figure. The linear shares are **1**, **2.5e-8** and **0.000001**, the true fractions, with no padded minimum. The note names the line rate and says it is not machine understanding. The nominal-rate labels are cyan `rgb(143, 208, 222)`. Debug and F9 open a dialog, not Technical details. Saving downloads a text report that includes the release, commit, locale, active address, Wasm status and the expectation comment. Nothing is uploaded.
