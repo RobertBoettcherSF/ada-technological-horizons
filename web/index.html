@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.10">
+  <meta name="ath-release" content="0.1.11">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip" href="#lifetime-card" data-i18n="skip.content">Skip to the calculator</a>
+  <a class="skip" href="#content" data-i18n="skip.content">Skip to the calculator</a>
+  <div class="debug-dock">
+    <button type="button" id="debug-toggle" class="debug-toggle" aria-controls="technical-details" aria-expanded="false" aria-keyshortcuts="F9" data-i18n="diag.toggle">Technical details</button>
+  </div>
   <div class="horizon" aria-hidden="true"></div>
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.10</p>
+        <p class="release-pill" id="header-version">0.1.11</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -33,7 +36,8 @@
   <main id="content" class="wrap">
     <nav class="chapter-nav" aria-labelledby="chapters-label">
       <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
-      <p class="note" data-i18n="chapters.note">Each tile opens that part of the book. A planned tile has no working calculator.</p>
+      <p class="note" data-i18n="chapters.note">All chapters shows every calculator. A chosen chapter, section or catalogue filter shows only that selection. A planned chapter has no working calculator.</p>
+      <p id="selection-note" class="note" aria-live="polite" data-i18n="nav.showingAll">Showing every calculator.</p>
       <ul id="chapter-list" class="chapter-list"></ul>
     </nav>
 

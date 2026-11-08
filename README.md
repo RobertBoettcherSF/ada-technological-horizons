@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.11** shows every calculator until a chapter, section, or catalogue filter is chosen. All chapters brings them back. Technical details stays closed until its button or F9 opens it.
+
 Version **0.1.10** adds a constant-rate information calculator under A Lampoon of Evolution / Constructing Life. The prefilled example is Lem’s historical page of about 10,000 bits at about 25 bits/s: 400 seconds, and 10,000 bits again over that same duration. The bacterial figure of at least 1,000 bits/s gives at most 10 seconds for the same page. The ratio of those rates is 40. A rate of zero does not invent a time for a positive quantity. No contemporary spike rate, DNA capacity, or task-information estimate is loaded.
 
 Version **0.1.9** keeps the numbered light-time steps. The list shows time since the signal leaves, so the reply line matches the round trip, while each connecting leg still shows the one-way duration. Displayed times use at most two decimal places, with the exact seconds in the closed sources. Presets now also include Earth–Sun, Earth–Venus, Earth–Europa, Earth–Titan and Proxima Centauri (Alpha Centauri C). Europa and Titan are placed beyond their planets. None of the variable distances is today’s sky.
@@ -75,7 +77,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.10`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.11`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

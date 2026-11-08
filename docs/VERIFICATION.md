@@ -1,5 +1,11 @@
 # Verification
 
+## v0.1.11 selection and technical details
+
+All chapters is the default: the four calculators are on the page together. Choosing Phantomology leaves only the light-time calculator. Choosing two chapters in the catalogue leaves only those calculators. A direct `#growth-card` address leaves only the growth calculator. All chapters restores the four without clearing their edited values. The Technical details button and F9 open and close the same disclosure. Escape closes it when focus is inside it. It starts closed.
+
+The immutable raw.githack check for this release is recorded after that URL has been loaded.
+
 ## v0.1.10 constant-rate information
 
 The prefilled Constructing Life example is 10,000 bits at 25 bits/s for 400 seconds. Ada reports 400 seconds and 10,000 bits. The same quantity at the bacterial lower bound of 1,000 bits/s is at most 10 seconds, and the historical rate ratio is 40. One page unit is that 10,000-bit convention. 1,500 bits per minute matches 25 bits per second. A rate of zero leaves the time unreachable and the total at 0 bits. A negative value clears the chart. The other calculators stay at headline 6500, growth quantity 4, and a Venus reply list of 4.6 min.

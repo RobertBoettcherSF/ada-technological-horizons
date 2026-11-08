@@ -11,6 +11,7 @@ import {
 import {
   activeFilterCount,
   countWorkingCalculators,
+  entryVisible,
   groupEntries,
   neighbors,
   visibleEntries,
@@ -125,12 +126,103 @@ function applyI18n() {
   }
 }
 
+const CALCULATOR_CARDS = [
+  { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
+  { cardId: "delay-card", sectionId: "phantomology/teletaxy-and-phantomultiplication" },
+  { cardId: "throughput-card", sectionId: "a-lampoon-of-evolution/constructing-life" },
+];
+
+const CARD_TO_SECTION = Object.fromEntries(CALCULATOR_CARDS.map((item) => [item.cardId, item.sectionId]));
+
+function rawHash() {
+  return decodeURIComponent(location.hash.replace(/^#/, ""));
+}
+
+function contentRoute() {
+  const route = rawHash();
+  if (!route || route === "about" || route === "content") {
+    return "";
+  }
+  return CARD_TO_SECTION[route] || route;
+}
+
+function routeChapterId(route) {
+  if (!route) return "";
+  if (chapterById(route)) return route;
+  return entries.find((entry) => entry.id === route)?.chapterId || "";
+}
+
+function catalogueLimits() {
+  return state.query.trim() !== "" || activeFilterCount(state) > 0;
+}
+
+function clearAddressHash() {
+  if (!rawHash()) return;
+  history.pushState(null, "", `${location.pathname}${location.search}`);
+}
+
+function applyVisibility() {
+  const route = contentRoute();
+  const limited = Boolean(route) || catalogueLimits();
+  for (const item of CALCULATOR_CARDS) {
+    const entry = entries.find((candidate) => candidate.id === item.sectionId);
+    let show = !limited;
+    if (limited && entry) {
+      const routeMatch = !route
+        || (chapterById(route) ? entry.chapterId === route : entry.id === route);
+      const filterMatch = catalogueLimits() ? entryVisible(entry, state, labelsFor(state.lang)) : true;
+      show = routeMatch && filterMatch;
+    }
+    const node = document.getElementById(item.cardId);
+    if (node) node.hidden = !show;
+  }
+  const note = document.getElementById("selection-note");
+  if (note) {
+    if (!limited) {
+      note.textContent = t(state.lang, "nav.showingAll");
+    } else if (route && chapterById(route)) {
+      note.textContent = `${t(state.lang, "nav.showing")} ${chapterById(route).title[state.lang]}`;
+    } else if (route) {
+      const entry = entries.find((candidate) => candidate.id === route);
+      note.textContent = entry
+        ? `${t(state.lang, "nav.showing")} ${entry.title[state.lang]}`
+        : t(state.lang, "nav.showingMatch");
+    } else {
+      note.textContent = t(state.lang, "nav.showingMatch");
+    }
+  }
+  const showAll = document.getElementById("show-all");
+  if (showAll) {
+    showAll.setAttribute("aria-pressed", limited ? "false" : "true");
+  }
+  for (const link of document.querySelectorAll("[data-chapter-link]")) {
+    const selectedByRoute = routeChapterId(route) === link.dataset.chapterLink;
+    const selectedByFilter = !route
+      && state.filters.chapter.has(link.dataset.chapterLink)
+      && state.filters.topic.size === 0
+      && state.filters.type.size === 0
+      && state.query.trim() === "";
+    link.setAttribute("aria-current", selectedByRoute || selectedByFilter ? "true" : "false");
+  }
+}
+
 function renderChapterNav() {
   const list = document.getElementById("chapter-list");
   list.replaceChildren();
+  list.append(
+    h("li", {}, [
+      h("button", {
+        type: "button",
+        id: "show-all",
+        class: "chapter-tile is-default",
+        dataset: { i18n: "nav.allChapters" },
+      }),
+    ]),
+  );
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
-    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics" || chapter.id === "phantomology";
+    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics" || chapter.id === "phantomology" || chapter.id === "a-lampoon-of-evolution";
     const statusKey = chapter.kind === "closing" ? "tile.retrospective" : ready ? "tile.calculator" : "tile.planned";
     list.append(
       h("li", {}, [
@@ -205,8 +297,12 @@ function renderReading(route) {
   if (chapter && chapter.kind !== "technical") {
     title.textContent = chapter.title[state.lang];
     meta.textContent = `${t(state.lang, "reading.chapter")} · ${chapter.id}`;
-    summary.textContent =
-      chapter.kind === "closing" ? t(state.lang, "summary.closing") : t(state.lang, "summary.planned");
+    const chapterHasCalculator = CALCULATOR_CARDS.some((item) => routeChapterId(item.sectionId) === chapter.id);
+    summary.textContent = chapter.kind === "closing"
+      ? t(state.lang, "summary.closing")
+      : chapterHasCalculator
+        ? t(state.lang, `chapter.${chapter.id}.blurb`)
+        : t(state.lang, "summary.planned");
     const list = h("ul", { class: "section-jump" });
     for (const section of sections.filter((item) => item.chapterId === chapter.id)) {
       list.append(
@@ -322,6 +418,7 @@ function renderResults() {
     updateGrowth();
     updateDelay();
     updateThroughput();
+    applyVisibility();
     return;
   }
 
@@ -365,6 +462,7 @@ function renderResults() {
   updateGrowth();
   updateDelay();
   updateThroughput();
+  applyVisibility();
 }
 
 function updateDiagnostics() {
@@ -1185,30 +1283,51 @@ function statusMessage(code) {
 }
 
 function routeFromHash() {
-  const route = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (route === "lifetime-card" || route === "growth-card" || route === "delay-card" || route === "throughput-card" || route === "about" || route === "content") {
-    return "";
-  }
-  return route;
+  return contentRoute();
 }
 
 function showRoute(route, options = {}) {
-  renderReading(route);
-  if (!route) {
-    return;
+  if (route && catalogueLimits()) {
+    state = {
+      ...state,
+      query: "",
+      filters: { chapter: new Set(), topic: new Set(), type: new Set() },
+    };
+    const search = document.getElementById("search");
+    if (search) search.value = "";
+    renderFilters();
   }
-  const entry = entries.find((item) => item.id === route);
+  const entry = route ? entries.find((item) => item.id === route) : null;
   if (entry) {
     state = expandCard(state, entry.chapterId, entry.id);
-    renderResults();
-    renderReading(route);
   }
-  if (options.focus) {
-    const title = document.getElementById("reading-title");
-    title.focus();
+  renderReading(route);
+  renderResults();
+  if (options.focus && route) {
+    document.getElementById("reading-title")?.focus();
   }
-  const target = document.getElementById(route.startsWith("chapter-") ? route : "reading");
-  target?.scrollIntoView({ block: "nearest" });
+  if (!route) return;
+  const card = CALCULATOR_CARDS.find((item) => item.sectionId === route);
+  const cardNode = card ? document.getElementById(card.cardId) : null;
+  if (cardNode && !cardNode.hidden) {
+    cardNode.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  document.getElementById("reading")?.scrollIntoView({ block: "nearest" });
+}
+
+function setTechnical(open, options = {}) {
+  const details = document.getElementById("technical-details");
+  const button = document.getElementById("debug-toggle");
+  if (!details || !button) return;
+  details.open = open;
+  button.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) {
+    details.scrollIntoView({ block: "nearest" });
+    if (options.focusPanel) details.querySelector("summary")?.focus();
+  } else if (options.focusButton) {
+    button.focus();
+  }
 }
 
 async function boot() {
@@ -1269,6 +1388,8 @@ function bind() {
   });
   document.getElementById("search").addEventListener("input", (event) => {
     state = setQuery(state, event.target.value);
+    clearAddressHash();
+    renderReading("");
     renderResults();
   });
   document.getElementById("filters").addEventListener("change", (event) => {
@@ -1284,6 +1405,8 @@ function bind() {
       next.delete(input.value);
     }
     state = { ...state, filters: { ...state.filters, [category]: next } };
+    clearAddressHash();
+    renderReading("");
     renderResults();
   });
   document.getElementById("clear-filters").addEventListener("click", () => {
@@ -1293,8 +1416,9 @@ function bind() {
     for (const input of document.querySelectorAll("#filters input")) {
       input.checked = false;
     }
+    clearAddressHash();
+    renderReading("");
     renderResults();
-    renderReading(routeFromHash());
   });
   document.getElementById("open-all").addEventListener("click", () => {
     state = openAll(state);
@@ -1546,8 +1670,57 @@ function bind() {
     syncThroughputForm();
     updateThroughput();
   });
+  document.getElementById("chapter-list").addEventListener("click", (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest("#show-all")) return;
+    state = clearFilters(state);
+    const search = document.getElementById("search");
+    if (search) search.value = "";
+    document.getElementById("sort").value = "reading";
+    clearAddressHash();
+    refresh();
+    document.getElementById("show-all")?.focus();
+  });
+  document.querySelector(".skip")?.addEventListener("click", (event) => {
+    const card = CALCULATOR_CARDS
+      .map((item) => document.getElementById(item.cardId))
+      .find((node) => node && !node.hidden);
+    if (!card) return;
+    event.preventDefault();
+    card.tabIndex = -1;
+    card.focus();
+    card.scrollIntoView({ block: "nearest" });
+  });
+  const technical = document.getElementById("technical-details");
+  const debugButton = document.getElementById("debug-toggle");
+  const syncDebugButton = () => {
+    debugButton?.setAttribute("aria-expanded", technical.open ? "true" : "false");
+  };
+  technical?.addEventListener("toggle", () => {
+    syncDebugButton();
+    queueMicrotask(syncDebugButton);
+  });
+  debugButton?.addEventListener("click", () => {
+    setTechnical(!technical.open, { focusPanel: !technical.open, focusButton: technical.open });
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "F9" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
+      const open = !technical.open;
+      setTechnical(open, { focusPanel: open, focusButton: !open });
+    }
+    if (event.key === "Escape" && technical?.open) {
+      const target = event.target;
+      if (target instanceof Node && (technical.contains(target) || target === debugButton)) {
+        event.preventDefault();
+        setTechnical(false, { focusButton: true });
+      }
+    }
+  });
   window.addEventListener("hashchange", () => {
     showRoute(routeFromHash(), { focus: true });
+  });
+  window.addEventListener("popstate", () => {
+    showRoute(routeFromHash(), { focus: false });
   });
 }
 

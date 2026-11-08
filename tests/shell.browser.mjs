@@ -92,7 +92,22 @@ async function exercise(page, label) {
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open);
   await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open === false && document.querySelector("#debug-toggle").getAttribute("aria-expanded") === "false");
+  assert.equal(await page.locator("#debug-toggle").isVisible(), true);
+  await page.locator("#debug-toggle").click();
+  await page.waitForFunction(() => document.querySelector("#technical-details").open);
+  assert.equal(await page.locator("#debug-toggle").getAttribute("aria-expanded"), "true");
+  await page.locator("#debug-toggle").click();
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
+  await page.locator("#years-4").focus();
+  await page.keyboard.press("F9");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open);
+  assert.equal(await page.locator("#years-4").inputValue(), "10000");
+  await page.locator("#technical-details summary").focus();
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
+  assert.equal(await page.locator("#debug-toggle").evaluate((node) => document.activeElement === node), true);
+  assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, label, "desktop-top.png");
   await shot(page, label, "opening.png");
@@ -447,7 +462,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.10");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.11");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -524,6 +539,50 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#active-count").textContent(), "0");
   assert.equal(await page.locator("#working-count").textContent(), "4");
 
+  const cardVisible = async (id) => page.locator(id).isVisible();
+  assert.equal(await cardVisible("#lifetime-card"), true);
+  assert.equal(await cardVisible("#growth-card"), true);
+  assert.equal(await cardVisible("#delay-card"), true);
+  assert.equal(await cardVisible("#throughput-card"), true);
+  assert.equal(await page.locator("#show-all").getAttribute("aria-pressed"), "true");
+  await page.locator('a[href="#phantomology"]').click();
+  await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "phantomology");
+  assert.equal(await cardVisible("#delay-card"), true);
+  assert.equal(await cardVisible("#lifetime-card"), false);
+  assert.equal(await cardVisible("#growth-card"), false);
+  assert.equal(await cardVisible("#throughput-card"), false);
+  assert.equal(await page.locator('[data-chapter-link="phantomology"]').getAttribute("aria-current"), "true");
+  assert.equal(await page.locator("#delay-one-way").textContent(), "1000 years");
+  await page.click("#delay-preset-moon");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1.28 s");
+  assert.equal(await cardVisible("#delay-card"), true);
+  assert.equal(await cardVisible("#lifetime-card"), false);
+  await page.click("#delay-reset");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1000 years");
+  await page.click("#show-all");
+  await page.waitForFunction(() => document.querySelector("#show-all")?.getAttribute("aria-pressed") === "true");
+  assert.equal(await page.evaluate(() => location.hash), "");
+  assert.equal(await cardVisible("#lifetime-card"), true);
+  assert.equal(await cardVisible("#growth-card"), true);
+  assert.equal(await cardVisible("#delay-card"), true);
+  assert.equal(await cardVisible("#throughput-card"), true);
+  assert.equal(await page.locator("#delay-one-way").textContent(), "1000 years");
+  assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
+  await page.locator('input[data-filter-category="chapter"][value="cosmic-civilisations"]').check();
+  await page.locator('input[data-filter-category="chapter"][value="intellectronics"]').check();
+  await page.waitForFunction(() => document.querySelector("#lifetime-card") && !document.querySelector("#lifetime-card").hidden && document.querySelector("#growth-card") && !document.querySelector("#growth-card").hidden && document.querySelector("#delay-card").hidden);
+  assert.equal(await cardVisible("#throughput-card"), false);
+  assert.equal(await page.locator('[data-chapter-link="cosmic-civilisations"]').getAttribute("aria-current"), "true");
+  assert.equal(await page.locator('[data-chapter-link="intellectronics"]').getAttribute("aria-current"), "true");
+  await page.goto(`${page.context()._base}#growth-card`);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4" && document.querySelector("#lifetime-card")?.hidden && !document.querySelector("#growth-card")?.hidden);
+  assert.equal(await page.locator("#reading").getAttribute("data-route"), "intellectronics/return-to-earth");
+  assert.equal(await page.locator("#delay-card").isVisible(), false);
+  await page.click("#show-all");
+  await page.waitForFunction(() => document.querySelector("#show-all")?.getAttribute("aria-pressed") === "true");
+  assert.equal(await cardVisible("#delay-card"), true);
+
   if (!(await page.locator("#technical-details").evaluate((element) => element.open))) {
     await page.locator("#technical-details summary").focus();
     await page.keyboard.press("Enter");
@@ -538,6 +597,11 @@ async function exercise(page, label) {
   await page.fill("#growth-start-year", "1990");
   await page.click("#growth-log");
   await page.waitForFunction(() => document.querySelector("#growth-end-year")?.textContent === "2005");
+  const toolsAfterLoad = page.locator("#catalogue-tools");
+  if (!(await toolsAfterLoad.evaluate((element) => element.open))) {
+    await toolsAfterLoad.locator("summary").click();
+    await page.waitForFunction(() => document.querySelector("#catalogue-tools").open);
+  }
   await page.click("#close-all");
   await page.click("#open-all");
   assert.equal(await page.locator("#growth-elapsed").inputValue(), "15");
@@ -551,6 +615,8 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-end-year").textContent(), "2005");
   assert.equal(await page.locator("#delay-distance").inputValue(), "1000");
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 Jahre");
+  assert.equal(await page.locator("#show-all").textContent(), t("de", "nav.allChapters"));
+  assert.equal(await page.locator("#debug-toggle").textContent(), t("de", "diag.toggle"));
   assert.equal(await page.locator("#throughput-time").textContent(), "400 s");
   assert.equal(await page.locator("#throughput-time-label").textContent(), t("de", "throughput.timeLabel"));
   assert.equal(await page.locator("#throughput-ratio").textContent(), "40");
@@ -651,6 +717,12 @@ async function exercise(page, label) {
 
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow overflow");
+  const debugBox = await page.locator("#debug-toggle").boundingBox();
+  assert.ok(debugBox);
+  assert.ok(debugBox.x >= 0 && debugBox.y >= 0);
+  assert.ok(debugBox.x + debugBox.width <= 320);
+  assert.ok(debugBox.y + debugBox.height <= 800);
+  assert.equal(await page.locator("#debug-toggle").isVisible(), true);
   await page.locator("#lifetime-card").scrollIntoViewIfNeeded();
   await shot(page, label, "narrow.png");
   await page.locator("#growth-card").scrollIntoViewIfNeeded();
