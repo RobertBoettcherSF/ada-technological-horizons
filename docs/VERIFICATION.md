@@ -4,7 +4,13 @@
 
 The prefilled Constructing Life example is 10,000 bits at 25 bits/s for 400 seconds. Ada reports 400 seconds and 10,000 bits. The same quantity at the bacterial lower bound of 1,000 bits/s is at most 10 seconds, and the historical rate ratio is 40. One page unit is that 10,000-bit convention. 1,500 bits per minute matches 25 bits per second. A rate of zero leaves the time unreachable and the total at 0 bits. A negative value clears the chart. The other calculators stay at headline 6500, growth quantity 4, and a Venus reply list of 4.6 min.
 
-`bash tools/test.sh` is recorded with this release. The immutable raw.githack check is added once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/5c73a565e34e7332532e73c713614182321d061e/dist/index.html
+
+The page showed release `0.1.10`, that commit, and `application/wasm`. The prefilled example read **400 s**, **10000 bits**, and ratio **40**. The comparison list read **400 s** and **at most 10 s**. Setting the rate to zero showed **Unreachable** and **0 bits**, while the bacterial comparison stayed **at most 10 s**. The headline mean stayed **6500**, growth quantity stayed **4**, and the Venus reply line stayed **Reply arrives — 4.6 min**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (56767 bytes, SHA-256 `3efe4a6877626529acce19c1061a5a2b3a0bbb4c7dd8cda0f31499d540300694`, `access-control-allow-origin: *`).
+
+`bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, `GROWTH OK`, `DELAY OK`, and `THROUGHPUT OK`. Node: 28 passed. Headless Chromium printed `BROWSER OK` for both MIME types.
 
 ## v0.1.9 cumulative event list
 
