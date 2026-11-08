@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.15 information transmitted against time
+
+Lem’s example draws two curves for 10,000 bits. The chosen human figure is **25 bits/s — 400 s**. The bacterial lower bound is **at least 1000 bits/s — at most 10 s**. Both cross the dashed 10,000-bit line on the linear chart, and the ratio is **40**. Information stays rate times time. A log chart keeps only positive time and positive information; zero is omitted, and each constant rate is a slope of 1. The 1000BASE-T choice draws **1000000000 bits/s — 10 µs** with the human figure and no bacterial curve. On the linear window the human crossing is after the chart, at 400 s. On the log window both crossings are on the chart, so the human curve is not drawn as zero. Reset and Lem’s example restore 10,000 bits, 25 bits/s and 400 s.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b04846bfb91b8d5ac96dc65f5a81612bb36666b0/dist/index.html
+
+The page showed release `0.1.15`, commit `b04846bfb91b8d5ac96dc65f5a81612bb36666b0`, and `application/wasm`. The default curves were **25** and **1000**, with two crossing marks and ratio **40**. The line-rate list was **1000000000 bits/s — 10 µs** and **25 bits/s — 400 s — after this chart**. After Logarithmic, both crossings were on the chart. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (81923 bytes, SHA-256 `bba920516c88c2c730951bf9c173bcdecb37933dc07e6f9f906db8a71bdab081`, `access-control-allow-origin: *`).
+
 ## v0.1.14 separate rate scenarios
 
 Human figure is one full bar: **25 bits/s — 400 s**, and the ratio reads **Bacterial figure ÷ this rate** = **40**. Bacterial figure is a different chart: a full lower-bound bar **at least 1000 bits/s — at most 10 s** and a true one-fortieth human bar. 1000BASE-T is a full line-rate bar **1000000000 bits/s — 10 µs** plus that tiny human reference, and no bacterial row. The ratio is **40000000**. Historical example restores **10000** bits, rate **25** bits/s, duration **400** s, and the two-row historical comparison with ratio **40**. Typing **50** marks the row **Your rate** and gives **200 s**, twice the human figure. Reset returns the historical example. The debug report includes `Preset: historical` after that reset.
