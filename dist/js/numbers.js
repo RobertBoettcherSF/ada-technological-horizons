@@ -36,6 +36,32 @@ export function formatProbability(value) {
   return formatCanonical(value);
 }
 
+const JULIAN_YEAR_SECONDS = 31557600;
+
+export function formatDuration(seconds, lang) {
+  if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+    throw new Error("Refusing to present a non-finite duration");
+  }
+  const absolute = Math.abs(seconds);
+  let value = absolute;
+  let unit = "s";
+  if (absolute >= JULIAN_YEAR_SECONDS) {
+    value = absolute / JULIAN_YEAR_SECONDS;
+    unit = "y";
+  } else if (absolute >= 86400) {
+    value = absolute / 86400;
+    unit = "d";
+  } else if (absolute >= 3600) {
+    value = absolute / 3600;
+    unit = "h";
+  } else if (absolute >= 60) {
+    value = absolute / 60;
+    unit = "min";
+  }
+  const sign = seconds < 0 ? "-" : "";
+  return { text: `${sign}${formatReadable(value, lang)}`, unit };
+}
+
 export function formatReadable(value, lang, kind = "quantity") {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Refusing to present a non-finite value as a result");

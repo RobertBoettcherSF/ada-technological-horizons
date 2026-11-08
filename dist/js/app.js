@@ -16,16 +16,18 @@ import {
   visibleEntries,
 } from "./catalogue.js";
 import { t } from "./messages.js";
-import { formatCanonical, formatHeadlineYears, formatProbability, formatReadable, interpretOperand } from "./numbers.js";
+import { formatCanonical, formatDuration, formatHeadlineYears, formatProbability, formatReadable, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
   closeAll,
   createState,
   expandCard,
   openAll,
+  resetDelay,
   resetDemo,
   resetGrowth,
   resetLifetime,
+  setDelayInput,
   setDemoInput,
   setGrowthInput,
   setLanguage,
@@ -33,7 +35,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callExplore, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callDelay, callExplore, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -126,7 +128,7 @@ function renderChapterNav() {
   list.replaceChildren();
   for (const chapter of bookChapters) {
     const first = sections.find((section) => section.chapterId === chapter.id);
-    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics";
+    const ready = chapter.id === "cosmic-civilisations" || chapter.id === "intellectronics" || chapter.id === "phantomology";
     const statusKey = chapter.kind === "closing" ? "tile.retrospective" : ready ? "tile.calculator" : "tile.planned";
     list.append(
       h("li", {}, [
@@ -286,6 +288,9 @@ function renderCard(entry) {
   if (entry.id === "intellectronics/return-to-earth") {
     body.append(h("p", {}, [h("a", { href: "#growth-card", dataset: { i18n: "growth.open" } })]));
   }
+  if (entry.id === "phantomology/teletaxy-and-phantomultiplication") {
+    body.append(h("p", {}, [h("a", { href: "#delay-card", dataset: { i18n: "delay.open" } })]));
+  }
   return h("article", { class: "card", id: domId(entry.id), dataset: { sectionId: entry.id } }, [
     h("div", { class: "card-bar" }, [button, h("h3", {}, [link]), badge]),
     body,
@@ -310,6 +315,7 @@ function renderResults() {
     updateDemo();
     updateLifetime();
     updateGrowth();
+    updateDelay();
     return;
   }
 
@@ -351,6 +357,7 @@ function renderResults() {
   updateDemo();
   updateLifetime();
   updateGrowth();
+    updateDelay();
 }
 
 function updateDiagnostics() {
@@ -903,6 +910,96 @@ function updateGrowth() {
   updateDiagnostics();
 }
 
+function delayMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "delay.empty";
+  if (code === "malformed") return "delay.malformed";
+  if (code === 0) return "delay.ok";
+  if (code === 1) return "delay.nonFinite";
+  if (code === 2) return "delay.negative";
+  if (code === 3) return "delay.badUnit";
+  if (code === 4) return "delay.overflow";
+  return "demo.loadFailed";
+}
+
+function clearDelayView() {
+  for (const id of ["delay-one-way", "delay-round", "delay-exact-one", "delay-exact-round"]) {
+    const node = document.getElementById(id);
+    if (node) {
+      node.textContent = "";
+      delete node.dataset.exact;
+    }
+  }
+  document.getElementById("delay-events")?.replaceChildren();
+  document.getElementById("delay-bar")?.replaceChildren();
+}
+
+function renderDelay(outcome) {
+  const one = document.getElementById("delay-one-way");
+  const round = document.getElementById("delay-round");
+  const list = document.getElementById("delay-events");
+  const bar = document.getElementById("delay-bar");
+  const labels = ["delay.send", "delay.oneWay", "delay.roundTrip"];
+  const oneText = formatDuration(outcome.oneWay, state.lang);
+  const roundText = formatDuration(outcome.roundTrip, state.lang);
+  one.textContent = `${oneText.text} ${t(state.lang, `delay.unitWord.${oneText.unit}`)}`;
+  round.textContent = `${roundText.text} ${t(state.lang, `delay.unitWord.${roundText.unit}`)}`;
+  one.dataset.exact = formatCanonical(outcome.oneWay);
+  round.dataset.exact = formatCanonical(outcome.roundTrip);
+  document.getElementById("delay-exact-one").textContent = formatCanonical(outcome.oneWay);
+  document.getElementById("delay-exact-round").textContent = formatCanonical(outcome.roundTrip);
+  list.replaceChildren();
+  bar.replaceChildren();
+  const end = outcome.events.at(-1);
+  outcome.events.forEach((time, index) => {
+    const item = document.createElement("li");
+    const shown = formatDuration(time, state.lang);
+    item.textContent = `${t(state.lang, labels[index] ?? "delay.send")} — ${shown.text} ${t(state.lang, `delay.unitWord.${shown.unit}`)}`;
+    list.append(item);
+    const mark = document.createElement("span");
+    mark.className = index === outcome.events.length - 1 ? "delay-mark reply" : "delay-mark";
+    const fraction = !end ? 0 : time / end;
+    mark.style.left = `${fraction * 100}%`;
+    bar.append(mark);
+  });
+}
+
+function updateDelay() {
+  const statusNode = document.getElementById("delay-status");
+  if (!statusNode) return;
+  clearDelayView();
+  let code = "loading";
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const distance = interpretOperand(state.delay.distance);
+    const unit = interpretOperand(state.delay.unit);
+    if (distance.kind === "empty" || unit.kind === "empty") {
+      code = "empty";
+    } else if (distance.kind !== "value" || unit.kind !== "value") {
+      code = "malformed";
+    } else {
+      const outcome = callDelay(session, distance.value, unit.value);
+      code = outcome.status;
+      if (outcome.status === 0 && outcome.oneWay !== null) {
+        try {
+          renderDelay(outcome);
+        } catch (error) {
+          clearDelayView();
+          code = "load-failed";
+          console.error(error);
+        }
+      }
+    }
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, delayMessage(code));
+  updateDiagnostics();
+}
+
 function statusMessage(code) {
   if (code === "loading") return "demo.loading";
   if (code === "load-failed") return "demo.loadFailed";
@@ -916,7 +1013,7 @@ function statusMessage(code) {
 
 function routeFromHash() {
   const route = decodeURIComponent(location.hash.replace(/^#/, ""));
-  if (route === "lifetime-card" || route === "growth-card" || route === "about" || route === "content") {
+  if (route === "lifetime-card" || route === "growth-card" || route === "delay-card" || route === "about" || route === "content") {
     return "";
   }
   return route;
@@ -949,6 +1046,7 @@ async function boot() {
   updateDemo();
   updateLifetime();
   updateGrowth();
+    updateDelay();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -968,6 +1066,7 @@ async function boot() {
   updateDemo();
   updateLifetime();
   updateGrowth();
+    updateDelay();
 }
 
 function simulateFailure() {
@@ -978,6 +1077,7 @@ function simulateFailure() {
   updateDemo();
   updateLifetime();
   updateGrowth();
+    updateDelay();
 }
 
 function bind() {
@@ -1108,10 +1208,12 @@ function bind() {
     if (!(field instanceof HTMLInputElement) || !field.dataset.growth) return;
     state = setGrowthInput(state, field.dataset.growth, field.value);
     updateGrowth();
+    updateDelay();
   });
   document.getElementById("growth-form").addEventListener("submit", (event) => {
     event.preventDefault();
     updateGrowth();
+    updateDelay();
   });
   document.getElementById("growth-reset").addEventListener("click", () => {
     state = resetGrowth(state);
@@ -1121,15 +1223,50 @@ function bind() {
     document.getElementById("growth-start-year").value = state.growth.startYear;
     document.getElementById("growth-target").value = state.growth.target;
     updateGrowth();
+    updateDelay();
   });
   document.getElementById("growth-linear").addEventListener("click", () => {
     state = setGrowthInput(state, "scale", "linear");
     updateGrowth();
+    updateDelay();
+  });
+  document.getElementById("delay-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.delay) return;
+    state = setDelayInput(state, field.dataset.delay, field.value);
+    updateDelay();
+  });
+  document.getElementById("delay-form").addEventListener("change", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.delay) return;
+    state = setDelayInput(state, field.dataset.delay, field.value);
+    updateDelay();
+  });
+  document.getElementById("delay-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateDelay();
+  });
+  document.getElementById("delay-reset").addEventListener("click", () => {
+    state = resetDelay(state);
+    document.getElementById("delay-distance").value = state.delay.distance;
+    document.getElementById("delay-unit").value = state.delay.unit;
+    updateDelay();
+  });
+  document.getElementById("delay-form").addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest("[data-preset]") : null;
+    if (!(button instanceof HTMLButtonElement) || !session.exports) return;
+    const preset = delayPreset(session, Number(button.dataset.preset));
+    state = setDelayInput(state, "distance", formatCanonical(preset.distance));
+    state = setDelayInput(state, "unit", String(preset.unit));
+    document.getElementById("delay-distance").value = state.delay.distance;
+    document.getElementById("delay-unit").value = state.delay.unit;
+    updateDelay();
   });
   document.getElementById("growth-log").addEventListener("click", () => {
     if (document.getElementById("growth-log").disabled) return;
     state = setGrowthInput(state, "scale", "log");
     updateGrowth();
+    updateDelay();
   });
   document.getElementById("lifetime-form").addEventListener("input", (event) => {
     const field = event.target;

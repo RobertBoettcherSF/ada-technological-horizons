@@ -3,13 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callExplore, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callDelay, callExplore, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
 const fixturePath = path.join(root, "build", "native", "fixtures.txt");
 const lifetimePath = path.join(root, "build", "native", "lifetime-fixtures.txt");
 const growthPath = path.join(root, "build", "native", "growth-fixtures.txt");
+const delayPath = path.join(root, "build", "native", "delay-fixtures.txt");
 
 function bitsToFloat(hex) {
   const buffer = new ArrayBuffer(8);
@@ -279,6 +280,53 @@ test("growth exports match the native fixture bits", async (t) => {
       assert.ok(outcome.endYear > outcome.evalYear, name);
     }
   }
+});
+
+test("light-time exports match the native fixture bits", async (t) => {
+  if (!fs.existsSync(wasmPath) || !fs.existsSync(delayPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const lines = fs.readFileSync(delayPath, "utf8").split("\n").filter((line) => /^DELAY [a-z0-9-]+ /.test(line));
+  assert.ok(lines.length >= 8);
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const status = Number(parts[2]);
+    const oneWay = parts[3];
+    const roundTrip = parts[4];
+    const distance = bitsToFloat(parts[5]);
+    const unit = bitsToFloat(parts[6]);
+    const outcome = callDelay(session, distance, unit);
+    assert.equal(outcome.status, status, name);
+    if (status === 0) {
+      assert.equal(floatToBits(outcome.oneWay), oneWay, name);
+      assert.equal(floatToBits(outcome.roundTrip), roundTrip, name);
+      assert.equal(outcome.events.length, 3, name);
+      assert.equal(outcome.events[0], 0, name);
+      assert.equal(floatToBits(outcome.events[1]), oneWay, name);
+      assert.equal(floatToBits(outcome.events[2]), roundTrip, name);
+    } else {
+      assert.equal(outcome.oneWay, null, name);
+      assert.equal(floatToBits(session.exports.ath_delay_one_way()), "0000000000000000", name);
+    }
+  }
+  assert.equal(session.exports.ath_delay_preset_distance(1), 384400);
+  assert.equal(session.exports.ath_delay_preset_distance(2), 225000000);
+  assert.equal(session.exports.ath_delay_preset_distance(3), 1000);
+  assert.equal(session.exports.ath_delay_preset_unit(3), 2);
 });
 
 test("a failed module load does not invent a sum", async () => {

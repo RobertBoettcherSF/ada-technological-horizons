@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.6">
+  <meta name="ath-release" content="0.1.7">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,11 +13,11 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.6</p>
+        <p class="release-pill" id="header-version">0.1.7</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
-        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Two calculators are ready: Statistics of Cosmic Civilisations, and Return to Earth. The other sections are planned.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Three calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, and Teletaxy. The other sections are planned.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -229,6 +229,60 @@
           <tbody id="growth-samples"></tbody>
         </table>
       </div>
+    </section>
+
+    <section id="delay-card" class="lifetime-card" aria-labelledby="delay-title">
+      <p class="kicker" data-i18n="delay.path">Phantomology · Teletaxy and Phantomultiplication</p>
+      <h2 id="delay-title" data-i18n="delay.title">How long before a reply can return?</h2>
+      <p data-i18n="delay.lead">Teletaxy is action at a distance. A signal here travels at the speed of light in vacuum, over a distance that does not change. The same wait is why an interstellar conversation cannot stay prompt. The presets are familiar examples, not one formula taken from the book.</p>
+      <form id="delay-form">
+        <div class="growth-fields">
+          <div>
+            <label for="delay-distance" data-i18n="delay.distance">Distance</label>
+            <input id="delay-distance" data-delay="distance" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1000">
+          </div>
+          <div>
+            <label for="delay-unit" data-i18n="delay.unit">Unit</label>
+            <select id="delay-unit" data-delay="unit">
+              <option value="0" data-i18n="delay.unit.km">Kilometres</option>
+              <option value="1" data-i18n="delay.unit.au">Astronomical units</option>
+              <option value="2" data-i18n="delay.unit.ly" selected>Light-years</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" data-preset="1" data-i18n="delay.preset.moon">Earth–Moon</button>
+          <button type="button" class="secondary" data-preset="2" data-i18n="delay.preset.mars">Earth–Mars example</button>
+          <button type="button" class="secondary" data-preset="3" data-i18n="delay.preset.stars">1,000 light-years</button>
+        </div>
+        <p id="delay-note" class="note" data-i18n="delay.note">Earth–Mars is a chosen average of 225 million km, not the distance today. 1,000 light-years is an illustrative interstellar distance.</p>
+        <div id="delay-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="delay.oneWay">Signal arrives</p>
+            <output id="delay-one-way" for="delay-distance delay-unit"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="delay.roundTrip">Reply arrives</p>
+            <output id="delay-round"></output>
+          </div>
+        </div>
+        <p id="delay-status" role="status" aria-live="polite"></p>
+        <h3 data-i18n="delay.timeline">Timeline</h3>
+        <div id="delay-bar" class="delay-bar" aria-hidden="true"></div>
+        <ol id="delay-events"></ol>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="delay-reset" class="secondary" data-i18n="delay.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="delay-sources">
+        <summary data-i18n="delay.sources">Sources and exact seconds</summary>
+        <p class="note" data-i18n="delay.sourceText">Vacuum speed of light: 299,792,458 m/s, the SI definition of the metre. Astronomical unit: 149,597,870,700 m exactly, IAU 2012 Resolution B2. Light-year: the distance light travels in one Julian year of 365.25 days of 86,400 s, as recognised by the IAU. Moon: NASA’s stated average, 384,400 km. Mars: 225 million km, a round figure for the often cited average of about 140 million miles, not a current ephemeris.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="delay.exactOne">One-way seconds</dt><dd id="delay-exact-one"></dd></div>
+          <div><dt data-i18n="delay.exactRound">Round-trip seconds</dt><dd id="delay-exact-round"></dd></div>
+        </dl>
+      </details>
     </section>
 
     <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>

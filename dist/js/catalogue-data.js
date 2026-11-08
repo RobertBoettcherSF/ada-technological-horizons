@@ -140,6 +140,14 @@ export const sections = RAW.map((entry, index) => {
       summaryKey: "summary.lifetime",
     };
   }
+  if (withOrder.id === "phantomology/teletaxy-and-phantomultiplication") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.delay",
+    };
+  }
   if (withOrder.id === "intellectronics/return-to-earth") {
     return {
       ...withOrder,

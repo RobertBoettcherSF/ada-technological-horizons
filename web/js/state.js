@@ -1,6 +1,11 @@
 export const DEMO_LEFT = "2";
 export const DEMO_RIGHT = "3";
 
+export const DELAY_DEFAULTS = {
+  distance: "1000",
+  unit: "2",
+};
+
 export const GROWTH_DEFAULTS = {
   initial: "1",
   doubling: "15",
@@ -38,6 +43,7 @@ export function createState() {
     demo: { left: DEMO_LEFT, right: DEMO_RIGHT },
     lifetime: lifetimeDefaults(),
     growth: { ...GROWTH_DEFAULTS },
+    delay: { ...DELAY_DEFAULTS },
   };
 }
 
@@ -77,6 +83,14 @@ export function setGrowthInput(state, field, value) {
 
 export function resetGrowth(state) {
   return { ...state, growth: { ...GROWTH_DEFAULTS } };
+}
+
+export function setDelayInput(state, field, value) {
+  return { ...state, delay: { ...state.delay, [field]: value } };
+}
+
+export function resetDelay(state) {
+  return { ...state, delay: { ...DELAY_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {

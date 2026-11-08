@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.7 light-time
+
+`bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, `GROWTH OK`, and `DELAY OK`. One thousand light-years is exactly 1,000 Julian years one way and 2,000 for the reply. Zero distance is zero. The Moon preset is 384,400 km and the Mars preset is 225,000,000 km. A negative distance, a bad unit, and an overflowing distance clear the previous times. Wasm replay matched those bits. The lifetime and growth fixtures are unchanged, including exact 6523 and the extended growth horizon.
+
+Node suites passed, including the new light-time parity. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The prefilled card showed 1000 years and 2000 years, with Sources closed. The Mars preset showed a minute-scale delay and the note that it is not the distance today. At 320px, `scrollWidth - clientWidth` was at most 1. The catalogue counted 3 working calculators.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.6 extended chart horizon
 
 `bash tools/test.sh` printed `NATIVE OK`, `LIFETIME OK`, and `GROWTH OK`. For N₀ = 1, doubling time 14 years, 30 elapsed years, start 2026 and target 20, the quantity and factor stay at the 30-year value and the chart ends at 2087, with both curves sampled through that year. The crossing is on the chart. Lowering the target to 4 restores the chart end to 2056 and leaves the 30-year quantity unchanged. An already-reached target and a starting quantity of zero do not extend the chart. Lifetime fixtures are unchanged, including exact 6523.

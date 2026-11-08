@@ -276,6 +276,7 @@ button.collapse {
 
 .live-result.addition-live .live-label { color: var(--cyan); }
 
+#delay-status,
 #growth-status,
 #lifetime-status, #addition-status {
   padding: 0.65rem 0.75rem;
@@ -284,6 +285,13 @@ button.collapse {
   color: var(--ink);
 }
 
+#delay-status[data-status="empty"],
+#delay-status[data-status="malformed"],
+#delay-status[data-status="1"],
+#delay-status[data-status="2"],
+#delay-status[data-status="3"],
+#delay-status[data-status="4"],
+#delay-status[data-status="load-failed"],
 #growth-status[data-status="empty"],
 #growth-status[data-status="malformed"],
 #growth-status[data-status="1"],
@@ -363,6 +371,42 @@ button.collapse {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
 }
+
+#delay-one-way, #delay-round {
+  display: block;
+  min-height: 1.15em;
+  font-size: 1.8rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--lime-ink);
+  overflow-wrap: anywhere;
+}
+
+.preset-row { flex-wrap: wrap; }
+
+.delay-bar {
+  position: relative;
+  height: 0.7rem;
+  margin: 0.8rem 0 0.4rem;
+  border-radius: 999px;
+  background: #10192b;
+}
+
+.delay-mark {
+  position: absolute;
+  top: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--lime);
+  transform: translate(-50%, -50%);
+}
+
+.delay-mark.reply { background: var(--cyan); }
+
+#delay-events { margin: 0.2rem 0 1rem; padding-left: 1.2rem; }
+#delay-events li { margin: 0.25rem 0; }
 
 .growth-metrics output {
   display: block;

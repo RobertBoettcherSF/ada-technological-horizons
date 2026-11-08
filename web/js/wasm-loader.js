@@ -64,6 +64,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_growth_explore_f64 !== "function") {
     throw new Error("Ada module is missing ath_growth_explore_f64");
   }
+  if (typeof instance.exports.ath_delay_f64 !== "function") {
+    throw new Error("Ada module is missing ath_delay_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -215,6 +218,38 @@ export function callTarget(session, initial, doubling, elapsed, startYear, targe
     status,
     elapsed: session.exports.ath_growth_target_elapsed(),
     year: session.exports.ath_growth_target_year(),
+  };
+}
+
+export function callDelay(session, distance, unit) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_delay_f64(distance, unit);
+  session.invocations += 1;
+  if (status !== STATUS_OK) {
+    return { status, oneWay: null, roundTrip: null, events: null };
+  }
+  const count = session.exports.ath_delay_event_count();
+  const events = [];
+  for (let index = 1; index <= count; index += 1) {
+    events.push(session.exports.ath_delay_event_time(index));
+  }
+  return {
+    status,
+    oneWay: session.exports.ath_delay_one_way(),
+    roundTrip: session.exports.ath_delay_round_trip(),
+    events,
+  };
+}
+
+export function delayPreset(session, index) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  return {
+    distance: session.exports.ath_delay_preset_distance(index),
+    unit: session.exports.ath_delay_preset_unit(index),
   };
 }
 

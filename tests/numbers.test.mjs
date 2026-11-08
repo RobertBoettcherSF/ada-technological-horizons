@@ -38,6 +38,14 @@ test("readable growth figures keep exact integers and shorten long values", asyn
   assert.notEqual(formatReadable(1.5, "de"), formatReadable(1.5, "en-GB"));
 });
 
+test("duration formatting follows the size of the light-time", async () => {
+  const { formatDuration } = await import("../web/js/numbers.js");
+  assert.deepEqual(formatDuration(0, "en-GB"), { text: "0", unit: "s" });
+  assert.deepEqual(formatDuration(31557600 * 1000, "en-GB"), { text: "1000", unit: "y" });
+  assert.deepEqual(formatDuration(31557600 * 2000, "de"), { text: "2000", unit: "y" });
+  assert.equal(formatDuration(90, "en-GB").unit, "min");
+});
+
 test("canonical rendering is unambiguous and ignores language", () => {
   assert.equal(formatCanonical(5), "5");
   assert.equal(formatCanonical(-3), "-3");

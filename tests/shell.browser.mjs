@@ -56,6 +56,9 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-factor").textContent(), "4");
   assert.equal(await page.locator("#growth-eval-year").textContent(), "2056");
   assert.equal(await page.locator("#growth-end-year").textContent(), "2076");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1000 years");
+  assert.equal(await page.locator("#delay-round").textContent(), "2000 years");
+  assert.equal(await page.locator("#delay-sources").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#header-version").isVisible(), true);
   const layout = await page.evaluate(() => {
@@ -76,6 +79,10 @@ async function exercise(page, label) {
   );
   assert.equal(
     await page.locator('[data-chapter-link="intellectronics"]').getAttribute("data-calculator"),
+    "ready",
+  );
+  assert.equal(
+    await page.locator('[data-chapter-link="phantomology"]').getAttribute("data-calculator"),
     "ready",
   );
   const blurbs = await page.locator(".tile-blurb").evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
@@ -327,6 +334,40 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-end-year").textContent(), "2076");
   assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
+  await page.locator("#delay-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "delay-card.png");
+  assert.equal(await page.locator("#delay-events li").count(), 3);
+  assert.match(await page.locator("#delay-events li").first().textContent(), /0 s/);
+  await page.click("#delay-form [data-preset='1']");
+  await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "384400");
+  assert.equal(await page.locator("#delay-unit").inputValue(), "0");
+  assert.match(await page.locator("#delay-one-way").textContent(), /s$/);
+  assert.match(await page.locator("#delay-round").textContent(), /s$/);
+  await page.click("#delay-form [data-preset='2']");
+  await page.waitForFunction(() => document.querySelector("#delay-distance")?.value === "225000000");
+  assert.match(await page.locator("#delay-one-way").textContent(), /min$/);
+  assert.match(await page.locator("#delay-note").textContent(), /not the distance today/i);
+  await page.locator("#delay-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "delay-mars.png");
+  await page.selectOption("#delay-unit", "2");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent?.includes("years"));
+  await page.fill("#delay-distance", "0");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "0 s");
+  assert.equal(await page.locator("#delay-round").textContent(), "0 s");
+  assert.equal(await page.locator("#delay-events li").count(), 3);
+  await page.fill("#delay-distance", "-4");
+  await page.waitForFunction(() => document.querySelector("#delay-status")?.dataset.status === "2");
+  assert.equal(await page.locator("#delay-one-way").textContent(), "");
+  await page.fill("#delay-distance", "");
+  await page.waitForFunction(() => document.querySelector("#delay-status")?.dataset.status === "empty");
+  await page.fill("#delay-distance", "1e307");
+  await page.waitForFunction(() => document.querySelector("#delay-status")?.dataset.status === "4");
+  assert.equal(await page.locator("#delay-round").textContent(), "");
+  await page.click("#delay-reset");
+  await page.waitForFunction(() => document.querySelector("#delay-one-way")?.textContent === "1000 years");
+  assert.equal(await page.locator("#delay-distance").inputValue(), "1000");
+  assert.equal(await page.locator("#delay-unit").inputValue(), "2");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "4");
   await page.locator("#technical-details summary").scrollIntoViewIfNeeded();
   await shot(page, label, "technical-collapsed.png");
   await page.locator("#technical-details summary").focus();
@@ -338,7 +379,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.6");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.7");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -396,7 +437,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "2");
+  assert.equal(await page.locator("#working-count").textContent(), "3");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -413,7 +454,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "2");
+  assert.equal(await page.locator("#working-count").textContent(), "3");
 
   if (!(await page.locator("#technical-details").evaluate((element) => element.open))) {
     await page.locator("#technical-details summary").focus();
@@ -440,6 +481,8 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#growth-start-year").inputValue(), "1990");
   assert.equal(await page.locator("#growth-quantity").textContent(), "2");
   assert.equal(await page.locator("#growth-end-year").textContent(), "2005");
+  assert.equal(await page.locator("#delay-distance").inputValue(), "1000");
+  assert.equal(await page.locator("#delay-one-way").textContent(), "1000 Jahre");
   assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#growth-x-label").textContent(), "Kalenderjahr");
   assert.match(await page.locator("#growth-status").textContent(), /Ada/);
@@ -521,6 +564,9 @@ async function exercise(page, label) {
   await page.locator("#growth-card").scrollIntoViewIfNeeded();
   await shot(page, label, "growth-narrow.png");
   assert.ok((await overflow(page)) <= 1, "narrow growth");
+  await page.locator("#delay-card").scrollIntoViewIfNeeded();
+  await shot(page, label, "delay-narrow.png");
+  assert.ok((await overflow(page)) <= 1, "narrow delay");
   await page.locator("#addition-form button[type=submit]").scrollIntoViewIfNeeded();
   assert.equal(await page.locator("#addition-form button[type=submit]").isVisible(), true);
 }
