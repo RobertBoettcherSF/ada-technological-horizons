@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="ath-release" content="0.1.21">
+  <title>Ada Technological Horizons</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#content" data-i18n="skip.content">Skip to the calculator</a>
+  <div class="debug-dock">
+    <button type="button" id="debug-toggle" class="debug-toggle" aria-controls="debug-dialog" aria-expanded="false" aria-haspopup="dialog" aria-keyshortcuts="F9" data-i18n="debug.open">Debug</button>
+  </div>
+  <div class="horizon" aria-hidden="true"></div>
+  <header class="site-header wrap">
+    <div class="header-row">
+      <div class="identity">
+        <p class="release-pill" id="header-version">0.1.21</p>
+        <h1 data-i18n="app.title">Ada Technological Horizons</h1>
+        <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
+        <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Five calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, Teletaxy, Cultivating Information, and Constructing Life. The other sections are planned.</p>
+      </div>
+      <div class="lang-wrap">
+        <label for="language" data-i18n="lang.label">Language</label>
+        <select id="language">
+          <option value="en-GB" data-i18n="lang.en-GB" selected>English (United Kingdom)</option>
+          <option value="de" data-i18n="lang.de">Deutsch</option>
+          <option value="es" data-i18n="lang.es">Español</option>
+          <option value="fr" data-i18n="lang.fr">Français</option>
+        </select>
+      </div>
+    </div>
+  </header>
+  <main id="content" class="wrap">
+    <nav class="chapter-nav" aria-labelledby="chapters-label">
+      <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
+      <p class="note" data-i18n="chapters.note">All chapters shows every calculator. A chosen chapter, section or catalogue filter shows only that selection. A planned chapter has no working calculator.</p>
+      <p id="selection-note" class="note" aria-live="polite" data-i18n="nav.showingAll">Showing every calculator.</p>
+      <ul id="chapter-list" class="chapter-list"></ul>
+    </nav>
+
+    <div id="selected-stage">
+    <article id="reading" aria-labelledby="reading-title" tabindex="-1" hidden>
+      <h2 id="reading-title" tabindex="-1"></h2>
+      <p id="reading-meta"></p>
+      <p id="reading-summary"></p>
+      <h3 id="reading-section-title" hidden></h3>
+      <p id="reading-section-summary" hidden></p>
+      <div id="reading-pager" class="pager"></div>
+    </article>
+
+    <section id="lifetime-card" class="lifetime-card" aria-labelledby="lifetime-title">
+      <p class="kicker" data-i18n="lifetime.path">Cosmic Civilisations · Statistics of Cosmic Civilisations</p>
+      <h2 id="lifetime-title" data-i18n="lifetime.title">How long is the technological phase?</h2>
+      <p data-i18n="lifetime.lead">Four historical alternatives, each with a probability and a mean duration. Ada computes the weighted mean. These are subjective assumptions about a communication-oriented technological phase, not a forecast for humanity, and the end of that phase is not automatically an extinction.</p>
+      <p class="formula" data-i18n="lifetime.formula">L = Σ pᵢ lᵢ, with each probability used as a fraction.</p>
+      <form id="lifetime-form">
+        <div class="fates">
+          <div class="fate">
+            <h3 data-i18n="fate.1">Complete destruction of life</h3>
+            <div>
+              <label for="prob-1" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-1" data-lifetime="probabilities" data-index="0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="5">
+            </div>
+            <div>
+              <label for="years-1" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-1" data-lifetime="durations" data-index="0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="100">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.2">Destruction of higher life</h3>
+            <div>
+              <label for="prob-2" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-2" data-lifetime="probabilities" data-index="1" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="60">
+            </div>
+            <div>
+              <label for="years-2" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-2" data-lifetime="durations" data-index="1" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.3">Physical or mental degeneration</h3>
+            <div>
+              <label for="prob-3" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-3" data-lifetime="probabilities" data-index="2" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="15">
+            </div>
+            <div>
+              <label for="years-3" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-3" data-lifetime="durations" data-index="2" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30000">
+            </div>
+          </div>
+          <div class="fate">
+            <h3 data-i18n="fate.4">Loss of scientific or technical interest</h3>
+            <div>
+              <label for="prob-4" data-i18n="lifetime.probability">Probability (%)</label>
+              <input id="prob-4" data-lifetime="probabilities" data-index="3" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="20">
+            </div>
+            <div>
+              <label for="years-4" data-i18n="lifetime.duration">Duration (years)</label>
+              <input id="years-4" data-lifetime="durations" data-index="3" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10000">
+            </div>
+          </div>
+        </div>
+        <div id="lifetime-live" class="live-result">
+          <p class="live-label" data-i18n="lifetime.result">Mean duration (years)</p>
+          <output id="lifetime-result" for="prob-1 prob-2 prob-3 prob-4 years-1 years-2 years-3 years-4"></output>
+          <p id="lifetime-precision" class="precision-hint"></p>
+        </div>
+        <p id="lifetime-status" role="status" aria-live="polite"></p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="lifetime-reset" class="secondary" data-i18n="lifetime.reset">Reset example</button>
+        </div>
+      </form>
+      <h3 data-i18n="lifetime.contributions">Contribution of each fate</h3>
+      <div class="bars" id="lifetime-bars">
+        <div class="bar-row"><span data-i18n="fate.1.short">All life</span><span class="bar-track"><span class="bar-fill" id="bar-1"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.2.short">Higher life</span><span class="bar-track"><span class="bar-fill" id="bar-2"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.3.short">Degeneration</span><span class="bar-track"><span class="bar-fill" id="bar-3"></span></span></div>
+        <div class="bar-row"><span data-i18n="fate.4.short">Lost interest</span><span class="bar-track"><span class="bar-fill" id="bar-4"></span></span></div>
+      </div>
+      <div class="table-scroll">
+      <table id="lifetime-table">
+        <caption class="note" data-i18n="lifetime.tableCaption">Contributions returned by Ada, in years.</caption>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="lifetime.fate">Fate</th>
+            <th scope="col" data-i18n="lifetime.probability">Probability (%)</th>
+            <th scope="col" data-i18n="lifetime.duration">Duration (years)</th>
+            <th scope="col" data-i18n="lifetime.share">Contribution (years)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row" data-i18n="fate.1">Complete destruction of life</th><td id="shown-prob-1"></td><td id="shown-years-1"></td><td id="contrib-1"></td></tr>
+          <tr><th scope="row" data-i18n="fate.2">Destruction of higher life</th><td id="shown-prob-2"></td><td id="shown-years-2"></td><td id="contrib-2"></td></tr>
+          <tr><th scope="row" data-i18n="fate.3">Physical or mental degeneration</th><td id="shown-prob-3"></td><td id="shown-years-3"></td><td id="contrib-3"></td></tr>
+          <tr><th scope="row" data-i18n="fate.4">Loss of scientific or technical interest</th><td id="shown-prob-4"></td><td id="shown-years-4"></td><td id="contrib-4"></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="growth-card" class="lifetime-card" aria-labelledby="growth-title">
+      <p class="kicker" data-i18n="growth.path">Intellectronics · Return to Earth</p>
+      <h2 id="growth-title" data-i18n="growth.title">What does persistent doubling imply?</h2>
+      <p data-i18n="growth.lead">A normalised index starts at 1. The doubling time of 15 years follows a historical discussion of scientific periodicals. The year 2026 only places that horizon on a calendar. Ada computes one exponential. It is a scenario, not a forecast.</p>
+      <p class="formula" data-i18n="growth.formula">N = N₀ · 2^(t / d)</p>
+      <p class="note" data-i18n="growth.factorPolicy">The factor is 2^(t / d) even when the starting quantity is zero. The quantity is then zero.</p>
+      <p class="note" data-i18n="growth.noTipping">The same exponential applies for the whole horizon. A shorter doubling time is not a tipping point.</p>
+      <form id="growth-form">
+        <div class="growth-fields">
+          <div>
+            <label for="growth-initial" data-i18n="growth.initial">Starting quantity</label>
+            <input id="growth-initial" data-growth="initial" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="growth-doubling" data-i18n="growth.doubling">Doubling time (years)</label>
+            <input id="growth-doubling" data-growth="doubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="15">
+          </div>
+          <div>
+            <label for="growth-elapsed" data-i18n="growth.elapsed">Elapsed time (years)</label>
+            <input id="growth-elapsed" data-growth="elapsed" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+          <div>
+            <label for="growth-start-year" data-i18n="growth.startYear">Starting year</label>
+            <input id="growth-start-year" data-growth="startYear" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2026">
+            <p class="note" data-i18n="growth.yearHint">A whole year from -10000 to 10000. 2026 is a presentation choice, not a measured date.</p>
+          </div>
+          <div>
+            <label for="growth-target" data-i18n="growth.target">Target quantity</label>
+            <input id="growth-target" data-growth="target" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10">
+            <p class="note" data-i18n="growth.targetHint">Illustrative level. The default 10 is not a forecast.</p>
+          </div>
+        </div>
+        <div id="growth-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="growth.quantity">Quantity</p>
+            <output id="growth-quantity" for="growth-initial growth-doubling growth-elapsed growth-start-year"></output>
+            <p class="metric-note"><span data-i18n="growth.atYear">At year</span> <span id="growth-eval-year"></span></p>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="growth.factor">Growth factor</p>
+            <output id="growth-factor"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="growth.endYear">Chart ends</p>
+            <output id="growth-end-year"></output>
+            <p class="metric-note" id="growth-chart-note"></p>
+          </div>
+        </div>
+        <p id="growth-target-status" role="status" aria-live="polite">
+          <span id="growth-target-text"></span>
+          <strong id="growth-target-year"></strong>
+        </p>
+        <p id="growth-status" role="status" aria-live="polite"></p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="growth-reset" class="secondary" data-i18n="growth.reset">Reset example</button>
+        </div>
+      </form>
+      <div class="scale-toggle" role="group" aria-labelledby="growth-scale-label">
+        <span id="growth-scale-label" data-i18n="growth.scale">Quantity axis</span>
+        <button type="button" id="growth-linear" aria-pressed="true" data-i18n="growth.linear">Linear</button>
+        <button type="button" id="growth-log" aria-pressed="false" data-i18n="growth.log">Logarithmic</button>
+      </div>
+      <p id="growth-log-note" class="note" hidden></p>
+      <h3 data-i18n="growth.curve">Growth curve</h3>
+      <div class="chart-plot">
+        <p id="growth-y-label" class="axis-name" data-i18n="growth.axisQuantity">Quantity (index)</p>
+        <div id="growth-y-ticks" class="y-ticks"></div>
+        <svg id="growth-curve" class="growth-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div id="growth-x-ticks" class="x-ticks"></div>
+      </div>
+      <p id="growth-x-label" class="axis-name" data-i18n="growth.axisYear">Calendar year</p>
+      <ul id="growth-legend" class="legend">
+        <li><span class="swatch chosen" aria-hidden="true"></span><span data-i18n="growth.chosen">Chosen doubling</span></li>
+        <li><span class="swatch baseline" aria-hidden="true"></span><span data-i18n="growth.baseline">15-year baseline</span></li>
+        <li id="growth-eval-legend" hidden><span class="swatch elapsed" aria-hidden="true"></span><span data-i18n="growth.elapsedMark">Your elapsed time</span></li>
+      </ul>
+      <p id="growth-baseline-note" class="note" data-i18n="growth.baselineNote">The cyan curve keeps a 15-year doubling on the same axes. It is a comparison, not a forecast.</p>
+      <p id="growth-baseline-warning" class="note" hidden></p>
+      <details id="growth-exact">
+        <summary data-i18n="growth.exact">Exact figures</summary>
+        <dl class="diagnostics">
+          <div><dt data-i18n="growth.quantity">Quantity</dt><dd id="growth-exact-quantity"></dd></div>
+          <div><dt data-i18n="growth.factor">Factor</dt><dd id="growth-exact-factor"></dd></div>
+          <div><dt data-i18n="growth.exactYear">Target year</dt><dd id="growth-exact-year"></dd></div>
+          <div><dt data-i18n="growth.exactElapsed">Elapsed years to target</dt><dd id="growth-exact-elapsed"></dd></div>
+        </dl>
+      </details>
+      <div class="table-scroll growth-samples-scroll">
+        <table id="growth-table">
+          <caption class="note" data-i18n="growth.tableCaption">Samples returned by Ada. The last row is the reported quantity. The baseline column uses a 15-year doubling.</caption>
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="growth.axisYear">Calendar year</th>
+              <th scope="col" data-i18n="growth.chosen">Chosen doubling</th>
+              <th scope="col" data-i18n="growth.baseline">15-year baseline</th>
+            </tr>
+          </thead>
+          <tbody id="growth-samples"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="lottery-card" class="lifetime-card" aria-labelledby="lottery-title">
+      <p class="kicker" data-i18n="lottery.path">Intellectronics · Return to Earth</p>
+      <h2 id="lottery-title" data-i18n="lottery.title">How many prizes does a lottery return when some tickets are blank?</h2>
+      <p data-i18n="lottery.lead">A lottery has a fixed pile of tickets. Some tickets win a prize, and the rest are blank. You buy some tickets, and each ticket can be bought only once. The page gives the average number of prizes over many repeats, and the chance that this one purchase wins nothing.</p>
+      <form id="lottery-form">
+        <div class="growth-fields">
+          <div>
+            <label for="lottery-m" data-i18n="lottery.tickets">Tickets in the lottery</label>
+            <input id="lottery-m" data-lottery="tickets" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="10">
+          </div>
+          <div>
+            <label for="lottery-w" data-i18n="lottery.prizes">Tickets with a prize</label>
+            <input id="lottery-w" data-lottery="prizes" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2">
+          </div>
+          <div>
+            <label for="lottery-k" data-i18n="lottery.bought">Tickets you buy</label>
+            <input id="lottery-k" data-lottery="bought" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="3">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="lottery-preset-small" data-lottery-preset="small" aria-pressed="true" data-i18n="lottery.preset.small">Small example — 10 tickets, 2 prizes, buy 3</button>
+          <button type="button" class="secondary" id="lottery-preset-book" data-lottery-preset="book" aria-pressed="false" data-i18n="lottery.preset.book">Book sizes — 1,000,000 tickets, 1,000 prizes, buy 500,000</button>
+        </div>
+        <p id="lottery-preset-help" class="note" data-i18n="lottery.presetHelp">Small example fills a teaching lottery. It is not a quotation. Book sizes fill one million tickets, one thousand prizes, and buying half of the tickets. Changing a number clears the selected button.</p>
+        <p id="lottery-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="lottery.expectedLabel">Expected prizes</p>
+            <output id="lottery-expected" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="lottery.noneLabel">Chance of winning nothing</p>
+            <output id="lottery-none" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="lottery.someLabel">Chance of at least one prize</p>
+            <output id="lottery-some" for="lottery-m lottery-w lottery-k"></output>
+          </div>
+        </div>
+        <p class="note" data-i18n="lottery.averageNote">Expected prizes is the average over many repeats of the same lottery. One draw can win more, or fewer, or nothing.</p>
+        <p id="lottery-status" role="status" aria-live="polite"></p>
+        <div class="lottery-charts">
+          <div>
+            <h3 id="lottery-expected-label" data-i18n="lottery.chartExpected">Expected prizes</h3>
+            <div class="throughput-plot-wrap">
+              <p id="lottery-expected-y-label" class="axis-name" data-i18n="lottery.axisExpected">Expected prizes</p>
+              <div id="lottery-expected-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="lottery-expected-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="lottery-expected-label" aria-describedby="lottery-expected-legend"></svg>
+              </div>
+              <div id="lottery-expected-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="lottery.axisBought">Tickets you buy</p>
+            </div>
+            <ul id="lottery-expected-legend" class="plot-legend"></ul>
+          </div>
+          <div>
+            <h3 id="lottery-chance-label" data-i18n="lottery.chartChance">Chance of winning nothing</h3>
+            <div class="throughput-plot-wrap">
+              <p id="lottery-chance-y-label" class="axis-name" data-i18n="lottery.axisChance">Chance of winning nothing</p>
+              <div id="lottery-chance-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="lottery-chance-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="lottery-chance-label" aria-describedby="lottery-chance-legend"></svg>
+              </div>
+              <div id="lottery-chance-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="lottery.axisBought">Tickets you buy</p>
+            </div>
+            <ul id="lottery-chance-legend" class="plot-legend"></ul>
+          </div>
+        </div>
+        <p class="note" data-i18n="lottery.chartNote">The left chart counts prizes. The right chart is a chance from 0 to 1. A point on the zero line is a chance of exactly zero. A smaller positive chance is left off that line; read the number above the chart.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="lottery-reset" class="secondary" data-i18n="lottery.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="lottery-sources">
+        <summary data-i18n="lottery.sources">Technical and math details</summary>
+        <p class="note" data-i18n="lottery.formula">Expected prizes = tickets bought × prizes / tickets in the lottery. The chance of winning nothing is the number of ways to choose every bought ticket from the blank tickets, divided by the number of ways to choose from all the tickets. If the bought tickets must include a prize, that chance is exactly zero.</p>
+        <p class="note" data-i18n="lottery.limitation">This counts the lottery analogy in Return to Earth. It does not show that research directions are chosen uniformly at random, and it is not a prediction of discoveries. The small example is not a quotation. The million tickets, the thousand prizes, and buying half are the sizes named for that analogy.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="lottery.exactExpected">Expected prizes</dt><dd id="lottery-exact-expected"></dd></div>
+          <div><dt data-i18n="lottery.exactNone">Chance of winning nothing</dt><dd id="lottery-exact-none"></dd></div>
+          <div><dt data-i18n="lottery.exactLog">Base-10 log of that chance</dt><dd id="lottery-exact-log"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="research-card" class="lifetime-card" aria-labelledby="research-title">
+      <p class="kicker" data-i18n="research.path">Intellectronics · The Megabit Bomb</p>
+      <h2 id="research-title" data-i18n="research.title">What happens when the researcher index doubles faster than discoveries?</h2>
+      <p data-i18n="research.lead">Two indices each start at 1. That starting 1 is our scale, not a census. In the book’s comparison, discoveries double every 30 years and the researcher index doubles every 10. The page follows both curves and divides them. It does not predict that hiring a person creates a discovery.</p>
+      <form id="research-form">
+        <div class="growth-fields">
+          <div>
+            <label for="research-d0" data-i18n="research.discoveries0">Discovery index at the start</label>
+            <input id="research-d0" data-research="discoveries0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="research-r0" data-i18n="research.researchers0">Researcher index at the start</label>
+            <input id="research-r0" data-research="researchers0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="research-dd" data-i18n="research.discoveryDoubling">Years for discoveries to double</label>
+            <input id="research-dd" data-research="discoveryDoubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+          <div>
+            <label for="research-rd" data-i18n="research.researcherDoubling">Years for the researcher index to double</label>
+            <input id="research-rd" data-research="researcherDoubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10">
+          </div>
+          <div>
+            <label for="research-t" data-i18n="research.elapsed">Years to look ahead</label>
+            <input id="research-t" data-research="elapsed" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="research-preset-book" data-research-preset="book" aria-pressed="true" data-i18n="research.preset.book">Book times — discoveries 30 years, researchers 10 years, after 30 years</button>
+          <button type="button" class="secondary" id="research-preset-pace" data-research-preset="pace" aria-pressed="false" data-i18n="research.preset.pace">Same pace — both double every 30 years, after 30 years</button>
+        </div>
+        <p class="note" data-i18n="research.presetHelp">Book times fill the 30-year and 10-year doublings and look 30 years ahead. Same pace sets both doublings to 30 years, so you can see the indices stay in step. Same pace is ours, not a figure from the book. Changing a number clears the selected button.</p>
+        <p id="research-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="research.discoveryLabel">Discovery index</p>
+            <output id="research-discoveries" for="research-d0 research-dd research-t"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="research.researcherLabel">Researcher index</p>
+            <output id="research-researchers" for="research-r0 research-rd research-t"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="research.ratioLabel">Discoveries per researcher index</p>
+            <output id="research-ratio" for="research-d0 research-r0 research-dd research-rd research-t"></output>
+          </div>
+        </div>
+        <p class="note" data-i18n="research.ratioNote">The ratio is the discovery index divided by the researcher index. It is not a count of discoveries each person will make.</p>
+        <p id="research-status" role="status" aria-live="polite"></p>
+        <div class="lottery-charts">
+          <div>
+            <h3 id="research-index-label" data-i18n="research.chartIndex">The two indices</h3>
+            <div class="throughput-plot-wrap">
+              <p class="axis-name" data-i18n="research.axisIndex">Index</p>
+              <div id="research-index-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="research-index-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="research-index-label" aria-describedby="research-index-legend"></svg>
+              </div>
+              <div id="research-index-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="research.axisYears">Years</p>
+            </div>
+            <ul id="research-index-legend" class="plot-legend"></ul>
+          </div>
+          <div>
+            <h3 id="research-ratio-chart-label" data-i18n="research.chartRatio">Discoveries per researcher index</h3>
+            <div class="throughput-plot-wrap">
+              <p class="axis-name" data-i18n="research.axisRatio">Discoveries per researcher index</p>
+              <div id="research-ratio-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="research-ratio-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="research-ratio-chart-label" aria-describedby="research-ratio-legend"></svg>
+              </div>
+              <div id="research-ratio-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="research.axisYears">Years</p>
+            </div>
+            <ul id="research-ratio-legend" class="plot-legend"></ul>
+          </div>
+        </div>
+        <p class="note" data-i18n="research.chartNote">Years run left to right. The left chart shows both indices on one scale. The right chart is their ratio, on its own scale. The dot is the year you asked about.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="research-reset" class="secondary" data-i18n="research.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="research-sources">
+        <summary data-i18n="research.sources">Technical and math details</summary>
+        <p class="note" data-i18n="research.formula">Each index is its start times 2 raised to years divided by its doubling time. The ratio divides the discovery index by the researcher index. The curves are samples of those two powers.</p>
+        <p class="note" data-i18n="research.limitation">The Megabit Bomb is the section for this comparison. The 30-year and 10-year doublings are the book times used here. Starting both indices at 1 is our scale. These are aggregate indices. There is no saturation date, and the page does not claim that one more researcher produces one more discovery.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="research.exactDiscoveries">Discovery index</dt><dd id="research-exact-discoveries"></dd></div>
+          <div><dt data-i18n="research.exactResearchers">Researcher index</dt><dd id="research-exact-researchers"></dd></div>
+          <div><dt data-i18n="research.exactRatio">Ratio</dt><dd id="research-exact-ratio"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="delay-card" class="lifetime-card" aria-labelledby="delay-title">
+      <p class="kicker" data-i18n="delay.path">Phantomology · Teletaxy and Phantomultiplication</p>
+      <h2 id="delay-title" data-i18n="delay.title">How long before a reply can return?</h2>
+      <p data-i18n="delay.lead">Teletaxy is action at a distance. A signal here travels at the speed of light in vacuum, over a distance that does not change. The same wait is why an interstellar conversation cannot stay prompt. The presets are familiar examples, not one formula taken from the book.</p>
+      <form id="delay-form">
+        <div class="growth-fields">
+          <div>
+            <label for="delay-distance" data-i18n="delay.distance">Distance</label>
+            <input id="delay-distance" data-delay="distance" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1000">
+          </div>
+          <div>
+            <label for="delay-unit" data-i18n="delay.unit">Unit</label>
+            <select id="delay-unit" data-delay="unit">
+              <option value="0" data-i18n="delay.unit.km">Kilometres</option>
+              <option value="1" data-i18n="delay.unit.au">Astronomical units</option>
+              <option value="2" data-i18n="delay.unit.ly" selected>Light-years</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="delay-preset-moon" data-preset="1" data-i18n="delay.preset.moon">Earth–Moon</button>
+          <button type="button" class="secondary" id="delay-preset-venus" data-preset="2" data-i18n="delay.preset.venus">Earth–Venus</button>
+          <button type="button" class="secondary" id="delay-preset-sun" data-preset="3" data-i18n="delay.preset.sun">Earth–Sun</button>
+          <button type="button" class="secondary" id="delay-preset-mars" data-preset="4" data-i18n="delay.preset.mars">Earth–Mars example</button>
+          <button type="button" class="secondary" id="delay-preset-europa" data-preset="5" data-i18n="delay.preset.europa">Earth–Europa</button>
+          <button type="button" class="secondary" id="delay-preset-titan" data-preset="6" data-i18n="delay.preset.titan">Earth–Titan</button>
+          <button type="button" class="secondary" id="delay-preset-proxima" data-preset="7" data-i18n="delay.preset.proxima">Proxima Centauri</button>
+          <button type="button" class="secondary" id="delay-preset-stars" data-preset="8" data-i18n="delay.preset.stars">1,000 light-years</button>
+        </div>
+        <p id="delay-note" class="note" data-i18n="delay.note">Variable distances use a chosen alignment, not today’s positions. Europa and Titan lie beyond their planets, not at the planet’s distance from the Sun. Proxima Centauri is the nearest star of Alpha Centauri, not the A and B pair.</p>
+        <div id="delay-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="delay.oneWay">Signal arrives</p>
+            <output id="delay-one-way" for="delay-distance delay-unit"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="delay.roundTrip">Reply arrives</p>
+            <output id="delay-round"></output>
+          </div>
+        </div>
+        <p id="delay-status" role="status" aria-live="polite"></p>
+        <h3 data-i18n="delay.timeline">Timeline</h3>
+        <div id="delay-track" class="delay-track" aria-hidden="true"></div>
+        <ol id="delay-events"></ol>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="delay-reset" class="secondary" data-i18n="delay.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="delay-sources">
+        <summary data-i18n="delay.sources">Sources and exact seconds</summary>
+        <p class="note" data-i18n="delay.sourceText">Vacuum speed of light: 299,792,458 m/s, the SI definition of the metre. Astronomical unit: 149,597,870,700 m exactly, IAU 2012 Resolution B2; the Earth–Sun preset is 1 au. Light-year: one Julian year of 365.25 days of 86,400 s, as recognised by the IAU. Moon: NASA’s stated average, 384,400 km. Venus: NASA fact sheet, mean distance at inferior conjunction, 41.39 million km. Mars: 225 million km, a round figure for the often cited average of about 140 million miles. Europa: NASA’s mean Jupiter opposition, 628.81 million km, plus Europa’s orbital distance 671,000 km on the far side. Titan: difference of the NASA Saturn and Earth semimajor axes, 1,282.443 million km, plus Titan’s orbital distance 1,222,000 km on the far side. Proxima Centauri, Alpha Centauri C: 4.2465 light-years from the Gaia DR3 parallax. None of these is today’s ephemeris.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="delay.exactOne">One-way seconds</dt><dd id="delay-exact-one"></dd></div>
+          <div><dt data-i18n="delay.exactRound">Round-trip seconds</dt><dd id="delay-exact-round"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="choice-card" class="lifetime-card" aria-labelledby="choice-title">
+      <p class="kicker" data-i18n="choice.path">Creating Worlds · Cultivating Information</p>
+      <h2 id="choice-title" data-i18n="choice.title">How many yes-or-no answers does it take to say which sequence happened?</h2>
+      <p data-i18n="choice.lead">A bit is one yes-or-no. A coin has 2 outcomes each toss, a die has 6 faces, and this alphabet has 26 letters. Choose how many outcomes are possible each time, and how many times that happens.</p>
+      <form id="choice-form">
+        <div class="fields">
+          <div>
+            <label for="choice-n" data-i18n="choice.possibilities">Possible outcomes each time</label>
+            <input id="choice-n" data-choice="possibilities" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2">
+          </div>
+          <div>
+            <label for="choice-k" data-i18n="choice.repeats">Number of times</label>
+            <input id="choice-k" data-choice="repeats" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="8">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="choice-preset-coin" data-choice-preset="coin" aria-pressed="true" data-i18n="choice.preset.coin">Fair coin — 2 outcomes, 8 times</button>
+          <button type="button" class="secondary" id="choice-preset-die" data-choice-preset="die" aria-pressed="false" data-i18n="choice.preset.die">Die — 6 faces, 2 rolls</button>
+          <button type="button" class="secondary" id="choice-preset-alphabet" data-choice-preset="alphabet" aria-pressed="false" data-i18n="choice.preset.alphabet">Alphabet — 26 letters, 3 times</button>
+        </div>
+        <p id="choice-preset-help" class="note" data-i18n="choice.presetHelp">Each button fills both numbers. The selected button stays marked. Changing a number clears that selection.</p>
+        <p id="choice-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="choice.perLabel">Information for one turn</p>
+            <output id="choice-per" for="choice-n"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="choice.totalLabel">Information for the whole sequence</p>
+            <output id="choice-total" for="choice-n choice-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="choice.countLabel">Possible sequences</p>
+            <output id="choice-count"></output>
+          </div>
+        </div>
+        <p id="choice-status" role="status" aria-live="polite"></p>
+        <h3 id="choice-chart-label" data-i18n="choice.chart">Information needed</h3>
+        <p class="note" data-i18n="choice.chartNote">Left to right is the number of times. Upwards is the information needed to record the sequence. The line is that information. The dot is the result for the number of times you entered.</p>
+        <div id="choice-chart-block">
+          <div class="throughput-plot-wrap">
+            <p id="choice-y-label" class="axis-name" data-i18n="choice.axisInfo">Information needed (bits)</p>
+            <div id="choice-y-ticks" class="throughput-y-ticks"></div>
+            <div class="throughput-plot-frame">
+              <svg id="choice-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="choice-chart-label" aria-describedby="choice-legend"></svg>
+            </div>
+            <div id="choice-x-ticks" class="throughput-x-ticks"></div>
+            <p id="choice-x-label" class="axis-name" data-i18n="choice.axisRepeats">Number of times</p>
+          </div>
+          <ul id="choice-legend" class="plot-legend"></ul>
+        </div>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="choice-reset" class="secondary" data-i18n="choice.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="choice-sources">
+        <summary data-i18n="choice.sources">Technical and math details</summary>
+        <p class="note" data-i18n="choice.assumptions">The count treats every outcome as equally likely, and every turn as independent of the others. It does not measure meaning, knowledge, or how a real file would be compressed.</p>
+        <p class="note" data-i18n="choice.formula">One turn is log2 of the number of outcomes. The whole sequence multiplies that by the number of times. The number of sequences is the outcomes raised to that number of times.</p>
+        <p id="choice-code" class="note"></p>
+        <p class="note" data-i18n="choice.sourceText">Creating Worlds, Cultivating Information, discusses selective information with a logarithmic measure, and contrasts a small set of element statements, about 100, with a vocabulary-sized set. This page does not treat 100 as a quoted exact vocabulary, and it does not quote a coin, a die or an alphabet from the book.</p>
+        <p class="note" data-i18n="choice.codeNote">The result above can be a fraction of a bit. That is the theoretical amount. A fixed-length code stores a whole number of yes-or-no bits per turn, which can be more. A die is about 2.585 bits in theory and 3 stored bits in that kind of code. Those are different numbers.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="choice.exactPer">Ideal bits, one selection</dt><dd id="choice-exact-per"></dd></div>
+          <div><dt data-i18n="choice.exactTotal">Ideal bits, all repetitions</dt><dd id="choice-exact-total"></dd></div>
+          <div><dt data-i18n="choice.exactCode">Fixed-length code bits</dt><dd id="choice-exact-code"></dd></div>
+          <div><dt data-i18n="choice.exactCount">Combinations or log10 of the count</dt><dd id="choice-exact-count"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="throughput-card" class="lifetime-card" aria-labelledby="throughput-title">
+      <p class="kicker" data-i18n="throughput.path">A Lampoon of Evolution · Constructing Life</p>
+      <h2 id="throughput-title" data-i18n="throughput.title">How much information fits in a given time?</h2>
+      <p data-i18n="throughput.lead">Constructing Life sets three unlike historical figures side by side: a low-redundancy printed page of about 10,000 bits, a human mind coping with about 25 bits each second, and a bacterium producing at least 1,000 bits each second. This card divides a quantity by a constant rate, or multiplies that rate by a duration. It does not show that a bacterium reads a page, and 25 bits/s is not a measured brain bandwidth.</p>
+      <form id="throughput-form">
+        <div class="growth-fields">
+          <div>
+            <label for="throughput-quantity" data-i18n="throughput.quantity">Information quantity</label>
+            <input id="throughput-quantity" data-throughput="quantity" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10000">
+          </div>
+          <div>
+            <label for="throughput-quantity-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-quantity-unit" data-throughput="quantityUnit">
+              <option value="0" data-i18n="throughput.unit.bits" selected>Bits</option>
+              <option value="1" data-i18n="throughput.unit.kilobits">Kilobits (1,000 bits)</option>
+              <option value="2" data-i18n="throughput.unit.pages">Historical page (10,000 bits)</option>
+            </select>
+          </div>
+          <div>
+            <label for="throughput-rate" data-i18n="throughput.rate">Rate</label>
+            <input id="throughput-rate" data-throughput="rate" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="25">
+          </div>
+          <div>
+            <label for="throughput-rate-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-rate-unit" data-throughput="rateUnit">
+              <option value="0" data-i18n="throughput.rateUnit.bps" selected>Bits per second</option>
+              <option value="1" data-i18n="throughput.rateUnit.bpm">Bits per minute</option>
+              <option value="2" data-i18n="throughput.rateUnit.kbps">Kilobits per second (1,000 bits/s)</option>
+              <option value="3" data-i18n="throughput.rateUnit.gbps">Gigabits per second (1,000,000,000 bits/s)</option>
+            </select>
+          </div>
+          <div>
+            <label for="throughput-duration" data-i18n="throughput.duration">Duration</label>
+            <input id="throughput-duration" data-throughput="duration" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="400">
+          </div>
+          <div>
+            <label for="throughput-duration-unit" data-i18n="delay.unit">Unit</label>
+            <select id="throughput-duration-unit" data-throughput="durationUnit">
+              <option value="0" data-i18n="throughput.durationUnit.s" selected>Seconds</option>
+              <option value="1" data-i18n="throughput.durationUnit.min">Minutes</option>
+              <option value="2" data-i18n="throughput.durationUnit.h">Hours</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="throughput-preset-page" data-throughput-preset="1" data-i18n="throughput.preset.page">Lem’s example (default)</button>
+          <button type="button" class="secondary" id="throughput-preset-human" data-throughput-preset="2" data-i18n="throughput.preset.human">Human figure, about 25 bits/s</button>
+          <button type="button" class="secondary" id="throughput-preset-bacterial" data-throughput-preset="3" data-i18n="throughput.preset.bacterial">Bacterial figure, at least 1,000 bits/s</button>
+          <button type="button" class="secondary" id="throughput-preset-link" data-throughput-preset="4" data-i18n="throughput.preset.link">1000BASE-T line rate</button>
+        </div>
+        <p id="throughput-preset-help" class="note" data-i18n="throughput.presetHelp">Lem’s example restores 10,000 bits, 25 bits/s and 400 s, and draws the human and bacterial curves.</p>
+        <p id="throughput-note" class="note"></p>
+        <div id="throughput-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" id="throughput-time-label" data-i18n="throughput.timeLabel">Time for this quantity</p>
+            <output id="throughput-time" for="throughput-quantity throughput-rate"></output>
+          </div>
+          <div>
+            <p class="live-label" id="throughput-total-label" data-i18n="throughput.totalLabel">Information in this duration</p>
+            <output id="throughput-total" for="throughput-rate throughput-duration"></output>
+          </div>
+          <div>
+            <p class="live-label" id="throughput-ratio-label" data-i18n="throughput.ratioLabel">Historical rate ratio</p>
+            <output id="throughput-ratio"></output>
+          </div>
+        </div>
+        <p id="throughput-status" role="status" aria-live="polite"></p>
+        <h3 id="throughput-scale-label" data-i18n="throughput.compare">Information transmitted</h3>
+        <div class="button-row" role="group" aria-labelledby="throughput-scale-label">
+          <button type="button" id="throughput-linear" aria-pressed="true" data-i18n="throughput.linear">Linear</button>
+          <button type="button" id="throughput-log" class="secondary" aria-pressed="false" data-i18n="throughput.log">Logarithmic</button>
+        </div>
+        <p id="throughput-scale-note" class="note" data-i18n="throughput.linearNote">Linear scales. Information grows in proportion to time. The slope is the rate.</p>
+        <p id="throughput-plot-empty" class="note" hidden></p>
+        <div id="throughput-chart-block">
+        <div id="throughput-plot-wrap" class="throughput-plot-wrap">
+          <p id="throughput-y-label" class="axis-name" data-i18n="throughput.axisInfo">Information transmitted (bits)</p>
+          <div id="throughput-y-ticks" class="throughput-y-ticks"></div>
+          <div class="throughput-plot-frame">
+            <svg id="throughput-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="throughput-scale-label" aria-describedby="throughput-legend throughput-compare"></svg>
+            <div id="throughput-plot-labels" class="plot-labels"></div>
+          </div>
+          <div id="throughput-x-ticks" class="throughput-x-ticks"></div>
+          <p id="throughput-x-label" class="axis-name" data-i18n="throughput.axisTime">Time (unit on each tick)</p>
+        </div>
+        <ul id="throughput-legend" class="plot-legend" hidden></ul>
+        </div>
+        <ul id="throughput-compare"></ul>
+        <div id="throughput-link" class="link-reference">
+          <h3 data-i18n="throughput.linkTitle">Digital link, nominal line rate</h3>
+          <p data-i18n="throughput.linkLead">This is the nominal 1000 Mb/s line rate of IEEE 802.3 1000BASE-T. It is not framed payload, not a measured processing speed, and not machine understanding. The time is an ideal constant rate for the quantity above. When this rate is chosen, the chart compares it with the human figure only.</p>
+          <p class="field-label" data-i18n="throughput.linkRateLabel">Nominal line rate</p>
+          <output id="throughput-link-rate"></output>
+          <p class="field-label" data-i18n="throughput.linkTimeLabel">Time for this quantity at that rate</p>
+          <output id="throughput-link-time"></output>
+        </div>
+        <p class="note" data-i18n="throughput.limit">The historical human and bacterial figures are not the same kind of information as each other, or as this line rate. Spike counts, DNA alphabet capacity and task information are not on the chart.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="throughput-reset" class="secondary" data-i18n="throughput.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="throughput-sources">
+        <summary data-i18n="throughput.sources">Sources and what is not compared</summary>
+        <p class="note" data-i18n="throughput.sourceText">The three figures are the historical comparison in Stanisław Lem, Summa Technologiae, Constructing Life.</p>
+        <p class="note" data-i18n="throughput.linkSource">The digital reference is the nominal 1000 Mb/s operation in IEEE Std 802.3 (1000BASE-T, originally IEEE 802.3ab-1999; the GMII in Clause 35 supports only 1000 Mb/s). One megabit is 1,000,000 bits. The time divides the quantity by 1,000,000,000 bits/s and ignores framing, interpacket gaps and encoding, so it is not payload throughput.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="throughput.exactQuantity">Quantity in bits</dt><dd id="throughput-exact-quantity"></dd></div>
+          <div><dt data-i18n="throughput.exactRate">Rate in bits per second</dt><dd id="throughput-exact-rate"></dd></div>
+          <div><dt data-i18n="throughput.exactTime">Time in seconds</dt><dd id="throughput-exact-time"></dd></div>
+          <div><dt data-i18n="throughput.exactTotal">Total in bits</dt><dd id="throughput-exact-total"></dd></div>
+          <div><dt data-i18n="throughput.exactLink">Digital-link seconds</dt><dd id="throughput-exact-link"></dd></div>
+        </dl>
+      </details>
+    </section>
+    </div>
+
+    <section id="catalogue" aria-labelledby="catalogue-label">
+      <h2 id="catalogue-label" data-i18n="catalogue.heading">Sections</h2>
+      <p data-i18n="catalogue.intro">Book order is independent of this list. Sorting and filtering do not renumber the chapters.</p>
+      <p data-i18n="catalogue.plannedNote">Planned sections are not operational and are not counted as working calculators.</p>
+      <details id="catalogue-tools">
+        <summary data-i18n="catalogue.tools">Search, order and filters</summary>
+        <div class="catalogue-controls">
+          <div class="search-wrap">
+            <label for="search" data-i18n="catalogue.search">Search titles, summaries and topics</label>
+            <input id="search" type="search" autocomplete="off">
+          </div>
+          <div class="sort-wrap">
+            <label for="sort" data-i18n="catalogue.sort">Order</label>
+            <select id="sort">
+              <option value="reading" data-i18n="catalogue.sort.reading" selected>Reading order</option>
+              <option value="calculators" data-i18n="catalogue.sort.calculators">Calculators first</option>
+              <option value="topic" data-i18n="catalogue.sort.topic">Topic</option>
+              <option value="title" data-i18n="catalogue.sort.title">Title</option>
+            </select>
+          </div>
+        </div>
+        <div id="filters" class="filters"></div>
+        <div class="button-row">
+          <button type="button" id="open-all" data-i18n="catalogue.openAll">Open all</button>
+          <button type="button" id="close-all" class="secondary" data-i18n="catalogue.closeAll">Close all</button>
+          <button type="button" id="clear-filters" class="secondary" data-i18n="catalogue.clear" aria-describedby="clear-help">Clear filters</button>
+        </div>
+        <p id="clear-help" class="note" data-i18n="catalogue.clearHelp"></p>
+        <dl class="counts">
+          <div><dt data-i18n="catalogue.results">Results</dt><dd id="result-count">0</dd></div>
+          <div><dt data-i18n="catalogue.activeFilters">Active filters</dt><dd id="active-count">0</dd></div>
+          <div><dt data-i18n="catalogue.workingCalculators">Working calculators</dt><dd id="working-count">0</dd></div>
+        </dl>
+      </details>
+      <div id="catalogue-results"></div>
+    </section>
+
+    <section id="about" aria-labelledby="about-label">
+      <h2 id="about-label" data-i18n="about.heading">About this release</h2>
+      <p data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
+      <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
+      <p data-i18n="about.scope"></p>
+      <p data-i18n="about.queue"></p>
+      <p data-i18n="about.decimal"></p>
+      <p data-i18n="app.licence"></p>
+    </section>
+
+    <details id="technical-details">
+      <summary data-i18n="diag.toggle">Technical details</summary>
+      <section id="diagnostics" aria-labelledby="diagnostics-label">
+        <h2 id="diagnostics-label" data-i18n="diag.heading">Release identity</h2>
+        <dl class="diag">
+          <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.2</dd></div>
+          <div><dt data-i18n="diag.commit">Published commit</dt><dd id="diag-commit"></dd></div>
+          <div><dt data-i18n="diag.module">Module fingerprint</dt><dd id="diag-module"></dd></div>
+          <div><dt data-i18n="diag.toolchain">Toolchain</dt><dd id="diag-toolchain"></dd></div>
+          <div><dt data-i18n="diag.execution">Execution</dt><dd id="diag-execution" data-execution="idle"></dd></div>
+          <div><dt data-i18n="diag.calls">Ada calls</dt><dd id="diag-calls">0</dd></div>
+          <div><dt data-i18n="diag.locale">Locale</dt><dd id="diag-locale">en-GB</dd></div>
+          <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
+          <div><dt data-i18n="lifetime.exactMean">Exact mean (years)</dt><dd id="diag-exact-mean">—</dd></div>
+        </dl>
+      </section>
+      <div class="addition-block">
+        <p class="kicker" data-i18n="type.technical-demo">Technical demonstration</p>
+        <h2 data-i18n="demo.friendlyTitle">Add two numbers</h2>
+        <p data-i18n="demo.lead">These two numbers are already filled in. Change either one and the sum updates. Ada does the addition. This is a boundary test, not a chapter calculator.</p>
+        <form id="addition-form">
+          <div class="operands">
+            <div>
+              <label for="operand-left" data-i18n="demo.left">Left operand</label>
+              <input id="operand-left" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="2">
+            </div>
+            <div>
+              <label for="operand-right" data-i18n="demo.right">Right operand</label>
+              <input id="operand-right" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="decimal-note" value="3">
+            </div>
+          </div>
+          <div id="live-result" class="live-result addition-live">
+            <p class="live-label" data-i18n="demo.result">Result</p>
+            <output id="addition-result" for="operand-left operand-right"></output>
+          </div>
+          <p id="addition-status" role="status" aria-live="polite"></p>
+          <div class="button-row">
+            <button type="submit" data-i18n="demo.compute">Compute</button>
+            <button type="button" id="reset-demo" class="secondary" data-i18n="demo.reset">Reset example</button>
+          </div>
+          <p id="decimal-note" class="note" data-i18n="demo.separator">Use a dot as the decimal separator in every language. Ada receives the binary64 value, not translated text.</p>
+          <p class="note" data-i18n="demo.contract">Contract: finite binary64 addition. A negative finite operand is an ordinary value. A non-finite operand or a non-finite sum is an error. Underflow to a finite result, including zero, is success. Tolerance for the published integer fixtures is exact binary64 equality.</p>
+          <div class="button-row quiet-actions">
+            <button type="button" id="retry-load" class="secondary" data-i18n="demo.retry">Retry Ada module</button>
+            <button type="button" id="simulate-failure" class="secondary" data-i18n="demo.simulate">Simulate module loading failure</button>
+          </div>
+        </form>
+      </div>
+    </details>
+    <noscript>
+      <p>JavaScript is required to load the Ada module. This page does not calculate a result without it.</p>
+    </noscript>
+  </main>
+  <dialog id="debug-dialog" aria-labelledby="debug-title">
+    <h2 id="debug-title" data-i18n="debug.title">Debug</h2>
+    <p data-i18n="debug.lead">Save a report of this page on your computer. Nothing is uploaded.</p>
+    <label class="field-label" for="debug-expectation" data-i18n="debug.expectation">What would you have expected?</label>
+    <textarea id="debug-expectation"></textarea>
+    <p id="debug-save-note" class="note" data-i18n="debug.saveNote">Saving downloads a text file. This page cannot force the system save window.</p>
+    <div class="button-row">
+      <button type="button" id="debug-save" data-i18n="debug.save">Save file</button>
+      <button type="button" id="debug-cancel" class="secondary" data-i18n="debug.cancel">Cancel</button>
+    </div>
+  </dialog>
+  <footer class="wrap">
+    <p><a href="#about" data-i18n="nav.about">About</a></p>
+    <p data-i18n="footer.note"></p>
+  </footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
