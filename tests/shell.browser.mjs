@@ -167,7 +167,9 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.20/);
+  assert.match(report, /Release: 0\.1\.21/);
+  assert.match(report, /Preset: book/);
+  assert.match(report, /Ratio: 0\.25/);
   assert.match(report, /Preset: historical/);
   assert.match(report, /Preset: coin/);
   assert.match(report, /Preset: small/);
@@ -293,6 +295,43 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#lottery-status")?.dataset.status === "5");
   await page.click("#lottery-reset");
   await page.waitForFunction(() => document.querySelector("#lottery-expected")?.textContent === "0.6");
+  await page.waitForFunction(() => document.querySelector("#research-ratio")?.textContent === "0.25");
+  assert.equal(await page.locator("#research-discoveries").textContent(), "2");
+  assert.equal(await page.locator("#research-researchers").textContent(), "8");
+  assert.equal(await page.locator("#research-preset-book").getAttribute("aria-pressed"), "true");
+  assert.match(await page.locator("#research-note").textContent(), /not a forecast/);
+  assert.equal(await page.locator("#research-index-plot polyline").count(), 2);
+  assert.equal(await page.locator("#research-ratio-plot polyline").count(), 1);
+  assert.equal(await page.locator("#research-index-legend li").count(), 3);
+  await shotElement(page, label, "research-book-desktop.png", "#research-card");
+  await page.click("#research-preset-pace");
+  await page.waitForFunction(() => document.querySelector("#research-ratio")?.textContent === "1");
+  assert.equal(await page.locator("#research-discoveries").textContent(), "2");
+  assert.equal(await page.locator("#research-researchers").textContent(), "2");
+  assert.equal(await page.locator("#research-rd").inputValue(), "30");
+  assert.equal(await page.locator("#research-preset-pace").getAttribute("aria-pressed"), "true");
+  assert.match(await page.locator("#research-note").textContent(), /not a figure from the book/);
+  await page.fill("#research-t", "10");
+  await page.waitForFunction(() => document.querySelector("#research-preset-pace")?.getAttribute("aria-pressed") === "false");
+  assert.match(await page.locator("#research-note").textContent(), /After 10 years/);
+  await page.fill("#research-d0", "0");
+  await page.waitForFunction(() => document.querySelector("#research-status")?.dataset.status === "2");
+  assert.equal(await page.locator("#research-ratio").textContent(), "");
+  await page.fill("#research-d0", "1");
+  await page.fill("#research-dd", "0");
+  await page.waitForFunction(() => document.querySelector("#research-status")?.dataset.status === "4");
+  await page.fill("#research-dd", "30");
+  await page.fill("#research-t", "-1");
+  await page.waitForFunction(() => document.querySelector("#research-status")?.dataset.status === "3");
+  await page.fill("#research-t", "20000");
+  await page.fill("#research-dd", "1");
+  await page.waitForFunction(() => document.querySelector("#research-status")?.dataset.status === "5");
+  await page.click("#research-reset");
+  await page.waitForFunction(() => document.querySelector("#research-ratio")?.textContent === "0.25");
+  await page.locator('a[href="#intellectronics/the-megabit-bomb"]').first().click();
+  await page.waitForFunction(() => document.querySelector("#reading-title")?.textContent === "The Megabit Bomb" && !document.querySelector("#research-card").hidden && document.querySelector("#growth-card").hidden && document.querySelector("#lottery-card").hidden);
+  await page.click("#show-all");
+  await page.waitForFunction(() => location.hash === "" && !document.querySelector("#growth-card").hidden);
   assert.equal(await page.locator("#choice-n").inputValue(), "2");
   assert.equal(await page.locator("#choice-k").inputValue(), "8");
   await page.locator("#choice-chart-block").scrollIntoViewIfNeeded();
@@ -795,7 +834,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.20");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.21");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -852,7 +891,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "5");
+  assert.equal(await page.locator("#working-count").textContent(), "6");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -869,7 +908,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "5");
+  assert.equal(await page.locator("#working-count").textContent(), "6");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -878,6 +917,7 @@ async function exercise(page, label) {
   assert.equal(await cardVisible("#throughput-card"), true);
   assert.equal(await cardVisible("#choice-card"), true);
   assert.equal(await cardVisible("#lottery-card"), true);
+  assert.equal(await cardVisible("#research-card"), true);
   assert.equal(await page.locator("#show-all").getAttribute("aria-pressed"), "true");
   await page.locator('a[href="#phantomology"]').click();
   await page.waitForFunction(() => document.querySelector("#reading")?.dataset.route === "phantomology");
@@ -887,6 +927,7 @@ async function exercise(page, label) {
   assert.equal(await cardVisible("#throughput-card"), false);
   assert.equal(await cardVisible("#choice-card"), false);
   assert.equal(await cardVisible("#lottery-card"), false);
+  assert.equal(await cardVisible("#research-card"), false);
   assert.equal(await page.locator('[data-chapter-link="phantomology"]').getAttribute("aria-current"), "true");
   assert.equal(await page.locator("#delay-one-way").textContent(), "1000 years");
   await page.click("#delay-preset-moon");
@@ -1001,6 +1042,8 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#choice-preset-coin").textContent(), t("de", "choice.preset.coin"));
   assert.match(await page.locator("#choice-note").textContent(), /Acht Münzwürfe/);
   assert.equal(await page.locator("label[for='lottery-m']").textContent(), t("de", "lottery.tickets"));
+  assert.equal(await page.locator("label[for='research-d0']").textContent(), t("de", "research.discoveries0"));
+  assert.match(await page.locator("#research-note").textContent(), /keine Prognose/);
   assert.match(await page.locator("#lottery-note").textContent(), /Durchschnitt/);
   assert.equal(await page.locator("#choice-total").textContent(), "8 Bit");
   assert.equal(await page.locator("#choice-legend li").nth(0).innerText(), t("de", "choice.series"));
@@ -1116,6 +1159,9 @@ async function exercise(page, label) {
   await page.click("#lottery-preset-small");
   await page.waitForFunction(() => document.querySelector("#lottery-none")?.textContent === "7/15");
   await shotElement(page, label, "lottery-small-narrow.png", "#lottery-card");
+  await page.click("#research-preset-book");
+  await page.waitForFunction(() => document.querySelector("#research-ratio")?.textContent === "0.25");
+  await shotElement(page, label, "research-book-narrow.png", "#research-card");
   await page.locator('a[href="#creating-worlds"]').click();
   await page.waitForFunction(() => {
     const reading = document.querySelector("#reading");

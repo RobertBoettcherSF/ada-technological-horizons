@@ -6,6 +6,15 @@ export const DELAY_DEFAULTS = {
   unit: "2",
 };
 
+export const RESEARCH_DEFAULTS = {
+  discoveries0: "1",
+  researchers0: "1",
+  discoveryDoubling: "30",
+  researcherDoubling: "10",
+  elapsed: "30",
+  preset: "book",
+};
+
 export const LOTTERY_DEFAULTS = {
   tickets: "10",
   prizes: "2",
@@ -72,6 +81,7 @@ export function createState() {
     throughput: { ...THROUGHPUT_DEFAULTS },
     choice: { ...CHOICE_DEFAULTS },
     lottery: { ...LOTTERY_DEFAULTS },
+    research: { ...RESEARCH_DEFAULTS },
   };
 }
 
@@ -143,6 +153,14 @@ export function setLotteryInput(state, field, value) {
 
 export function resetLottery(state) {
   return { ...state, lottery: { ...LOTTERY_DEFAULTS } };
+}
+
+export function setResearchInput(state, field, value) {
+  return { ...state, research: { ...state.research, [field]: value } };
+}
+
+export function resetResearch(state) {
+  return { ...state, research: { ...RESEARCH_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {

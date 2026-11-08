@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -489,6 +489,40 @@ test("lottery exports keep the hypergeometric chance off zero when it underflows
   assert.equal(callLottery(session, 10, 11, 1).status, 4);
   assert.equal(callLottery(session, 0, 0, 0).status, 3);
   assert.equal(callLottery(session, 0, 0, 0).samples.length, 0);
+});
+
+test("research exports keep the book ratio at one quarter", async (t) => {
+  if (!fs.existsSync(wasmPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const book = callResearch(session, 1, 1, 30, 10, 30);
+  assert.equal(book.status, 0);
+  assert.equal(book.discoveries, 2);
+  assert.equal(book.researchers, 8);
+  assert.equal(book.ratio, 0.25);
+  assert.equal(book.samples[0].time, 0);
+  assert.equal(book.samples.at(-1).ratio, 0.25);
+  const pace = callResearch(session, 1, 1, 30, 30, 30);
+  assert.equal(pace.discoveries, 2);
+  assert.equal(pace.researchers, 2);
+  assert.equal(pace.ratio, 1);
+  assert.equal(callResearch(session, 1, 1, 30, 10, 0).ratio, 1);
+  assert.equal(callResearch(session, 0, 1, 30, 10, 30).status, 2);
+  assert.equal(callResearch(session, 1, 1, 0, 10, 30).status, 4);
+  assert.equal(callResearch(session, 0, 1, 30, 10, 30).samples.length, 0);
 });
 
 test("a failed module load does not invent a sum", async () => {

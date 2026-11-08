@@ -442,6 +442,41 @@ export function callLottery(session, tickets, prizes, bought) {
   };
 }
 
+export function callResearch(session, discoveries0, researchers0, discoveryDoubling, researcherDoubling, elapsed) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_research_f64(
+    discoveries0,
+    researchers0,
+    discoveryDoubling,
+    researcherDoubling,
+    elapsed,
+  );
+  session.invocations += 1;
+  const ready = status === 0;
+  const count = ready ? session.exports.ath_research_sample_count() : 0;
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      time: session.exports.ath_research_sample_time(index),
+      discoveries: session.exports.ath_research_sample_discoveries(index),
+      researchers: session.exports.ath_research_sample_researchers(index),
+      ratio: session.exports.ath_research_sample_ratio(index),
+    });
+  }
+  return {
+    status,
+    discoveries: ready ? session.exports.ath_research_discoveries() : null,
+    researchers: ready ? session.exports.ath_research_researchers() : null,
+    ratio: ready ? session.exports.ath_research_ratio() : null,
+    xMax: ready ? session.exports.ath_research_x_max() : null,
+    indexMax: ready ? session.exports.ath_research_index_max() : null,
+    ratioMax: ready ? session.exports.ath_research_ratio_max() : null,
+    samples,
+  };
+}
+
 export function callAddition(session, left, right) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");

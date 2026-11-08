@@ -164,6 +164,14 @@ export const sections = RAW.map((entry, index) => {
       summaryKey: "summary.choice",
     };
   }
+  if (withOrder.id === "intellectronics/the-megabit-bomb") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.research",
+    };
+  }
   if (withOrder.id === "intellectronics/return-to-earth") {
     return {
       ...withOrder,

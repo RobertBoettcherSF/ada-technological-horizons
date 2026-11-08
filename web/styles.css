@@ -524,6 +524,25 @@ button.collapse {
 }
 #lottery-card .throughput-plot-frame { overflow: hidden; }
 #lottery-card .throughput-x-ticks span:last-child { text-align: right; }
+#research-index-plot .series-discoveries,
+.legend-swatch .series-discoveries,
+#research-ratio-plot .series-ratio,
+.legend-swatch .series-ratio { stroke: var(--lime); stroke-width: 2.5; }
+#research-index-plot .series-researchers,
+.legend-swatch .series-researchers { stroke: var(--cyan); stroke-width: 2.5; }
+#research-index-plot .research-mark,
+#research-ratio-plot .research-mark,
+.legend-swatch .research-mark { fill: var(--ink); stroke: none; }
+#research-card .preset-row button,
+#lottery-card .preset-row button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+#research-card .throughput-plot-frame,
+#lottery-card .throughput-plot-frame { overflow: hidden; }
+#research-card .throughput-x-ticks span:last-child,
+#lottery-card .throughput-x-ticks span:last-child { text-align: right; }
 #lottery-expected-plot .series-lottery,
 .legend-swatch .series-lottery { stroke: var(--lime); stroke-width: 2.5; }
 #lottery-chance-plot .series-lottery-chance,

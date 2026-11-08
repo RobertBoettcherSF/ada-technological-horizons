@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.20">
+  <meta name="ath-release" content="0.1.21">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.20</p>
+        <p class="release-pill" id="header-version">0.1.21</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -328,6 +328,101 @@
           <div><dt data-i18n="lottery.exactExpected">Expected prizes</dt><dd id="lottery-exact-expected"></dd></div>
           <div><dt data-i18n="lottery.exactNone">Chance of winning nothing</dt><dd id="lottery-exact-none"></dd></div>
           <div><dt data-i18n="lottery.exactLog">Base-10 log of that chance</dt><dd id="lottery-exact-log"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="research-card" class="lifetime-card" aria-labelledby="research-title">
+      <p class="kicker" data-i18n="research.path">Intellectronics · The Megabit Bomb</p>
+      <h2 id="research-title" data-i18n="research.title">What happens when the researcher index doubles faster than discoveries?</h2>
+      <p data-i18n="research.lead">Two indices each start at 1. That starting 1 is our scale, not a census. In the book’s comparison, discoveries double every 30 years and the researcher index doubles every 10. The page follows both curves and divides them. It does not predict that hiring a person creates a discovery.</p>
+      <form id="research-form">
+        <div class="growth-fields">
+          <div>
+            <label for="research-d0" data-i18n="research.discoveries0">Discovery index at the start</label>
+            <input id="research-d0" data-research="discoveries0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="research-r0" data-i18n="research.researchers0">Researcher index at the start</label>
+            <input id="research-r0" data-research="researchers0" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
+          </div>
+          <div>
+            <label for="research-dd" data-i18n="research.discoveryDoubling">Years for discoveries to double</label>
+            <input id="research-dd" data-research="discoveryDoubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+          <div>
+            <label for="research-rd" data-i18n="research.researcherDoubling">Years for the researcher index to double</label>
+            <input id="research-rd" data-research="researcherDoubling" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10">
+          </div>
+          <div>
+            <label for="research-t" data-i18n="research.elapsed">Years to look ahead</label>
+            <input id="research-t" data-research="elapsed" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="research-preset-book" data-research-preset="book" aria-pressed="true" data-i18n="research.preset.book">Book times — discoveries 30 years, researchers 10 years, after 30 years</button>
+          <button type="button" class="secondary" id="research-preset-pace" data-research-preset="pace" aria-pressed="false" data-i18n="research.preset.pace">Same pace — both double every 30 years, after 30 years</button>
+        </div>
+        <p class="note" data-i18n="research.presetHelp">Book times fill the 30-year and 10-year doublings and look 30 years ahead. Same pace sets both doublings to 30 years, so you can see the indices stay in step. Same pace is ours, not a figure from the book. Changing a number clears the selected button.</p>
+        <p id="research-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="research.discoveryLabel">Discovery index</p>
+            <output id="research-discoveries" for="research-d0 research-dd research-t"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="research.researcherLabel">Researcher index</p>
+            <output id="research-researchers" for="research-r0 research-rd research-t"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="research.ratioLabel">Discoveries per researcher index</p>
+            <output id="research-ratio" for="research-d0 research-r0 research-dd research-rd research-t"></output>
+          </div>
+        </div>
+        <p class="note" data-i18n="research.ratioNote">The ratio is the discovery index divided by the researcher index. It is not a count of discoveries each person will make.</p>
+        <p id="research-status" role="status" aria-live="polite"></p>
+        <div class="lottery-charts">
+          <div>
+            <h3 id="research-index-label" data-i18n="research.chartIndex">The two indices</h3>
+            <div class="throughput-plot-wrap">
+              <p class="axis-name" data-i18n="research.axisIndex">Index</p>
+              <div id="research-index-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="research-index-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="research-index-label" aria-describedby="research-index-legend"></svg>
+              </div>
+              <div id="research-index-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="research.axisYears">Years</p>
+            </div>
+            <ul id="research-index-legend" class="plot-legend"></ul>
+          </div>
+          <div>
+            <h3 id="research-ratio-chart-label" data-i18n="research.chartRatio">Discoveries per researcher index</h3>
+            <div class="throughput-plot-wrap">
+              <p class="axis-name" data-i18n="research.axisRatio">Discoveries per researcher index</p>
+              <div id="research-ratio-y-ticks" class="throughput-y-ticks"></div>
+              <div class="throughput-plot-frame">
+                <svg id="research-ratio-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="research-ratio-chart-label" aria-describedby="research-ratio-legend"></svg>
+              </div>
+              <div id="research-ratio-x-ticks" class="throughput-x-ticks"></div>
+              <p class="axis-name" data-i18n="research.axisYears">Years</p>
+            </div>
+            <ul id="research-ratio-legend" class="plot-legend"></ul>
+          </div>
+        </div>
+        <p class="note" data-i18n="research.chartNote">Years run left to right. The left chart shows both indices on one scale. The right chart is their ratio, on its own scale. The dot is the year you asked about.</p>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="research-reset" class="secondary" data-i18n="research.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="research-sources">
+        <summary data-i18n="research.sources">Technical and math details</summary>
+        <p class="note" data-i18n="research.formula">Each index is its start times 2 raised to years divided by its doubling time. The ratio divides the discovery index by the researcher index. The curves are samples of those two powers.</p>
+        <p class="note" data-i18n="research.limitation">The Megabit Bomb is the section for this comparison. The 30-year and 10-year doublings are the book times used here. Starting both indices at 1 is our scale. These are aggregate indices. There is no saturation date, and the page does not claim that one more researcher produces one more discovery.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="research.exactDiscoveries">Discovery index</dt><dd id="research-exact-discoveries"></dd></div>
+          <div><dt data-i18n="research.exactResearchers">Researcher index</dt><dd id="research-exact-researchers"></dd></div>
+          <div><dt data-i18n="research.exactRatio">Ratio</dt><dd id="research-exact-ratio"></dd></div>
         </dl>
       </details>
     </section>

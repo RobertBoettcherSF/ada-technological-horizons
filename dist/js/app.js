@@ -30,9 +30,11 @@ import {
   resetLifetime,
   resetChoice,
   resetLottery,
+  resetResearch,
   resetThroughput,
   setChoiceInput,
   setLotteryInput,
+  setResearchInput,
   setDelayInput,
   setDemoInput,
   setGrowthInput,
@@ -42,7 +44,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callExplore, callLottery, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callLottery, callResearch, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -134,6 +136,7 @@ const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "lottery-card", sectionId: "intellectronics/return-to-earth" },
+  { cardId: "research-card", sectionId: "intellectronics/the-megabit-bomb" },
   { cardId: "delay-card", sectionId: "phantomology/teletaxy-and-phantomultiplication" },
   { cardId: "throughput-card", sectionId: "a-lampoon-of-evolution/constructing-life" },
   { cardId: "choice-card", sectionId: "creating-worlds/cultivating-information" },
@@ -414,6 +417,9 @@ function renderCard(entry) {
   if (entry.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
     body.append(h("p", {}, [h("a", { href: "#lifetime-card", dataset: { i18n: "lifetime.open" } })]));
   }
+  if (entry.id === "intellectronics/the-megabit-bomb") {
+    body.append(h("p", {}, [h("a", { href: "#research-card", dataset: { i18n: "research.open" } })]));
+  }
   if (entry.id === "intellectronics/return-to-earth") {
     body.append(h("p", {}, [
       h("a", { href: "#growth-card", dataset: { i18n: "growth.open" } }),
@@ -458,6 +464,7 @@ function renderResults() {
     updateThroughput();
     updateChoice();
     updateLottery();
+    updateResearch();
     applyVisibility();
     return;
   }
@@ -504,6 +511,7 @@ function renderResults() {
   updateThroughput();
   updateChoice();
   updateLottery();
+  updateResearch();
   applyVisibility();
 }
 
@@ -2064,6 +2072,164 @@ function updateLottery() {
   updateDiagnostics();
 }
 
+const RESEARCH_PRESETS = {
+  book: { discoveries0: "1", researchers0: "1", discoveryDoubling: "30", researcherDoubling: "10", elapsed: "30" },
+  pace: { discoveries0: "1", researchers0: "1", discoveryDoubling: "30", researcherDoubling: "30", elapsed: "30" },
+};
+
+function researchSummary(outcome) {
+  const values = {
+    years: formatReadable(Number(state.research.elapsed), state.lang),
+    discoveries: formatReadable(outcome.discoveries, state.lang),
+    researchers: formatReadable(outcome.researchers, state.lang),
+    ratio: formatReadable(outcome.ratio, state.lang),
+  };
+  const key = state.research.preset === "book"
+    ? "research.summary.book"
+    : state.research.preset === "pace"
+      ? "research.summary.pace"
+      : "research.summary.custom";
+  return t(state.lang, key).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? "");
+}
+
+function researchMessage(code) {
+  if (code === "loading") return "demo.loading";
+  if (code === "load-failed") return "demo.loadFailed";
+  if (code === "empty") return "demo.empty";
+  if (code === "malformed") return "demo.malformed";
+  if (code === 0) return "research.ok";
+  if (code === 1) return "demo.nonFinite";
+  if (code === 2) return "research.notPositive";
+  if (code === 3) return "research.badYears";
+  if (code === 4) return "research.badDoubling";
+  if (code === 5) return "research.overflow";
+  return "demo.loadFailed";
+}
+
+function clearResearchView() {
+  for (const id of ["research-discoveries", "research-researchers", "research-ratio", "research-note", "research-exact-discoveries", "research-exact-researchers", "research-exact-ratio"]) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = "";
+  }
+  for (const id of ["research-index-plot", "research-ratio-plot", "research-index-legend", "research-ratio-legend", "research-index-x-ticks", "research-ratio-x-ticks", "research-index-y-ticks", "research-ratio-y-ticks"]) {
+    document.getElementById(id)?.replaceChildren();
+  }
+}
+
+function researchLine(plot, className, points) {
+  const line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("class", className);
+  line.setAttribute("fill", "none");
+  line.setAttribute("points", points.join(" "));
+  plot.append(line);
+}
+
+function researchMark(plot, x, y) {
+  const mark = document.createElementNS(SVG_NS, "circle");
+  mark.setAttribute("class", "research-mark");
+  mark.setAttribute("cx", String(x));
+  mark.setAttribute("cy", String(y));
+  mark.setAttribute("r", "1.8");
+  plot.append(mark);
+}
+
+function renderResearch(outcome) {
+  document.getElementById("research-discoveries").textContent = formatReadable(outcome.discoveries, state.lang);
+  document.getElementById("research-researchers").textContent = formatReadable(outcome.researchers, state.lang);
+  document.getElementById("research-ratio").textContent = formatReadable(outcome.ratio, state.lang);
+  document.getElementById("research-exact-discoveries").textContent = formatCanonical(outcome.discoveries);
+  document.getElementById("research-exact-researchers").textContent = formatCanonical(outcome.researchers);
+  document.getElementById("research-exact-ratio").textContent = formatCanonical(outcome.ratio);
+  const note = document.getElementById("research-note");
+  if (note) note.textContent = researchSummary(outcome);
+  for (const name of ["book", "pace"]) {
+    document.getElementById(`research-preset-${name}`)?.setAttribute("aria-pressed", state.research.preset === name ? "true" : "false");
+  }
+  const indexPlot = document.getElementById("research-index-plot");
+  const ratioPlot = document.getElementById("research-ratio-plot");
+  if (!indexPlot || !ratioPlot || !outcome.samples.length) return;
+  const xOf = (value) => (outcome.xMax === 0 ? 0 : (value / outcome.xMax) * 100);
+  const yOfIndex = (value) => (outcome.indexMax === 0 ? 100 : 100 - (value / outcome.indexMax) * 100);
+  const yOfRatio = (value) => (outcome.ratioMax === 0 ? 100 : 100 - (value / outcome.ratioMax) * 100);
+  researchLine(indexPlot, "series-discoveries", outcome.samples.map((sample) => `${xOf(sample.time)},${yOfIndex(sample.discoveries)}`));
+  researchLine(indexPlot, "series-researchers", outcome.samples.map((sample) => `${xOf(sample.time)},${yOfIndex(sample.researchers)}`));
+  researchLine(ratioPlot, "series-ratio", outcome.samples.map((sample) => `${xOf(sample.time)},${yOfRatio(sample.ratio)}`));
+  const end = outcome.samples[outcome.samples.length - 1];
+  researchMark(indexPlot, xOf(end.time), yOfIndex(outcome.discoveries));
+  researchMark(indexPlot, xOf(end.time), yOfIndex(outcome.researchers));
+  researchMark(ratioPlot, xOf(end.time), yOfRatio(outcome.ratio));
+  const indexLegend = document.getElementById("research-index-legend");
+  const ratioLegend = document.getElementById("research-ratio-legend");
+  indexLegend?.append(legendEntry("series-discoveries", t(state.lang, "research.seriesDiscoveries"), { role: "series" }));
+  indexLegend?.append(legendEntry("series-researchers", t(state.lang, "research.seriesResearchers"), { role: "series" }));
+  indexLegend?.append(legendEntry("", t(state.lang, "research.marker"), { role: "marker", mark: true, markClass: "research-mark" }));
+  ratioLegend?.append(legendEntry("series-ratio", t(state.lang, "research.seriesRatio"), { role: "series" }));
+  ratioLegend?.append(legendEntry("", t(state.lang, "research.marker"), { role: "marker", mark: true, markClass: "research-mark" }));
+  const place = (host, values, yOf) => {
+    if (!host) return;
+    for (const value of values) {
+      const tick = document.createElement("span");
+      tick.textContent = formatReadable(value, state.lang);
+      if (yOf) {
+        const y = yOf(value);
+        tick.style.top = `${y}%`;
+        tick.style.transform = y <= 0 ? "translateY(0)" : y >= 100 ? "translateY(-100%)" : "translateY(-50%)";
+      }
+      host.append(tick);
+    }
+  };
+  const xValues = [0, outcome.xMax].filter((value, index, all) => all.indexOf(value) === index);
+  place(document.getElementById("research-index-x-ticks"), xValues);
+  place(document.getElementById("research-ratio-x-ticks"), xValues);
+  const indexTicks = [outcome.indexMax, outcome.discoveries, outcome.researchers, 0]
+    .filter((value, index, all) => all.indexOf(value) === index);
+  place(document.getElementById("research-index-y-ticks"), indexTicks, yOfIndex);
+  const ratioTicks = [outcome.ratioMax, outcome.ratio, 0]
+    .filter((value, index, all) => all.indexOf(value) === index);
+  place(document.getElementById("research-ratio-y-ticks"), ratioTicks, yOfRatio);
+}
+
+function syncResearchForm() {
+  document.getElementById("research-d0").value = state.research.discoveries0;
+  document.getElementById("research-r0").value = state.research.researchers0;
+  document.getElementById("research-dd").value = state.research.discoveryDoubling;
+  document.getElementById("research-rd").value = state.research.researcherDoubling;
+  document.getElementById("research-t").value = state.research.elapsed;
+}
+
+function updateResearch() {
+  const statusNode = document.getElementById("research-status");
+  if (!statusNode) return;
+  clearResearchView();
+  let code = "loading";
+  if (session.phase === "loading") {
+    code = "loading";
+  } else if (session.phase !== "ready" || !session.exports) {
+    code = "load-failed";
+  } else {
+    const fields = ["discoveries0", "researchers0", "discoveryDoubling", "researcherDoubling", "elapsed"];
+    const parsed = fields.map((field) => interpretOperand(state.research[field]));
+    if (parsed.some((item) => item.kind === "empty")) code = "empty";
+    else if (parsed.some((item) => item.kind !== "value")) code = "malformed";
+    else {
+      const outcome = callResearch(session, ...parsed.map((item) => item.value));
+      code = outcome.status;
+      if (outcome.status === 0) {
+        try {
+          renderResearch(outcome);
+        } catch (error) {
+          clearResearchView();
+          code = "load-failed";
+          console.error(error);
+        }
+      }
+    }
+  }
+  statusNode.dataset.status = String(code);
+  statusNode.textContent = t(state.lang, researchMessage(code));
+  updateDiagnostics();
+}
+
 function debugReport() {
   const comment = document.getElementById("debug-expectation")?.value ?? "";
   const textOf = (id) => document.getElementById(id)?.textContent ?? "";
@@ -2127,6 +2293,18 @@ function debugReport() {
     `Link time: ${textOf("throughput-link-time")}`,
     `Status: ${textOf("throughput-status")}`,
     `Note: ${textOf("throughput-note")}`,
+    "",
+    "Researchers and discoveries",
+    `Discovery start: ${valueOf("research-d0")}`,
+    `Researcher start: ${valueOf("research-r0")}`,
+    `Discovery doubling: ${valueOf("research-dd")}`,
+    `Researcher doubling: ${valueOf("research-rd")}`,
+    `Years: ${valueOf("research-t")}`,
+    `Preset: ${state.research.preset}`,
+    `Discovery index: ${textOf("research-discoveries")}`,
+    `Researcher index: ${textOf("research-researchers")}`,
+    `Ratio: ${textOf("research-ratio")}`,
+    `Status: ${textOf("research-status")}`,
     "",
     "Lottery",
     `Tickets: ${valueOf("lottery-m")}`,
@@ -2216,6 +2394,7 @@ async function boot() {
   updateThroughput();
   updateChoice();
   updateLottery();
+  updateResearch();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -2239,6 +2418,7 @@ async function boot() {
   updateThroughput();
   updateChoice();
   updateLottery();
+  updateResearch();
 }
 
 function simulateFailure() {
@@ -2253,6 +2433,7 @@ function simulateFailure() {
   updateThroughput();
   updateChoice();
   updateLottery();
+  updateResearch();
 }
 
 function bind() {
@@ -2506,6 +2687,34 @@ function bind() {
       document.getElementById(`years-${index + 1}`).value = state.lifetime.durations[index];
     }
     updateLifetime();
+  });
+  document.getElementById("research-form").addEventListener("input", (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.dataset.research) return;
+    state = setResearchInput(state, field.dataset.research, field.value);
+    state = setResearchInput(state, "preset", "custom");
+    updateResearch();
+  });
+  document.getElementById("research-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateResearch();
+  });
+  document.getElementById("research-reset").addEventListener("click", () => {
+    state = resetResearch(state);
+    syncResearchForm();
+    updateResearch();
+  });
+  document.getElementById("research-form").addEventListener("click", (event) => {
+    const button = event.target instanceof HTMLElement ? event.target.closest("[data-research-preset]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const preset = RESEARCH_PRESETS[button.dataset.researchPreset];
+    if (!preset) return;
+    for (const [field, value] of Object.entries(preset)) {
+      state = setResearchInput(state, field, value);
+    }
+    state = setResearchInput(state, "preset", button.dataset.researchPreset);
+    syncResearchForm();
+    updateResearch();
   });
   document.getElementById("lottery-form").addEventListener("input", (event) => {
     const field = event.target;
