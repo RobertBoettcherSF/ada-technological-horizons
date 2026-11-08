@@ -6,6 +6,12 @@ export const DELAY_DEFAULTS = {
   unit: "2",
 };
 
+export const CHOICE_DEFAULTS = {
+  possibilities: "2",
+  repeats: "8",
+  preset: "coin",
+};
+
 export const THROUGHPUT_DEFAULTS = {
   quantity: "10000",
   quantityUnit: "0",
@@ -57,6 +63,7 @@ export function createState() {
     growth: { ...GROWTH_DEFAULTS },
     delay: { ...DELAY_DEFAULTS },
     throughput: { ...THROUGHPUT_DEFAULTS },
+    choice: { ...CHOICE_DEFAULTS },
   };
 }
 
@@ -112,6 +119,14 @@ export function setThroughputInput(state, field, value) {
 
 export function resetThroughput(state) {
   return { ...state, throughput: { ...THROUGHPUT_DEFAULTS } };
+}
+
+export function setChoiceInput(state, field, value) {
+  return { ...state, choice: { ...state.choice, [field]: value } };
+}
+
+export function resetChoice(state) {
+  return { ...state, choice: { ...CHOICE_DEFAULTS } };
 }
 
 export function toggleFilter(state, category, id) {

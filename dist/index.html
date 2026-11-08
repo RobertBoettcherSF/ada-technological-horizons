@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.17">
+  <meta name="ath-release" content="0.1.18">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,11 +16,11 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.17</p>
+        <p class="release-pill" id="header-version">0.1.18</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
-        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Four calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, Teletaxy, and Constructing Life. The other sections are planned.</p>
+        <p class="invite" data-i18n="app.invite">Choose a chapter to follow the book. Five calculators are ready: Statistics of Cosmic Civilisations, Return to Earth, Teletaxy, Cultivating Information, and Constructing Life. The other sections are planned.</p>
       </div>
       <div class="lang-wrap">
         <label for="language" data-i18n="lang.label">Language</label>
@@ -290,6 +290,76 @@
         <dl class="diagnostics">
           <div><dt data-i18n="delay.exactOne">One-way seconds</dt><dd id="delay-exact-one"></dd></div>
           <div><dt data-i18n="delay.exactRound">Round-trip seconds</dt><dd id="delay-exact-round"></dd></div>
+        </dl>
+      </details>
+    </section>
+
+    <section id="choice-card" class="lifetime-card" aria-labelledby="choice-title">
+      <p class="kicker" data-i18n="choice.path">Creating Worlds · Cultivating Information</p>
+      <h2 id="choice-title" data-i18n="choice.title">How many bits are in a set of equally likely choices?</h2>
+      <p data-i18n="choice.lead">One selection among N equally likely possibilities carries log2(N) bits. k independent repetitions have N to the power k combinations and k times that many bits. This is ideal information, not a meaning and not intelligence.</p>
+      <p class="note" data-i18n="choice.assumptions">Assumptions: the N possibilities are equally likely, and each repetition is independent of the others.</p>
+      <form id="choice-form">
+        <div class="fields">
+          <div>
+            <label for="choice-n" data-i18n="choice.possibilities">Possibilities, N</label>
+            <input id="choice-n" data-choice="possibilities" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2">
+          </div>
+          <div>
+            <label for="choice-k" data-i18n="choice.repeats">Repetitions, k</label>
+            <input id="choice-k" data-choice="repeats" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="8">
+          </div>
+        </div>
+        <div class="button-row preset-row">
+          <button type="button" class="secondary" id="choice-preset-coin" data-choice-preset="coin" data-i18n="choice.preset.coin">Fair coin (default)</button>
+          <button type="button" class="secondary" id="choice-preset-die" data-choice-preset="die" data-i18n="choice.preset.die">Six-sided die</button>
+          <button type="button" class="secondary" id="choice-preset-alphabet" data-choice-preset="alphabet" data-i18n="choice.preset.alphabet">26-letter alphabet</button>
+        </div>
+        <p id="choice-preset-help" class="note" data-i18n="choice.presetHelp">The coin, the die and the alphabet are teaching examples. They are not quotations from the book. Editing either number makes this your own count.</p>
+        <p id="choice-note" class="note"></p>
+        <div class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="choice.perLabel">Ideal information, one selection</p>
+            <output id="choice-per" for="choice-n"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="choice.totalLabel">Ideal information, all repetitions</p>
+            <output id="choice-total" for="choice-n choice-k"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="choice.countLabel">Combinations</p>
+            <output id="choice-count"></output>
+          </div>
+        </div>
+        <p id="choice-code" class="note"></p>
+        <p id="choice-status" role="status" aria-live="polite"></p>
+        <h3 id="choice-chart-label" data-i18n="choice.chart">Total information</h3>
+        <div id="choice-chart-block">
+          <div class="throughput-plot-wrap">
+            <p id="choice-y-label" class="axis-name" data-i18n="choice.axisInfo">Total information (bits)</p>
+            <div id="choice-y-ticks" class="throughput-y-ticks"></div>
+            <div class="throughput-plot-frame">
+              <svg id="choice-plot" class="throughput-plot" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-labelledby="choice-chart-label" aria-describedby="choice-legend"></svg>
+            </div>
+            <div id="choice-x-ticks" class="throughput-x-ticks"></div>
+            <p id="choice-x-label" class="axis-name" data-i18n="choice.axisRepeats">Repetitions</p>
+          </div>
+          <ul id="choice-legend" class="plot-legend"></ul>
+        </div>
+        <div class="button-row">
+          <button type="submit" data-i18n="demo.compute">Compute</button>
+          <button type="button" id="choice-reset" class="secondary" data-i18n="choice.reset">Reset example</button>
+        </div>
+      </form>
+      <details id="choice-sources">
+        <summary data-i18n="choice.sources">Source and what is not claimed</summary>
+        <p class="note" data-i18n="choice.sourceText">Creating Worlds, Cultivating Information, discusses selective information with a logarithmic measure, and contrasts a small set of element statements, about 100, with a vocabulary-sized set. This page does not treat 100 as a quoted exact vocabulary, and it does not quote a coin, a die or an alphabet from the book.</p>
+        <p class="note" data-i18n="choice.codeNote">Ideal information can be a fraction of a bit. A fixed-length binary code rounds up to a whole number of bits per selection. The two quantities are not the same, and neither is a measure of meaning.</p>
+        <dl class="diagnostics">
+          <div><dt data-i18n="choice.exactPer">Ideal bits, one selection</dt><dd id="choice-exact-per"></dd></div>
+          <div><dt data-i18n="choice.exactTotal">Ideal bits, all repetitions</dt><dd id="choice-exact-total"></dd></div>
+          <div><dt data-i18n="choice.exactCode">Fixed-length code bits</dt><dd id="choice-exact-code"></dd></div>
+          <div><dt data-i18n="choice.exactCount">Combinations or log10 of the count</dt><dd id="choice-exact-count"></dd></div>
         </dl>
       </details>
     </section>

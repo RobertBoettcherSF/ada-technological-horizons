@@ -156,6 +156,14 @@ export const sections = RAW.map((entry, index) => {
       summaryKey: "summary.throughput",
     };
   }
+  if (withOrder.id === "creating-worlds/cultivating-information") {
+    return {
+      ...withOrder,
+      type: "calculator",
+      availability: "available",
+      summaryKey: "summary.choice",
+    };
+  }
   if (withOrder.id === "intellectronics/return-to-earth") {
     return {
       ...withOrder,
