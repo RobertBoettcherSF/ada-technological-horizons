@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.18 equally likely choices
+
+Cultivating Information, under Creating Worlds, computes ideal information for equally likely possibilities. A fair coin, N = 2 and k = 8, is **1 bit** for one toss, **8 bits** for eight tosses, and **256** combinations. A six-sided die is about **2.58496 bits** for one roll and **36** combinations for two rolls. The 26-letter alphabet, three independent letters, is **17576** combinations. These three are teaching examples, not quotations. The collapsed source note keeps the book’s logarithmic measure and the contrast with a set of about 100 element statements. k = 0 is one combination and 0 bits. N = 1 is 0 bits. N = 0, a fraction, and an integer above 2^53 are rejected. For N = 10 and k = 400 the count is not a finite exact value; log10 of the count is 400 and the ideal information stays finite. Choosing Creating Worlds leaves only this calculator. The catalogue counts five working calculators.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b92d72bb5fa653c3a4d2499105a9a0c57233d1a8/dist/index.html
+
+The page showed release `0.1.18`, commit `b92d72bb5fa653c3a4d2499105a9a0c57233d1a8`, and `application/wasm`. The coin read **1 bit**, **8 bits**, and **256**. The die read **2.58496 bits** and **36**. The chart legend read **Total information** and **Reported total**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (91027 bytes, SHA-256 `7174eb34320291609f0ec1a0db257f232c3ffe810ca777f987fcec664e57f5a9`, `access-control-allow-origin: *`).
+
 ## v0.1.17 near-zero reference
 
 On the linear 1000BASE-T chart the human reference is drawn clear of the axis in lime, with a pale outline, and labelled **Human figure — near zero, not to scale**. The legend uses that same lime stroke and the same words. The listed values stay **1000000000 bits/s — 10 µs** and **25 bits/s — 400 s — after this chart**. A logarithmic chart does not use this lift. An actual zero rate is not drawn as a positive line.

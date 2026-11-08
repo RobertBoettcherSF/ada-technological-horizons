@@ -165,4 +165,8 @@ Verified v0.1.17 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/aa55ce5c6a15dc5b3355e12dc22837c0e7a6b5be/dist/index.html
 
+Verified v0.1.18 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b92d72bb5fa653c3a4d2499105a9a0c57233d1a8/dist/index.html
+
 A browser may meet raw.githack’s confirmation screen first. After the page itself loads, the Constructing Life example shows 400 seconds and 10,000 bits, with the bacterial comparison at most 10 seconds. Earth–Venus still lists the reply at 4.6 min. The civilisation headline remains 6500 years. Details are in `docs/VERIFICATION.md`.
