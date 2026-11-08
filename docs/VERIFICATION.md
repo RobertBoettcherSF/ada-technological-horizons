@@ -1,5 +1,17 @@
 # Verification
 
+## v0.1.20 Return to Earth lottery
+
+The calculator is on Intellectronics / Return to Earth, beside the doubling calculator. It follows the design note: M tickets, W prizes, k tickets bought, uniform sampling without replacement. Expected prizes are kW/M, a long-run average. The chance of winning nothing is C(M−W, k)/C(M, k), and it is exactly zero when the purchase must include a prize. A chance too small for binary64 is shown as a power of ten.
+
+The small example is a teaching lottery, not a quotation: 10 tickets, 2 prizes, buy 3. The average is 0.6. The chance of nothing is 7/15, and the chance of at least one prize is 8/15. The book sizes are 1,000,000 tickets, 1,000 prizes, and buying 500,000. The average is 500. The chance of nothing is about 5.66053×10^−302. The collapsed details say this counts the lottery analogy and does not show that research directions are chosen uniformly at random.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/735ef6717b5c23fbb1f336ba1f2c65653ee0a0eb/dist/index.html
+
+The page showed release `0.1.20`, commit `735ef6717b5c23fbb1f336ba1f2c65653ee0a0eb`, and `application/wasm`. The small example showed **7/15** and **8/15**. The book sizes showed **500** and **5.66053 × 10^−302**. Choosing Intellectronics showed the doubling calculator and the lottery, and hid the other calculators. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (113444 bytes, SHA-256 `50e7317f1a83ea56b635e4b91c518b06fbe04783bcc71b012713269e89029c01`, `access-control-allow-origin: *`).
+
 ## v0.1.19 section entry and plain choices
 
 Choosing Creating Worlds from the chapter menu opens at the chapter heading, then Cultivating Information, then the calculator. The other calculators stay hidden, and the full section list is not shown underneath. The heading sits below the fixed debug bar. Back and All chapters return to the full page.
