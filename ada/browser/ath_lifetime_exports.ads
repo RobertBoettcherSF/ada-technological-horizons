@@ -14,4 +14,14 @@ package Ath_Lifetime_Exports is
    function Ath_Lifetime_Contribution
      (Index : Interfaces.Integer_32) return Long_Float
    with Export, Convention => C, External_Name => "ath_lifetime_contribution";
+
+   function Ath_Rebalance_F64
+     (P1, P2, P3, P4 : Long_Float;
+      Edited_Index  : Interfaces.Integer_32;
+      Edited_Value  : Long_Float) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_rebalance_f64";
+
+   function Ath_Rebalanced
+     (Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_rebalanced";
 end Ath_Lifetime_Exports;

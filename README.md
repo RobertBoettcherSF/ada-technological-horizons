@@ -8,7 +8,7 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.2** keeps that scaffold, restyles the opening, and adds one calculator: the historical four-fate mean under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes it. The addition check is inside Technical details, closed until opened. Search tools start closed. Version 0.1.1 was the clearer opening without this calculator. Version 0.1.0 was the first boundary.
+Version **0.1.3** keeps the four-fate calculator under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes the mean and rebalances the other probabilities when one of them is edited. The headline mean is shown to the nearest 100 years, so the defaults read 6500 while the exact value remains 6523. The addition check is inside Technical details, closed until opened. Version 0.1.2 was the same calculator before rebalancing and headline rounding.
 
 - Eight book chapters, plus Conclusion and Afterword, with the planned sections named in `docs/DESIGN.md`.
 - A catalogue with search, chapter/topic/type filters, reading order, calculators-first, topic, and title sorting, and Open all / Close all.
@@ -77,8 +77,8 @@ The v0.1.1 opening remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7ed60133a77e6b1a3ac22c9dc0b390e2823a064f/dist/index.html
 
-Verified v0.1.2 snapshot:
+The v0.1.2 calculator, before rebalancing and headline rounding, remains at:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c7a2ea1e7df52e4a649402c698a5bd23fababf68/dist/index.html
 
-A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default mean is 6523 years. Details are in `docs/VERIFICATION.md`.
+The verified v0.1.3 address is in `docs/VERIFICATION.md` once that commit has been loaded. A browser meets raw.githack’s confirmation screen first. After “Open the page”, the default headline is 6500 years.

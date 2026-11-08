@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callLifetime, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callLifetime, callRebalance, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -101,6 +101,44 @@ test("lifetime exports match the native fixture bits", async (t) => {
     } else {
       assert.equal(outcome.mean, null, name);
       assert.equal(floatToBits(session.exports.ath_lifetime_mean()), "0000000000000000", name);
+    }
+  }
+});
+
+test("rebalance exports match the native fixture bits", async (t) => {
+  if (!fs.existsSync(wasmPath) || !fs.existsSync(lifetimePath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const lines = fs
+    .readFileSync(lifetimePath, "utf8")
+    .split("\n")
+    .filter((line) => line.startsWith("REBALANCE "));
+  assert.ok(lines.length >= 4);
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const status = Number(parts[2]);
+    const results = parts.slice(3, 7);
+    const index = Number(parts[7]);
+    const edited = bitsToFloat(parts[8]);
+    const base = parts.slice(9, 13).map(bitsToFloat);
+    const outcome = callRebalance(session, base, index, edited);
+    assert.equal(outcome.status, status, name);
+    if (status === 0) {
+      assert.deepEqual(outcome.probabilities.map(floatToBits), results, name);
     }
   }
 });

@@ -18,6 +18,15 @@ test("operand adaptation rejects empty and malformed text without adding", () =>
   assert.equal(interpretOperand("1e999").value, Number.POSITIVE_INFINITY);
 });
 
+test("headline years round to the nearest 100 without hiding a small exact mean", async () => {
+  const { formatHeadlineYears } = await import("../web/js/numbers.js");
+  assert.deepEqual(formatHeadlineYears(6523), { text: "6500", mode: "nearest-100" });
+  assert.deepEqual(formatHeadlineYears(8523), { text: "8500", mode: "nearest-100" });
+  assert.deepEqual(formatHeadlineYears(0), { text: "0", mode: "exact" });
+  assert.equal(formatHeadlineYears(42).mode, "exact");
+  assert.equal(formatHeadlineYears(42).text, "42");
+});
+
 test("canonical rendering is unambiguous and ignores language", () => {
   assert.equal(formatCanonical(5), "5");
   assert.equal(formatCanonical(-3), "-3");

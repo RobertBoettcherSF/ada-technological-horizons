@@ -50,7 +50,8 @@ async function shot(page, label, name) {
 async function exercise(page, label) {
   await page.goto(page.url() === "about:blank" ? page.context()._base : page.context()._base, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
-  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6523");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6500");
+  assert.equal(await page.locator("#lifetime-result").getAttribute("data-exact-mean"), "6523");
   assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#header-version").isVisible(), true);
   const layout = await page.evaluate(() => {
@@ -83,11 +84,53 @@ async function exercise(page, label) {
   await page.locator("#lifetime-card").scrollIntoViewIfNeeded();
   await shot(page, label, "lifetime-card.png");
   await page.fill("#years-4", "20000");
-  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "8523");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "8500");
+  assert.equal(await page.locator("#lifetime-result").getAttribute("data-exact-mean"), "8523");
+  assert.equal(await page.locator("#prob-2").inputValue(), "60");
   await shot(page, label, "lifetime-changed.png");
   await page.click("#lifetime-reset");
-  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6523");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6500");
   assert.equal(await page.locator("#years-4").inputValue(), "10000");
+  assert.equal(await page.locator("#prob-1").inputValue(), "5");
+  await page.fill("#prob-2", "30");
+  await page.waitForFunction(() => document.querySelector("#prob-1").value === "15");
+  assert.equal(await page.locator("#prob-2").inputValue(), "30");
+  assert.equal(await page.locator("#prob-3").inputValue(), "25");
+  assert.equal(await page.locator("#prob-4").inputValue(), "30");
+  await shot(page, label, "lifetime-rebalanced.png");
+  await page.fill("#prob-2", "60");
+  await page.waitForFunction(() => document.querySelector("#prob-1").value === "5");
+  assert.equal(await page.locator("#prob-3").inputValue(), "15");
+  assert.equal(await page.locator("#prob-4").inputValue(), "20");
+  await page.fill("#prob-1", "95");
+  await page.waitForFunction(() => document.querySelector("#prob-2").value === "5");
+  assert.equal(await page.locator("#prob-1").inputValue(), "95");
+  assert.equal(await page.locator("#prob-3").inputValue(), "0");
+  assert.equal(await page.locator("#prob-4").inputValue(), "0");
+  await page.fill("#prob-1", "100");
+  await page.waitForFunction(() => document.querySelector("#prob-2").value === "0");
+  assert.equal(await page.locator("#prob-3").inputValue(), "0");
+  assert.equal(await page.locator("#prob-4").inputValue(), "0");
+  await page.fill("#prob-1", "0");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.dataset.exactMean);
+  const thirds = await page.evaluate(() => ({
+    edited: document.getElementById("prob-1").value,
+    others: [2, 3, 4].map((index) => Number(document.getElementById(`prob-${index}`).value)),
+  }));
+  assert.equal(thirds.edited, "0");
+  assert.ok(Math.abs(thirds.others[0] + thirds.others[1] + thirds.others[2] - 100) < 1e-6);
+  assert.ok(Math.abs(thirds.others[0] - thirds.others[1]) < 1e-6);
+  await page.fill("#prob-2", "-1");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "");
+  assert.equal(await page.locator("#prob-2").inputValue(), "-1");
+  assert.equal(await page.locator("#prob-3").inputValue(), String(thirds.others[1]));
+  await page.click("#lifetime-reset");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "6500");
+  await page.fill("#prob-2", "abc");
+  await page.waitForFunction(() => document.querySelector("#lifetime-result")?.textContent === "");
+  assert.equal(await page.locator("#prob-1").inputValue(), "5");
+  await page.click("#lifetime-reset");
+  await page.waitForFunction(() => document.querySelector("#prob-2").value === "60");
   await page.locator("#technical-details summary").scrollIntoViewIfNeeded();
   await shot(page, label, "technical-collapsed.png");
   await page.locator("#technical-details summary").focus();
@@ -99,7 +142,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.2");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.3");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());

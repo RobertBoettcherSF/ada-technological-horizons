@@ -260,6 +260,13 @@ button.collapse {
 
 #lifetime-result { color: var(--lime-ink); }
 
+.precision-hint {
+  margin: 0.15rem 0 0;
+  color: var(--lime-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
 #addition-result { color: var(--ink); font-size: 2rem; }
 
 .live-result.addition-live {

@@ -17,6 +17,25 @@ export function interpretOperand(raw) {
   return { kind: "value", value: Number(text) };
 }
 
+export function formatHeadlineYears(exact) {
+  if (typeof exact !== "number" || !Number.isFinite(exact)) {
+    throw new Error("Refusing to present a non-finite duration");
+  }
+  if (exact === 0) {
+    return { text: "0", mode: "exact" };
+  }
+  const rounded = Math.round(Math.abs(exact) / 100) * 100;
+  if (rounded === 0) {
+    return { text: formatCanonical(exact), mode: "exact" };
+  }
+  const sign = exact < 0 ? "-" : "";
+  return { text: `${sign}${rounded}`, mode: "nearest-100" };
+}
+
+export function formatProbability(value) {
+  return formatCanonical(value);
+}
+
 export function formatCanonical(value) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Refusing to present a non-finite value as a result");

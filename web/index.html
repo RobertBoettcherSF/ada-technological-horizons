@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.2">
+  <meta name="ath-release" content="0.1.3">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.2</p>
+        <p class="release-pill" id="header-version">0.1.3</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -42,7 +42,6 @@
       <h2 id="lifetime-title" data-i18n="lifetime.title">How long is the technological phase?</h2>
       <p data-i18n="lifetime.lead">Four historical alternatives, each with a probability and a mean duration. Ada computes the weighted mean. These are subjective assumptions about a communication-oriented technological phase, not a forecast for humanity, and the end of that phase is not automatically an extinction.</p>
       <p class="formula" data-i18n="lifetime.formula">L = Σ pᵢ lᵢ, with each probability used as a fraction.</p>
-      <p class="note" data-i18n="lifetime.history">A historical account rounded the default case to about 6500 years. The result below is the calculated value, not that rounding.</p>
       <form id="lifetime-form">
         <div class="fates">
           <div class="fate">
@@ -91,8 +90,9 @@
           </div>
         </div>
         <div id="lifetime-live" class="live-result">
-          <p class="live-label" data-i18n="lifetime.result">Mean duration</p>
+          <p class="live-label" data-i18n="lifetime.result">Mean duration (years)</p>
           <output id="lifetime-result" for="prob-1 prob-2 prob-3 prob-4 years-1 years-2 years-3 years-4"></output>
+          <p id="lifetime-precision" class="precision-hint"></p>
         </div>
         <p id="lifetime-status" role="status" aria-live="polite"></p>
         <div class="button-row">
@@ -195,6 +195,7 @@
           <div><dt data-i18n="diag.calls">Ada calls</dt><dd id="diag-calls">0</dd></div>
           <div><dt data-i18n="diag.locale">Locale</dt><dd id="diag-locale">en-GB</dd></div>
           <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
+          <div><dt data-i18n="lifetime.exactMean">Exact mean (years)</dt><dd id="diag-exact-mean">—</dd></div>
         </dl>
       </section>
       <div class="addition-block">

@@ -16,7 +16,7 @@ import {
   visibleEntries,
 } from "./catalogue.js";
 import { t } from "./messages.js";
-import { formatCanonical, interpretOperand } from "./numbers.js";
+import { formatCanonical, formatHeadlineYears, formatProbability, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
   closeAll,
@@ -31,7 +31,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callLifetime, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callLifetime, callRebalance, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -485,7 +485,21 @@ function updateLifetime() {
       code = outcome.status;
       if (outcome.status === 0 && outcome.mean !== null && outcome.contributions) {
         try {
-          resultNode.textContent = formatCanonical(outcome.mean);
+          const headline = formatHeadlineYears(outcome.mean);
+          resultNode.textContent = headline.text;
+          resultNode.dataset.exactMean = formatCanonical(outcome.mean);
+          resultNode.dataset.displayMode = headline.mode;
+          const precision = document.getElementById("lifetime-precision");
+          if (precision) {
+            precision.textContent = t(
+              state.lang,
+              headline.mode === "nearest-100" ? "lifetime.precision" : "lifetime.exact",
+            );
+          }
+          const exactMean = document.getElementById("diag-exact-mean");
+          if (exactMean) {
+            exactMean.textContent = formatCanonical(outcome.mean);
+          }
           const largest = outcome.contributions.reduce((max, value) => Math.max(max, value), 0);
           outcome.contributions.forEach((value, index) => {
             const share = formatCanonical(value);
@@ -505,6 +519,12 @@ function updateLifetime() {
   }
   if (!parsed) {
     clearLifetimeView();
+    const precision = document.getElementById("lifetime-precision");
+    if (precision) precision.textContent = "";
+    const exactMean = document.getElementById("diag-exact-mean");
+    if (exactMean) exactMean.textContent = "—";
+    resultNode.dataset.exactMean = "";
+    resultNode.dataset.displayMode = "";
   }
   statusNode.dataset.status = String(code);
   statusNode.textContent = t(state.lang, lifetimeMessage(code));
@@ -713,7 +733,46 @@ function bind() {
     if (!(field instanceof HTMLInputElement) || !field.dataset.lifetime) {
       return;
     }
-    state = setLifetimeInput(state, field.dataset.lifetime, Number(field.dataset.index), field.value);
+    const index = Number(field.dataset.index);
+    state = setLifetimeInput(state, field.dataset.lifetime, index, field.value);
+    if (field.dataset.lifetime !== "probabilities") {
+      updateLifetime();
+      return;
+    }
+    const parsed = interpretOperand(field.value);
+    const acceptable = parsed.kind === "value"
+      && Number.isFinite(parsed.value)
+      && parsed.value >= 0
+      && parsed.value <= 100;
+    if (!acceptable || session.phase !== "ready" || !session.exports) {
+      updateLifetime();
+      return;
+    }
+    const outcome = callRebalance(session, state.lifetime.modelProbabilities, index + 1, parsed.value);
+    if (outcome.status !== 0 || !outcome.probabilities) {
+      updateLifetime();
+      return;
+    }
+    const strings = state.lifetime.probabilities.slice();
+    for (let other = 0; other < 4; other += 1) {
+      if (other === index) {
+        continue;
+      }
+      strings[other] = formatProbability(outcome.probabilities[other]);
+      const input = document.getElementById(`prob-${other + 1}`);
+      if (input && document.activeElement !== input) {
+        input.value = strings[other];
+      }
+    }
+    strings[index] = field.value;
+    state = {
+      ...state,
+      lifetime: {
+        ...state.lifetime,
+        probabilities: strings,
+        modelProbabilities: outcome.probabilities.slice(),
+      },
+    };
     updateLifetime();
   });
   document.getElementById("lifetime-form").addEventListener("submit", (event) => {

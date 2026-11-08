@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.3 rebalance and headline
+
+`bash tools/build.sh` printed `NATIVE OK` and `LIFETIME OK`. Rebalance checks: 60 edited to 30 becomes 15, 30, 25, 30; 5 edited to 95 becomes 95, 5, 0, 0; a single 100 leaves the others at 0; 100 edited to 0 shares the remainder equally and the total stays within `1.0e-9` of 100. The exact default mean remains 6523 and the 20000-year case remains 8523. Wasm replay matched the addition, lifetime, and rebalance bits.
+
+Node suites: 23 passed, plus the headline check that 6523 displays as 6500 and 8523 as 8500. Headless Chromium printed `BROWSER OK` twice. The default card showed 6500 with exact mean 6523. Editing 60 to 30 showed 15, 30, 25, 30. A duration of 20000 showed 8500 without moving the probabilities. Invalid text cleared the headline. Technical details stayed closed until opened.
+
+The immutable review URL is added here after that commit is loaded in a browser.
+
 ## v0.1.2 calculator and theme
 
 `bash tools/build.sh` on Ubuntu 24.04.5 printed `NATIVE OK` and `LIFETIME OK`.

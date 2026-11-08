@@ -105,6 +105,39 @@ procedure Lifetime_Tests is
    P : Ath_Lifetime.Fate_Values;
    D : Ath_Lifetime.Fate_Values;
    Export_Status : Interfaces.Integer_32;
+
+   procedure Expect_Rebalance
+     (Name     : String;
+      Base     : Ath_Lifetime.Fate_Values;
+      Index    : Positive;
+      Value    : Long_Float;
+      Expected : Ath_Lifetime.Fate_Values)
+   is
+      Adjusted : Ath_Lifetime.Fate_Values;
+      Status   : Ath_Lifetime.Status_Code;
+   begin
+      Ath_Lifetime.Rebalance (Base, Index, Value, Adjusted, Status);
+      if Status /= Ath_Lifetime.Ok or else Adjusted (Index) /= Value then
+         Fail (Name);
+      end if;
+      for Item in Expected'Range loop
+         if Adjusted (Item) /= Expected (Item) then
+            Fail (Name & " value");
+         end if;
+      end loop;
+      Ada.Text_IO.Put
+        ("REBALANCE " & Name & " " &
+         Interfaces.Integer_32'Image (Interfaces.Integer_32 (Status)));
+      for Item in Adjusted'Range loop
+         Ada.Text_IO.Put (" " & Hex (To_Bits (Adjusted (Item))));
+      end loop;
+      Ada.Text_IO.Put (" " & Integer'Image (Index));
+      Ada.Text_IO.Put (" " & Hex (To_Bits (Value)));
+      for Item in Base'Range loop
+         Ada.Text_IO.Put (" " & Hex (To_Bits (Base (Item))));
+      end loop;
+      Ada.Text_IO.New_Line;
+   end Expect_Rebalance;
 begin
    Expect
      ("defaults",
@@ -172,6 +205,40 @@ begin
          Fail ("last-durations cleared");
       end if;
       Emit ("last-durations", P, D, Status, Mean, Contributions);
+   end;
+
+   Expect_Rebalance
+     ("sixty-to-thirty", Defaults_P, 2, 30.0, (15.0, 30.0, 25.0, 30.0));
+   Expect_Rebalance
+     ("five-to-ninety-five", Defaults_P, 1, 95.0, (95.0, 5.0, 0.0, 0.0));
+   Expect_Rebalance
+     ("single-hundred", Defaults_P, 1, 100.0, (100.0, 0.0, 0.0, 0.0));
+   declare
+      Adjusted : Ath_Lifetime.Fate_Values;
+      Status   : Ath_Lifetime.Status_Code;
+      Total    : Long_Float := 0.0;
+   begin
+      Ath_Lifetime.Rebalance ((100.0, 0.0, 0.0, 0.0), 1, 0.0, Adjusted, Status);
+      for Item in Adjusted'Range loop
+         Total := Total + Adjusted (Item);
+      end loop;
+      if Status /= Ath_Lifetime.Ok or else Adjusted (1) /= 0.0
+        or else abs (Total - 100.0) > 1.0E-9
+        or else abs (Adjusted (2) - Adjusted (3)) > 1.0E-9
+        or else abs (Adjusted (3) - Adjusted (4)) > 1.0E-6
+      then
+         Fail ("hundred-to-zero");
+      end if;
+      Ada.Text_IO.Put
+        ("REBALANCE hundred-to-zero" &
+         Interfaces.Integer_32'Image (Interfaces.Integer_32 (Status)));
+      for Item in Adjusted'Range loop
+         Ada.Text_IO.Put (" " & Hex (To_Bits (Adjusted (Item))));
+      end loop;
+      Ada.Text_IO.Put_Line
+        (" 1 " & Hex (To_Bits (0.0)) & " " & Hex (To_Bits (100.0)) &
+         " " & Hex (To_Bits (0.0)) & " " & Hex (To_Bits (0.0)) &
+         " " & Hex (To_Bits (0.0)));
    end;
 
    Export_Status :=

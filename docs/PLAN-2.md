@@ -15,18 +15,21 @@ The visitor-facing calculator is Statistics of Cosmic Civilisations. It uses fou
 
 Weights are the probabilities divided by 100. The mean is Σ pᵢ lᵢ.
 
-These defaults calculate to **6523 years**. A historical account rounded that case to about **6500 years**. The page shows 6523, not the rounding.
+These defaults calculate to **6523 years**. The headline shows that mean to the nearest 100 years, so the defaults read **6500**. Changing only the last duration to 20,000 years calculates **8523** and displays **8500**. Contributions stay exact. A positive mean that would round to 0 is shown exactly instead. The exact mean is also listed under Technical details.
 
-Changing only the last duration to 20,000 years calculates **8523 years**.
+## Rebalancing
+
+Editing one valid probability leaves that value fixed. Ada moves the other three by equal additions or subtractions until they sum with it to 100, stopping each of them at 0 and at 100. If a binary64 leftover remains, it is added to the lowest-index of those three that can accept it inside 0 .. 100. The page writes those adjusted probabilities into the other fields immediately. It does not scale them in proportion, and it does not rewrite the field being typed. An empty, malformed, negative, non-finite, or above-100 entry does not rebalance and clears the mean. Changing a duration does not rebalance probabilities. Reset restores 5, 60, 15, 20 and the original durations.
+
+From the defaults, changing 60 to 30 yields 15, 30, 25, 30. Changing 5 to 95 yields 95, 5, 0, 0. Changing the first value to 100 yields 100, 0, 0, 0. Changing that 100 to 0 shares 100 equally across the other three.
 
 ## Validation
 
-- Every probability must be finite and in 0 .. 100.
+- Every probability must be finite and in 0 .. 100. The edited value is not clamped.
 - Every duration must be finite and nonnegative.
-- The probabilities must total 100 within an absolute tolerance of `1.0e-6` percentage points.
-- A total of 90 or 110 is rejected. The page does not renormalise.
+- `Weighted_Mean` still requires a total of 100 within `1.0e-6` percentage points. Rebalance is what produces that total after an edit.
 - A non-finite contribution or mean is rejected.
-- On any error the result and the contribution table are cleared.
+- On any error the headline and the contribution table are cleared.
 - Empty or non-decimal text is rejected before Ada runs, because it is not a numeric value.
 
 The assumptions are historical and subjective. They describe a communication-oriented technological phase. They are not a forecast for humanity, and the end of that phase is not automatically an extinction.

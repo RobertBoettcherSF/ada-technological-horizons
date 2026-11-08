@@ -10,6 +10,7 @@ function lifetimeDefaults() {
   return {
     probabilities: LIFETIME_DEFAULTS.probabilities.slice(),
     durations: LIFETIME_DEFAULTS.durations.slice(),
+    modelProbabilities: LIFETIME_DEFAULTS.probabilities.map(Number),
   };
 }
 

@@ -52,10 +52,35 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_lifetime_f64 !== "function") {
     throw new Error("Ada module is missing ath_lifetime_f64");
   }
+  if (typeof instance.exports.ath_rebalance_f64 !== "function") {
+    throw new Error("Ada module is missing ath_rebalance_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
     exports: instance.exports,
+  };
+}
+
+export function callRebalance(session, probabilities, editedIndex, editedValue) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_rebalance_f64(
+    probabilities[0],
+    probabilities[1],
+    probabilities[2],
+    probabilities[3],
+    editedIndex,
+    editedValue,
+  );
+  session.invocations += 1;
+  if (status !== STATUS_OK) {
+    return { status, probabilities: null };
+  }
+  return {
+    status,
+    probabilities: [1, 2, 3, 4].map((index) => session.exports.ath_rebalanced(index)),
   };
 }
 

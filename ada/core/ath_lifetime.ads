@@ -4,7 +4,11 @@ with Interfaces;
 --
 --  Percentages are on a 0 .. 100 scale. Internally each weight is
 --  Percentage / 100. The mean is Sum (weight * duration). Durations are
---  years. This package does not renormalise a total that is not 100.
+--  years. Weighted_Mean does not repair a total that is not 100.
+--  Rebalance keeps the edited probability unchanged and moves the other
+--  three by equal additions or subtractions, stopping at 0 and 100. A
+--  leftover needed to reach a total of 100 is added to the lowest-index
+--  other value that can accept it inside 0 .. 100.
 --
 --  Total_Tolerance is an absolute allowance in percentage points. It absorbs
 --  binary64 rounding of a total that is meant to be 100, and it still rejects
@@ -37,4 +41,13 @@ package Ath_Lifetime is
       Contributions : out Fate_Values;
       Mean          : out Long_Float;
       Status        : out Status_Code);
+
+   --  Edited_Index is 1 .. Fate_Count. Edited_Value must be finite and in
+   --  0 .. 100. On error, Adjusted is all zeroes.
+   procedure Rebalance
+     (Base         : Fate_Values;
+      Edited_Index : Integer;
+      Edited_Value : Long_Float;
+      Adjusted     : out Fate_Values;
+      Status       : out Status_Code);
 end Ath_Lifetime;

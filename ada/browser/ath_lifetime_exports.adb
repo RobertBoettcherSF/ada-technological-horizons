@@ -41,4 +41,34 @@ package body Ath_Lifetime_Exports is
       end if;
       return Stored (Integer (Index));
    end Ath_Lifetime_Contribution;
+
+   Rebalanced : Ath_Lifetime.Fate_Values := (others => 0.0);
+
+   function Ath_Rebalance_F64
+     (P1, P2, P3, P4 : Long_Float;
+      Edited_Index  : Interfaces.Integer_32;
+      Edited_Value  : Long_Float) return Interfaces.Integer_32
+   is
+      Base     : constant Ath_Lifetime.Fate_Values := (P1, P2, P3, P4);
+      Adjusted : Ath_Lifetime.Fate_Values;
+      Status   : Ath_Lifetime.Status_Code;
+   begin
+      Ath_Lifetime.Rebalance
+        (Base, Integer (Edited_Index), Edited_Value, Adjusted, Status);
+      if Status = Ath_Lifetime.Ok then
+         Rebalanced := Adjusted;
+      else
+         Rebalanced := (others => 0.0);
+      end if;
+      return Interfaces.Integer_32 (Status);
+   end Ath_Rebalance_F64;
+
+   function Ath_Rebalanced
+     (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if Index < 1 or else Index > Ath_Lifetime.Fate_Count then
+         return 0.0;
+      end if;
+      return Rebalanced (Integer (Index));
+   end Ath_Rebalanced;
 end Ath_Lifetime_Exports;
