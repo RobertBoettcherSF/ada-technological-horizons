@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.21 researchers and discoveries
+
+The calculator is on Intellectronics / The Megabit Bomb. The design note gives two doubling times: discoveries 30 years, the researcher index 10 years. Both indices start at 1, which is our scale, not a census. Ada computes D = D₀·2^(t/30) and R = R₀·2^(t/10), then the ratio D/R, by reusing the growth power. After 30 years the indices are 2 and 8, and the ratio is 0.25. A same-pace button sets both doublings to 30 years and is labelled as ours. The ratio is not a forecast that hiring a person creates a discovery. There is no saturation date.
+
+Verified in a browser on 8 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/a7f4575e549301375824b6a6616f4c37019c96d4/dist/index.html
+
+The page showed release `0.1.21`, commit `a7f4575e549301375824b6a6616f4c37019c96d4`, and `application/wasm`. The book times showed discovery index **2**, researcher index **8**, and ratio **0.25**. Opening The Megabit Bomb showed that section and hid the Return to Earth calculators. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (122313 bytes, SHA-256 `4c9a3308a648fbc8708d6e9d2ed2732fc2899b5cf5979f798dec51785bfabc4c`, `access-control-allow-origin: *`).
+
 ## v0.1.20 Return to Earth lottery
 
 The calculator is on Intellectronics / Return to Earth, beside the doubling calculator. It follows the design note: M tickets, W prizes, k tickets bought, uniform sampling without replacement. Expected prizes are kW/M, a long-run average. The chance of winning nothing is C(M−W, k)/C(M, k), and it is exactly zero when the purchase must include a prize. A chance too small for binary64 is shown as a power of ten.
