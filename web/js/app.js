@@ -16,7 +16,7 @@ import {
   visibleEntries,
 } from "./catalogue.js";
 import { t } from "./messages.js";
-import { formatCanonical, formatHeadlineYears, formatProbability, interpretOperand } from "./numbers.js";
+import { formatCanonical, formatHeadlineYears, formatProbability, formatReadable, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
   closeAll,
@@ -33,7 +33,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callGrowth, callLifetime, callRebalance, createSession, loadAdditionModule } from "./wasm-loader.js";
+import { callAddition, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -539,14 +539,43 @@ function updateLifetime() {
 }
 
 function clearGrowthView() {
-  const quantity = document.getElementById("growth-quantity");
-  const factor = document.getElementById("growth-factor");
-  const samples = document.getElementById("growth-samples");
-  const curve = document.getElementById("growth-curve");
-  if (quantity) quantity.textContent = "";
-  if (factor) factor.textContent = "";
-  if (samples) samples.replaceChildren();
-  if (curve) curve.replaceChildren();
+  for (const id of ["growth-quantity", "growth-factor", "growth-end-year"]) {
+    const node = document.getElementById(id);
+    if (node) {
+      node.textContent = "";
+      delete node.dataset.exact;
+    }
+  }
+  document.getElementById("growth-samples")?.replaceChildren();
+  document.getElementById("growth-curve")?.replaceChildren();
+  document.getElementById("growth-x-ticks")?.replaceChildren();
+  document.getElementById("growth-y-ticks")?.replaceChildren();
+  const exactQuantity = document.getElementById("growth-exact-quantity");
+  const exactFactor = document.getElementById("growth-exact-factor");
+  if (exactQuantity) exactQuantity.textContent = "";
+  if (exactFactor) exactFactor.textContent = "";
+  const warning = document.getElementById("growth-baseline-warning");
+  if (warning) {
+    warning.hidden = true;
+    warning.textContent = "";
+  }
+}
+
+function clearTargetView() {
+  const statusNode = document.getElementById("growth-target-status");
+  const text = document.getElementById("growth-target-text");
+  const year = document.getElementById("growth-target-year");
+  const exactYear = document.getElementById("growth-exact-year");
+  const exactElapsed = document.getElementById("growth-exact-elapsed");
+  if (text) text.textContent = "";
+  if (year) {
+    year.textContent = "";
+    delete year.dataset.exactYear;
+    delete year.dataset.exactElapsed;
+  }
+  if (statusNode) statusNode.dataset.targetStatus = "";
+  if (exactYear) exactYear.textContent = "";
+  if (exactElapsed) exactElapsed.textContent = "";
 }
 
 function growthMessage(code) {
@@ -560,79 +589,281 @@ function growthMessage(code) {
   if (code === 3) return "growth.elapsedNegative";
   if (code === 4) return "growth.doublingInvalid";
   if (code === 5) return "growth.overflow";
+  if (code === 6) return "growth.yearNotInteger";
+  if (code === 7) return "growth.yearRange";
   return "demo.loadFailed";
 }
 
-function renderGrowthCurve(samples) {
+function tickCount() {
+  return window.matchMedia("(max-width: 40rem)").matches ? 3 : 5;
+}
+
+function axisTicks(min, max, count) {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return [];
+  if (min === max) return [min];
+  const span = max - min;
+  const rough = span / Math.max(1, count - 1);
+  const magnitude = 10 ** Math.floor(Math.log10(Math.abs(rough)));
+  const step = [1, 2, 5, 10].map((factor) => factor * magnitude).find((candidate) => candidate >= rough) ?? rough;
+  const ticks = [];
+  const first = Math.ceil((min - step * 1e-9) / step) * step;
+  for (let value = first; value <= max + step * 1e-8; value += step) {
+    if (value >= min - step * 1e-8) ticks.push(value);
+  }
+  const whole = (value) => Math.abs(value - Math.round(value)) <= 1e-6;
+  if ((ticks.length === 0 || Math.abs(ticks[0] - min) > span * 0.04) && whole(min)) ticks.unshift(min);
+  if (ticks.length === 0 || (Math.abs(ticks.at(-1) - max) > span * 0.04 && whole(max))) ticks.push(max);
+  return ticks;
+}
+
+function logTicks(min, max) {
+  const ticks = [];
+  const start = Math.floor(Math.log10(min));
+  const end = Math.ceil(Math.log10(max));
+  for (let power = start; power <= end; power += 1) {
+    for (const factor of [1, 2, 5]) {
+      const value = factor * 10 ** power;
+      if (value >= min * 0.999 && value <= max * 1.001) ticks.push(value);
+    }
+  }
+  if (!ticks.includes(min)) ticks.unshift(min);
+  if (ticks.at(-1) !== max) ticks.push(max);
+  return ticks;
+}
+
+function renderGrowthCurve(outcome, target) {
   const curve = document.getElementById("growth-curve");
   const body = document.getElementById("growth-samples");
-  if (!curve || !body) return;
+  const xTicks = document.getElementById("growth-x-ticks");
+  const yTicks = document.getElementById("growth-y-ticks");
+  if (!curve || !body || !xTicks || !yTicks) return;
   curve.replaceChildren();
   body.replaceChildren();
-  const maxTime = samples.reduce((max, sample) => Math.max(max, sample.time), 0);
-  const maxQuantity = samples.reduce((max, sample) => Math.max(max, sample.quantity), 0);
-  const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  polyline.setAttribute("fill", "none");
-  polyline.setAttribute("stroke", "currentColor");
-  polyline.setAttribute("points", samples.map((sample) => {
-    const x = maxTime === 0 ? 0 : (sample.time / maxTime) * 100;
-    const y = maxQuantity === 0 ? 100 : 100 - (sample.quantity / maxQuantity) * 100;
-    return `${x},${y}`;
-  }).join(" "));
-  curve.append(polyline);
+  xTicks.replaceChildren();
+  yTicks.replaceChildren();
+  const samples = outcome.samples;
+  const baselineDrawn = outcome.baselineStatus === 0;
+  const quantities = samples.flatMap((sample) => baselineDrawn ? [sample.quantity, sample.baseline] : [sample.quantity]);
+  const hasZero = quantities.some((value) => value === 0);
+  const requestedLog = state.growth.scale === "log";
+  const scale = requestedLog && !hasZero ? "log" : "linear";
+  const logNote = document.getElementById("growth-log-note");
+  const logButton = document.getElementById("growth-log");
+  const linearButton = document.getElementById("growth-linear");
+  if (logButton && linearButton) {
+    logButton.disabled = hasZero;
+    logButton.setAttribute("aria-pressed", String(state.growth.scale === "log"));
+    linearButton.setAttribute("aria-pressed", String(state.growth.scale !== "log"));
+  }
+  if (logNote) {
+    logNote.hidden = !hasZero;
+    logNote.textContent = hasZero ? t(state.lang, "growth.logUnavailable") : "";
+  }
+  const warning = document.getElementById("growth-baseline-warning");
+  if (warning) {
+    const showWarning = outcome.baselineStatus !== 0;
+    warning.hidden = !showWarning;
+    warning.textContent = showWarning ? t(state.lang, "growth.baselineOverflow") : "";
+  }
+  const dataMax = quantities.reduce((max, value) => Math.max(max, value), 0);
+  let includeTarget = false;
+  if (target && (target.status === 0 || target.status === 1 || target.status === 3) && Number.isFinite(target.level) && target.level > 0) {
+    includeTarget = target.status === 0 || target.status === 1 || (dataMax > 0 && target.level <= dataMax * 1.5);
+  }
+  const yMax = scale === "log"
+    ? Math.max(...quantities.filter((value) => value > 0), includeTarget ? target.level : 0)
+    : Math.max(dataMax, includeTarget ? target.level : 0);
+  const yMin = scale === "log"
+    ? Math.min(...quantities.filter((value) => value > 0), includeTarget ? target.level : Number.POSITIVE_INFINITY)
+    : 0;
+  const xMin = samples[0].time;
+  const xMax = samples.at(-1).time;
+  const xOf = (time) => xMax === xMin ? 0 : ((time - xMin) / (xMax - xMin)) * 100;
+  const yOf = (quantity) => {
+    if (scale === "log") {
+      const span = Math.log10(yMax) - Math.log10(yMin);
+      if (!Number.isFinite(span) || span === 0) return 50;
+      return 100 - ((Math.log10(quantity) - Math.log10(yMin)) / span) * 100;
+    }
+    if (yMax === 0) return 100;
+    return 100 - (quantity / yMax) * 100;
+  };
+  const svg = "http://www.w3.org/2000/svg";
+  const addSeries = (className, read) => {
+    const polyline = document.createElementNS(svg, "polyline");
+    polyline.setAttribute("class", className);
+    polyline.setAttribute("fill", "none");
+    polyline.setAttribute("points", samples.map((sample) => `${xOf(sample.time)},${yOf(read(sample))}`).join(" "));
+    curve.append(polyline);
+  };
+  addSeries("series-chosen", (sample) => sample.quantity);
+  if (baselineDrawn) addSeries("series-baseline", (sample) => sample.baseline);
+  if (includeTarget) {
+    const y = yOf(target.level);
+    const line = document.createElementNS(svg, "line");
+    line.setAttribute("class", "target-line");
+    line.setAttribute("x1", "0");
+    line.setAttribute("x2", "100");
+    line.setAttribute("y1", String(y));
+    line.setAttribute("y2", String(y));
+    curve.append(line);
+    if ((target.status === 0 || target.status === 1) && target.year >= xMin && target.year <= xMax) {
+      const mark = document.createElementNS(svg, "circle");
+      mark.setAttribute("class", "target-mark");
+      mark.setAttribute("cx", String(xOf(target.year)));
+      mark.setAttribute("cy", String(y));
+      mark.setAttribute("r", "1.4");
+      curve.append(mark);
+    }
+  }
+  const years = axisTicks(xMin, xMax, tickCount());
+  for (const year of years) {
+    const tick = document.createElement("span");
+    const fraction = xMax === xMin ? 0 : (year - xMin) / (xMax - xMin);
+    tick.textContent = formatReadable(year, state.lang, "year");
+    tick.style.left = `${fraction * 100}%`;
+    tick.style.transform = fraction <= 0.04 ? "translateX(0)" : fraction >= 0.96 ? "translateX(-100%)" : "translateX(-50%)";
+    xTicks.append(tick);
+  }
+  const levels = scale === "log" && yMin > 0 && yMax > 0 ? logTicks(yMin, yMax) : axisTicks(0, yMax === 0 ? 0 : yMax, tickCount());
+  for (const level of levels) {
+    const tick = document.createElement("span");
+    const y = yOf(level);
+    tick.textContent = formatReadable(level, state.lang, "quantity");
+    tick.style.top = `${y}%`;
+    tick.style.right = "0";
+    tick.style.transform = y < 10 ? "translateY(0)" : y > 90 ? "translateY(-100%)" : "translateY(-50%)";
+    yTicks.append(tick);
+  }
+  curve.dataset.scale = scale;
   for (const sample of samples) {
     const row = document.createElement("tr");
-    const time = document.createElement("td");
-    const quantity = document.createElement("td");
-    time.textContent = formatCanonical(sample.time);
-    quantity.textContent = formatCanonical(sample.quantity);
-    row.append(time, quantity);
+    const year = document.createElement("td");
+    const chosen = document.createElement("td");
+    const baseline = document.createElement("td");
+    year.textContent = formatReadable(sample.time, state.lang, "year");
+    chosen.textContent = formatReadable(sample.quantity, state.lang, "quantity");
+    baseline.textContent = baselineDrawn ? formatReadable(sample.baseline, state.lang, "quantity") : "";
+    year.dataset.exact = formatCanonical(sample.time);
+    chosen.dataset.exact = formatCanonical(sample.quantity);
+    if (baselineDrawn) baseline.dataset.exact = formatCanonical(sample.baseline);
+    row.append(year, chosen, baseline);
     body.append(row);
   }
+}
+
+function showTarget(code, yearText, exactYear, exactElapsed) {
+  const statusNode = document.getElementById("growth-target-status");
+  const text = document.getElementById("growth-target-text");
+  const year = document.getElementById("growth-target-year");
+  const exactYearNode = document.getElementById("growth-exact-year");
+  const exactElapsedNode = document.getElementById("growth-exact-elapsed");
+  const keys = {
+    0: "growth.targetWithin",
+    1: "growth.targetAlready",
+    2: "growth.targetNever",
+    3: "growth.targetOutside",
+    4: "growth.targetInvalid",
+    5: "growth.targetOverflow",
+    empty: "growth.targetEmpty",
+    malformed: "growth.malformed",
+  };
+  if (statusNode) statusNode.dataset.targetStatus = String(code);
+  if (text) text.textContent = keys[code] ? t(state.lang, keys[code]) : "";
+  if (year) {
+    year.textContent = yearText;
+    year.dataset.exactYear = exactYear;
+    year.dataset.exactElapsed = exactElapsed;
+  }
+  if (exactYearNode) exactYearNode.textContent = exactYear;
+  if (exactElapsedNode) exactElapsedNode.textContent = exactElapsed;
 }
 
 function updateGrowth() {
   const statusNode = document.getElementById("growth-status");
   const quantityNode = document.getElementById("growth-quantity");
   const factorNode = document.getElementById("growth-factor");
-  if (!statusNode || !quantityNode || !factorNode) return;
+  const endNode = document.getElementById("growth-end-year");
+  if (!statusNode || !quantityNode || !factorNode || !endNode) return;
   clearGrowthView();
+  clearTargetView();
   let code = "loading";
   let shown = false;
+  let outcome = null;
+  const initial = interpretOperand(state.growth.initial);
+  const doubling = interpretOperand(state.growth.doubling);
+  const elapsed = interpretOperand(state.growth.elapsed);
+  const startYear = interpretOperand(state.growth.startYear);
   if (session.phase === "loading") {
     code = "loading";
   } else if (session.phase !== "ready" || !session.exports) {
     code = "load-failed";
+  } else if ([initial, doubling, elapsed, startYear].some((item) => item.kind === "empty")) {
+    code = "empty";
+  } else if ([initial, doubling, elapsed, startYear].some((item) => item.kind !== "value")) {
+    code = "malformed";
   } else {
-    const initial = interpretOperand(state.growth.initial);
-    const doubling = interpretOperand(state.growth.doubling);
-    const elapsed = interpretOperand(state.growth.elapsed);
-    if (initial.kind === "empty" || doubling.kind === "empty" || elapsed.kind === "empty") {
-      code = "empty";
-    } else if (initial.kind !== "value" || doubling.kind !== "value" || elapsed.kind !== "value") {
-      code = "malformed";
-    } else {
-      const outcome = callGrowth(session, initial.value, doubling.value, elapsed.value);
-      code = outcome.status;
-      if (outcome.status === 0 && outcome.quantity !== null && outcome.factor !== null && outcome.samples) {
-        try {
-          quantityNode.textContent = formatCanonical(outcome.quantity);
-          factorNode.textContent = formatCanonical(outcome.factor);
-          quantityNode.dataset.exactQuantity = formatCanonical(outcome.quantity);
-          factorNode.dataset.exactFactor = formatCanonical(outcome.factor);
-          renderGrowthCurve(outcome.samples);
-          shown = true;
-        } catch {
-          clearGrowthView();
-          code = 5;
-        }
+    outcome = callGrowth(session, initial.value, doubling.value, elapsed.value, startYear.value);
+    code = outcome.status;
+    if (outcome.status === 0 && outcome.quantity !== null && outcome.samples) {
+      try {
+        quantityNode.textContent = formatReadable(outcome.quantity, state.lang);
+        factorNode.textContent = formatReadable(outcome.factor, state.lang);
+        endNode.textContent = formatReadable(outcome.endYear, state.lang, "year");
+        quantityNode.dataset.exact = formatCanonical(outcome.quantity);
+        factorNode.dataset.exact = formatCanonical(outcome.factor);
+        endNode.dataset.exact = formatCanonical(outcome.endYear);
+        document.getElementById("growth-exact-quantity").textContent = formatCanonical(outcome.quantity);
+        document.getElementById("growth-exact-factor").textContent = formatCanonical(outcome.factor);
+        shown = true;
+      } catch {
+        clearGrowthView();
+        outcome = null;
+        code = 5;
       }
     }
   }
+  const target = interpretOperand(state.growth.target);
+  let targetView = null;
   if (!shown) {
     clearGrowthView();
-    quantityNode.dataset.exactQuantity = "";
-    factorNode.dataset.exactFactor = "";
+    clearTargetView();
+  } else if (target.kind === "empty") {
+    showTarget("empty", "", "", "");
+  } else if (target.kind !== "value") {
+    showTarget("malformed", "", "", "");
+  } else {
+    const crossing = callTarget(
+      session,
+      initial.value,
+      doubling.value,
+      elapsed.value,
+      startYear.value,
+      target.value,
+    );
+    const reportsYear = crossing.status === 0 || crossing.status === 1 || crossing.status === 3;
+    if (!reportsYear) {
+      showTarget(crossing.status, "", "", "");
+      targetView = null;
+    } else {
+      showTarget(
+        crossing.status,
+        formatReadable(crossing.year, state.lang, "year"),
+        formatCanonical(crossing.year),
+        formatCanonical(crossing.elapsed),
+      );
+      targetView = { status: crossing.status, year: crossing.year, level: target.value };
+    }
+  }
+  if (shown && outcome) {
+    try {
+      renderGrowthCurve(outcome, targetView);
+    } catch {
+      clearGrowthView();
+      clearTargetView();
+      code = 5;
+      shown = false;
+    }
   }
   statusNode.dataset.status = String(code);
   statusNode.textContent = t(state.lang, growthMessage(code));
@@ -854,6 +1085,17 @@ function bind() {
     document.getElementById("growth-initial").value = state.growth.initial;
     document.getElementById("growth-doubling").value = state.growth.doubling;
     document.getElementById("growth-elapsed").value = state.growth.elapsed;
+    document.getElementById("growth-start-year").value = state.growth.startYear;
+    document.getElementById("growth-target").value = state.growth.target;
+    updateGrowth();
+  });
+  document.getElementById("growth-linear").addEventListener("click", () => {
+    state = setGrowthInput(state, "scale", "linear");
+    updateGrowth();
+  });
+  document.getElementById("growth-log").addEventListener("click", () => {
+    if (document.getElementById("growth-log").disabled) return;
+    state = setGrowthInput(state, "scale", "log");
     updateGrowth();
   });
   document.getElementById("lifetime-form").addEventListener("input", (event) => {

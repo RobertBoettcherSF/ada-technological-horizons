@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callGrowth, callLifetime, callRebalance, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callGrowth, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -16,6 +16,21 @@ function bitsToFloat(hex) {
   const view = new DataView(buffer);
   view.setBigUint64(0, BigInt(`0x${hex}`), true);
   return view.getFloat64(0, true);
+}
+
+function ulpDistance(actual, expected) {
+  const left = BigInt(`0x${actual}`);
+  const right = BigInt(`0x${expected}`);
+  return left > right ? left - right : right - left;
+}
+
+function assertBitsOrOneUlp(actual, expected, name) {
+  if (actual === expected) return;
+  const distance = ulpDistance(actual, expected);
+  assert.ok(
+    distance <= 1n,
+    `${name} differed by ${distance} ulp; native and Wasm libm may differ by one ulp on a non-integer power of two`,
+  );
 }
 
 function floatToBits(value) {
@@ -176,7 +191,7 @@ test("growth exports match the native fixture bits", async (t) => {
     for (let index = 8; index < parts.length; index += 2) {
       samples.push({ time: parts[index], quantity: parts[index + 1] });
     }
-    const outcome = callGrowth(session, initial, doubling, elapsed);
+    const outcome = callGrowth(session, initial, doubling, elapsed, 0);
     assert.equal(outcome.status, status, name);
     if (status === 0) {
       assert.equal(floatToBits(outcome.quantity), quantity, name);
@@ -188,6 +203,54 @@ test("growth exports match the native fixture bits", async (t) => {
       assert.equal(outcome.quantity, null, name);
       assert.equal(floatToBits(session.exports.ath_growth_quantity()), "0000000000000000", name);
     }
+  }
+
+  const chartInputs = {
+    "calendar-defaults": [1, 15, 30, 2026],
+    "doubling-14": [1, 14, 30, 2026],
+    "baseline-overflow": [1, 100000, 20000, 2026],
+  };
+  const charts = fs.readFileSync(growthPath, "utf8").split("\n").filter((line) => line.startsWith("CHART "));
+  assert.ok(charts.length >= 3);
+  for (const line of charts) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const inputs = chartInputs[name];
+    assert.ok(inputs, name);
+    const outcome = callGrowth(session, ...inputs);
+    assert.equal(outcome.status, Number(parts[2]), name);
+    assert.equal(outcome.baselineStatus, Number(parts[3]), name);
+    assertBitsOrOneUlp(floatToBits(outcome.quantity), parts[4], `${name} quantity`);
+    assertBitsOrOneUlp(floatToBits(outcome.factor), parts[5], `${name} factor`);
+    assert.equal(floatToBits(outcome.endYear), parts[6], name);
+    assert.equal(floatToBits(outcome.samples[0].time), parts[7], name);
+    assert.equal(floatToBits(outcome.samples.at(-1).time), parts[9], name);
+    assertBitsOrOneUlp(floatToBits(outcome.samples.at(-1).quantity), parts[10], `${name} end quantity`);
+    assert.equal(floatToBits(outcome.samples.at(-1).baseline), parts[11], name);
+    assert.equal(outcome.samples.at(-1).time, outcome.endYear, `${name} shared end`);
+  }
+
+  const targetInputs = {
+    "target-four-fifteen": [1, 15, 30, 2026, 4],
+    "target-four-fourteen": [1, 14, 30, 2026, 4],
+    "target-already": [1, 15, 30, 2026, 1],
+    "target-below": [1, 15, 30, 2026, 0.5],
+    "target-never": [0, 15, 30, 2026, 10],
+    "target-outside": [1, 15, 30, 2026, 10],
+    "target-zero": [1, 15, 30, 2026, 0],
+    "target-negative": [1, 15, 30, 2026, -2],
+  };
+  const targets = fs.readFileSync(growthPath, "utf8").split("\n").filter((line) => line.startsWith("TARGET "));
+  assert.ok(targets.length >= 8);
+  for (const line of targets) {
+    const parts = line.trim().split(/\s+/);
+    const name = parts[1];
+    const inputs = targetInputs[name];
+    assert.ok(inputs, name);
+    const outcome = callTarget(session, ...inputs);
+    assert.equal(outcome.status, Number(parts[2]), name);
+    assert.equal(floatToBits(outcome.elapsed), parts[3], name);
+    assert.equal(floatToBits(outcome.year), parts[4], name);
   }
 });
 

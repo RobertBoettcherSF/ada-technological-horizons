@@ -5,6 +5,9 @@ export const GROWTH_DEFAULTS = {
   initial: "1",
   doubling: "15",
   elapsed: "30",
+  startYear: "2026",
+  target: "10",
+  scale: "linear",
 };
 
 export const LIFETIME_DEFAULTS = {

@@ -54,6 +54,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#lifetime-result").getAttribute("data-exact-mean"), "6523");
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4");
   assert.equal(await page.locator("#growth-factor").textContent(), "4");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2056");
   assert.equal(await page.locator("#technical-details").evaluate((element) => element.open), false);
   assert.equal(await page.locator("#header-version").isVisible(), true);
   const layout = await page.evaluate(() => {
@@ -137,39 +138,121 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#prob-1").inputValue(), "5");
   await page.click("#lifetime-reset");
   await page.waitForFunction(() => document.querySelector("#prob-2").value === "60");
-  await page.locator("#growth-card").scrollIntoViewIfNeeded();
+  await page.locator("#growth-curve").scrollIntoViewIfNeeded();
   await shot(page, label, "growth-card.png");
   assert.equal(await page.locator("#growth-quantity").textContent(), "4");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2056");
+  assert.equal(await page.locator("#growth-target-status").getAttribute("data-target-status"), "3");
+  assert.ok((await page.locator("#growth-target-year").textContent()).trim() !== "");
+  assert.match(await page.locator("#growth-target-text").textContent(), /after this chart/i);
   const endpoint = await page.evaluate(() => {
     const rows = [...document.querySelectorAll("#growth-samples tr")];
     const last = rows.at(-1);
     return {
       rows: rows.length,
-      lastQuantity: last?.children[1]?.textContent,
-      firstTime: rows[0]?.children[0]?.textContent,
+      firstYear: rows[0]?.children[0]?.textContent,
+      lastYear: last?.children[0]?.textContent,
+      lastChosen: last?.children[1]?.textContent,
+      lastBaseline: last?.children[2]?.textContent,
+      xLabel: document.getElementById("growth-x-label").textContent,
+      yLabel: document.getElementById("growth-y-label").textContent,
+      xTicks: document.querySelectorAll("#growth-x-ticks span").length,
+      yTicks: document.querySelectorAll("#growth-y-ticks span").length,
+      series: document.querySelectorAll("#growth-curve polyline").length,
     };
   });
-  assert.equal(endpoint.rows, 11);
-  assert.equal(endpoint.lastQuantity, "4");
-  assert.equal(endpoint.firstTime, "0");
+  assert.ok(endpoint.rows > 11);
+  assert.equal(endpoint.firstYear, "2026");
+  assert.equal(endpoint.lastYear, "2056");
+  assert.equal(endpoint.lastChosen, "4");
+  assert.equal(endpoint.lastBaseline, "4");
+  assert.equal(endpoint.xLabel, "Calendar year");
+  assert.equal(endpoint.yLabel, "Quantity (index)");
+  assert.ok(endpoint.xTicks >= 2);
+  assert.ok(endpoint.yTicks >= 2);
+  assert.equal(endpoint.series, 2);
   assert.equal(await page.locator("#growth-curve").getAttribute("aria-hidden"), "true");
   assert.equal(await page.locator("#growth-table caption").count(), 1);
+  const beforeLog = await page.locator("#growth-samples tr").nth(1).locator("td").nth(1).textContent();
+  await page.locator("#growth-log").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#growth-curve")?.dataset.scale === "log");
+  assert.equal(await page.locator("#growth-samples tr").nth(1).locator("td").nth(1).textContent(), beforeLog);
+  assert.equal(await page.locator("#growth-quantity").textContent(), "4");
+  await page.click("#growth-linear");
+  await page.waitForFunction(() => document.querySelector("#growth-curve")?.dataset.scale === "linear");
+  await page.fill("#growth-target", "4");
+  await page.waitForFunction(() => document.querySelector("#growth-target-year")?.textContent === "2056");
+  assert.equal(await page.locator("#growth-target-status").getAttribute("data-target-status"), "0");
+  await page.locator("#growth-target-year").scrollIntoViewIfNeeded();
+  await shot(page, label, "growth-target.png");
+  await page.fill("#growth-doubling", "14");
+  await page.waitForFunction(() => document.querySelector("#growth-target-year")?.textContent === "2054");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2056");
+  const compared = await page.evaluate(() => {
+    const last = document.querySelector("#growth-samples tr:last-child");
+    return {
+      chosen: last.children[1].dataset.exact,
+      baseline: last.children[2].dataset.exact,
+      year: last.children[0].textContent,
+      series: document.querySelectorAll("#growth-curve polyline").length,
+    };
+  });
+  assert.equal(compared.year, "2056");
+  assert.equal(compared.baseline, "4");
+  assert.notEqual(compared.chosen, compared.baseline);
+  assert.equal(compared.series, 2);
+  await page.locator("#growth-curve").scrollIntoViewIfNeeded();
+  await shot(page, label, "growth-edited.png");
+  await page.fill("#growth-doubling", "15");
+  await page.fill("#growth-target", "1");
+  await page.waitForFunction(() => document.querySelector("#growth-target-status")?.dataset.targetStatus === "1");
+  assert.equal(await page.locator("#growth-target-year").textContent(), "2026");
+  await page.fill("#growth-target", "0.5");
+  await page.waitForFunction(() => document.querySelector("#growth-target-year")?.textContent === "2026");
+  assert.equal(await page.locator("#growth-target-status").getAttribute("data-target-status"), "1");
   await page.fill("#growth-elapsed", "15");
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "2");
   assert.equal(await page.locator("#growth-factor").textContent(), "2");
-  await shot(page, label, "growth-edited.png");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2041");
   await page.fill("#growth-elapsed", "0");
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "1");
   assert.equal(await page.locator("#growth-factor").textContent(), "1");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2026");
   await page.fill("#growth-initial", "0");
   await page.fill("#growth-elapsed", "30");
+  await page.fill("#growth-target", "10");
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "0");
   assert.equal(await page.locator("#growth-factor").textContent(), "4");
+  assert.equal(await page.locator("#growth-target-status").getAttribute("data-target-status"), "2");
+  assert.equal((await page.locator("#growth-target-year").textContent()).trim(), "");
+  assert.equal(await page.locator("#growth-log").isDisabled(), true);
+  assert.equal(await page.locator("#growth-log-note").isVisible(), true);
+  assert.match(await page.locator("#growth-log-note").textContent(), /zero/i);
+  assert.equal(await page.locator("#growth-curve").getAttribute("data-scale"), "linear");
+  await page.fill("#growth-initial", "1");
+  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4");
+  await page.fill("#growth-target", "");
+  await page.waitForFunction(() => document.querySelector("#growth-target-status")?.dataset.targetStatus === "empty");
+  assert.equal((await page.locator("#growth-target-year").textContent()).trim(), "");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "4");
+  await page.fill("#growth-target", "-3");
+  await page.waitForFunction(() => document.querySelector("#growth-target-status")?.dataset.targetStatus === "4");
+  assert.equal((await page.locator("#growth-target-year").textContent()).trim(), "");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "4");
+  await page.fill("#growth-start-year", "2026.5");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "6");
+  assert.equal(await page.locator("#growth-quantity").textContent(), "");
+  assert.equal(await page.locator("#growth-samples tr").count(), 0);
+  await page.fill("#growth-start-year", "10001");
+  await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "7");
+  await page.fill("#growth-start-year", "2026");
   await page.fill("#growth-doubling", "0");
   await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "4");
   assert.equal(await page.locator("#growth-quantity").textContent(), "");
   assert.equal(await page.locator("#growth-factor").textContent(), "");
   assert.equal(await page.locator("#growth-samples tr").count(), 0);
+  assert.equal((await page.locator("#growth-target-year").textContent()).trim(), "");
   await page.fill("#growth-doubling", "-2");
   await page.waitForFunction(() => document.querySelector("#growth-status")?.dataset.status === "4");
   await page.fill("#growth-doubling", "15");
@@ -191,6 +274,10 @@ async function exercise(page, label) {
   await page.click("#growth-reset");
   await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "4");
   assert.equal(await page.locator("#growth-doubling").inputValue(), "15");
+  assert.equal(await page.locator("#growth-start-year").inputValue(), "2026");
+  assert.equal(await page.locator("#growth-target").inputValue(), "10");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2056");
+  assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#lifetime-result").textContent(), "6500");
   await page.locator("#technical-details summary").scrollIntoViewIfNeeded();
   await shot(page, label, "technical-collapsed.png");
@@ -203,7 +290,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.4");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.5");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -290,15 +377,22 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#addition-result")?.textContent === "5");
   const beforeLang = await page.locator("a.section-link").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
   await page.fill("#growth-elapsed", "15");
-  await page.waitForFunction(() => document.querySelector("#growth-quantity")?.textContent === "2");
+  await page.fill("#growth-start-year", "1990");
+  await page.click("#growth-log");
+  await page.waitForFunction(() => document.querySelector("#growth-end-year")?.textContent === "2005");
   await page.click("#close-all");
   await page.click("#open-all");
   assert.equal(await page.locator("#growth-elapsed").inputValue(), "15");
+  assert.equal(await page.locator("#growth-start-year").inputValue(), "1990");
   assert.equal(await page.locator("#growth-quantity").textContent(), "2");
   await page.selectOption("#language", "de");
   await page.waitForFunction(() => document.documentElement.lang === "de");
   assert.equal(await page.locator("#growth-elapsed").inputValue(), "15");
+  assert.equal(await page.locator("#growth-start-year").inputValue(), "1990");
   assert.equal(await page.locator("#growth-quantity").textContent(), "2");
+  assert.equal(await page.locator("#growth-end-year").textContent(), "2005");
+  assert.equal(await page.locator("#growth-log").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#growth-x-label").textContent(), "Kalenderjahr");
   assert.match(await page.locator("#growth-status").textContent(), /Ada/);
   assert.equal(await page.locator("#operand-left").inputValue(), "8");
   assert.equal(await page.locator("#operand-right").inputValue(), "-3");

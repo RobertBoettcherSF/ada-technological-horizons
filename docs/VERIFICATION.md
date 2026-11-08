@@ -1,5 +1,13 @@
 # Verification
 
+## v0.1.5 calendar, baseline, and target year
+
+`bash tools/build.sh` printed `NATIVE OK`, `LIFETIME OK`, and `GROWTH OK`. The lifetime fixtures are unchanged, including exact 6523 and 8523. Growth defaults remain quantity 4 and factor 4. With starting year 2026 the chart ends at 2056. Target 4 is reached in 2056 when the doubling time is 15, and in 2054 when it is 14. A target already at or below the starting quantity stays at 2026. A starting quantity of 0 does not invent a year for a positive target. Target 10 is reported after the 30-year chart. A fractional year and a year outside -10000..10000 clear the curve. An invalid target clears only the target year.
+
+Node suites: 25 passed. Integer results and calendar years matched Wasm by bits. The slow-doubling case 2^0.2 differed by one ulp between native GNAT and the wasm32 maths library; the check allows that one ulp and still requires a non-finite 15-year baseline to be omitted rather than capped. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The page showed quantity 4, factor 4, and chart end 2056, with both curves, year labels, and the outside-horizon target. Doubling time 14 with target 4 showed 2054 and a higher chosen curve on the same years. At 320px, `scrollWidth - clientWidth` was at most 1. The civilisation headline stayed 6500 with exact mean 6523.
+
+The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+
 ## v0.1.4 scientific-information growth
 
 `bash tools/build.sh` printed `NATIVE OK`, `LIFETIME OK` and `GROWTH OK`. The lifetime and rebalance fixtures are unchanged. Growth checks: defaults quantity 4 and factor 4; one doubling gives 2 and 2; elapsed 0 keeps the starting quantity and factor 1; starting quantity 0 gives quantity 0 and factor 4; doubling 0 or a negative doubling is status 4; a negative elapsed time is status 3; a negative starting quantity is status 2; NaN is status 1; t = 20000 with d = 1 is status 5 and clears the previous result. The last of the 11 samples matches the reported quantity.

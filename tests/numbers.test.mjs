@@ -27,6 +27,17 @@ test("headline years round to the nearest 100 without hiding a small exact mean"
   assert.equal(formatHeadlineYears(42).text, "42");
 });
 
+test("readable growth figures keep exact integers and shorten long values", async () => {
+  const { formatReadable } = await import("../web/js/numbers.js");
+  assert.equal(formatReadable(4, "en-GB"), "4");
+  assert.equal(formatReadable(2056, "en-GB", "year"), "2056");
+  assert.equal(formatReadable(2054, "de", "year"), "2054");
+  const long = formatReadable(1.1486983549970349, "en-GB");
+  assert.ok(long.length < 12, long);
+  assert.equal(long.includes(" "), false);
+  assert.notEqual(formatReadable(1.5, "de"), formatReadable(1.5, "en-GB"));
+});
+
 test("canonical rendering is unambiguous and ignores language", () => {
   assert.equal(formatCanonical(5), "5");
   assert.equal(formatCanonical(-3), "-3");

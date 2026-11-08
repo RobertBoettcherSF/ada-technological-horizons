@@ -58,6 +58,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_growth_f64 !== "function") {
     throw new Error("Ada module is missing ath_growth_f64");
   }
+  if (typeof instance.exports.ath_growth_target_f64 !== "function") {
+    throw new Error("Ada module is missing ath_growth_target_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -112,14 +115,21 @@ export function callLifetime(session, percentages, durations) {
   };
 }
 
-export function callGrowth(session, initial, doubling, elapsed) {
+export function callGrowth(session, initial, doubling, elapsed, startYear) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");
   }
-  const status = session.exports.ath_growth_f64(initial, doubling, elapsed);
+  const status = session.exports.ath_growth_f64(initial, doubling, elapsed, startYear);
   session.invocations += 1;
   if (status !== STATUS_OK) {
-    return { status, quantity: null, factor: null, samples: null };
+    return {
+      status,
+      quantity: null,
+      factor: null,
+      endYear: null,
+      baselineStatus: null,
+      samples: null,
+    };
   }
   const count = session.exports.ath_growth_sample_count();
   const samples = [];
@@ -127,13 +137,35 @@ export function callGrowth(session, initial, doubling, elapsed) {
     samples.push({
       time: session.exports.ath_growth_sample_time(index),
       quantity: session.exports.ath_growth_sample_quantity(index),
+      baseline: session.exports.ath_growth_sample_baseline(index),
     });
   }
   return {
     status,
     quantity: session.exports.ath_growth_quantity(),
     factor: session.exports.ath_growth_factor(),
+    endYear: session.exports.ath_growth_end_year(),
+    baselineStatus: session.exports.ath_growth_baseline_status(),
     samples,
+  };
+}
+
+export function callTarget(session, initial, doubling, elapsed, startYear, target) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_growth_target_f64(
+    initial,
+    doubling,
+    elapsed,
+    startYear,
+    target,
+  );
+  session.invocations += 1;
+  return {
+    status,
+    elapsed: session.exports.ath_growth_target_elapsed(),
+    year: session.exports.ath_growth_target_year(),
   };
 }
 

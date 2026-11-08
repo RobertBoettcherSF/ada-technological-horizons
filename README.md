@@ -8,7 +8,7 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
-Version **0.1.4** adds the scientific-information growth calculator under Intellectronics / Return to Earth. Ada computes N = N₀ · 2^(t / d), the factor 2^(t / d), and the sampled curve. The defaults are a normalised index of 1, a 15-year doubling time and 30 elapsed years, which give quantity 4 and factor 4. The starting 1 is a presentation choice, not a historical count, and the exponential is the scenario, not a forecast.
+Version **0.1.5** keeps the scientific-information growth calculator under Intellectronics / Return to Earth and makes the chart easier to read. Ada still computes N = N₀ · 2^(t / d), the factor 2^(t / d), both curves, and the year a chosen level is reached. The defaults are a normalised index of 1, a 15-year doubling time, 30 elapsed years, and the presentation year 2026, which give quantity 4 and factor 4 at 2056. A second curve keeps the 15-year doubling on the same axes. The starting 1 and the year 2026 are presentation choices, and the exponential is the scenario, not a forecast.
 
 Version 0.1.3 remains the four-fate calculator under Cosmic Civilisations / Statistics of Cosmic Civilisations. Ada computes that mean and rebalances the other probabilities when one of them is edited. The headline mean is shown to the nearest 100 years, so those defaults read 6500 while the exact value remains 6523. The addition check stays inside Technical details, closed until opened.
 
@@ -69,7 +69,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.4`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.5`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

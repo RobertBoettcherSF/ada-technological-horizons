@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.4">
+  <meta name="ath-release" content="0.1.5">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.4</p>
+        <p class="release-pill" id="header-version">0.1.5</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -131,11 +131,12 @@
     <section id="growth-card" class="lifetime-card" aria-labelledby="growth-title">
       <p class="kicker" data-i18n="growth.path">Intellectronics · Return to Earth</p>
       <h2 id="growth-title" data-i18n="growth.title">What does persistent doubling imply?</h2>
-      <p data-i18n="growth.lead">A normalised starting index of 1 and a 15-year doubling time follow a historical discussion of scientific periodicals. Ada computes unrestricted exponential growth. That is the scenario, not a forecast, and the starting 1 is not a historical count.</p>
+      <p data-i18n="growth.lead">A normalised index starts at 1. The doubling time of 15 years follows a historical discussion of scientific periodicals. The year 2026 only places that horizon on a calendar. Ada computes one exponential. It is a scenario, not a forecast.</p>
       <p class="formula" data-i18n="growth.formula">N = N₀ · 2^(t / d)</p>
       <p class="note" data-i18n="growth.factorPolicy">The factor is 2^(t / d) even when the starting quantity is zero. The quantity is then zero.</p>
+      <p class="note" data-i18n="growth.noTipping">The same exponential applies for the whole horizon. A shorter doubling time is not a tipping point.</p>
       <form id="growth-form">
-        <div class="fate">
+        <div class="growth-fields">
           <div>
             <label for="growth-initial" data-i18n="growth.initial">Starting quantity</label>
             <input id="growth-initial" data-growth="initial" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1">
@@ -148,28 +149,78 @@
             <label for="growth-elapsed" data-i18n="growth.elapsed">Elapsed time (years)</label>
             <input id="growth-elapsed" data-growth="elapsed" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30">
           </div>
+          <div>
+            <label for="growth-start-year" data-i18n="growth.startYear">Starting year</label>
+            <input id="growth-start-year" data-growth="startYear" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="2026">
+            <p class="note" data-i18n="growth.yearHint">A whole year from -10000 to 10000. 2026 is a presentation choice, not a measured date.</p>
+          </div>
+          <div>
+            <label for="growth-target" data-i18n="growth.target">Target quantity</label>
+            <input id="growth-target" data-growth="target" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="10">
+            <p class="note" data-i18n="growth.targetHint">Illustrative level. The default 10 is not a forecast.</p>
+          </div>
         </div>
-        <div id="growth-live" class="live-result">
-          <p class="live-label" data-i18n="growth.quantity">Quantity</p>
-          <output id="growth-quantity" for="growth-initial growth-doubling growth-elapsed"></output>
-          <p class="live-label" data-i18n="growth.factor">Growth factor</p>
-          <output id="growth-factor"></output>
+        <div id="growth-live" class="live-result growth-metrics">
+          <div>
+            <p class="live-label" data-i18n="growth.quantity">Quantity</p>
+            <output id="growth-quantity" for="growth-initial growth-doubling growth-elapsed growth-start-year"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="growth.factor">Growth factor</p>
+            <output id="growth-factor"></output>
+          </div>
+          <div>
+            <p class="live-label" data-i18n="growth.endYear">Chart ends</p>
+            <output id="growth-end-year"></output>
+          </div>
         </div>
+        <p id="growth-target-status" role="status" aria-live="polite">
+          <span id="growth-target-text"></span>
+          <strong id="growth-target-year"></strong>
+        </p>
         <p id="growth-status" role="status" aria-live="polite"></p>
         <div class="button-row">
           <button type="submit" data-i18n="demo.compute">Compute</button>
           <button type="button" id="growth-reset" class="secondary" data-i18n="growth.reset">Reset example</button>
         </div>
       </form>
+      <div class="scale-toggle" role="group" aria-labelledby="growth-scale-label">
+        <span id="growth-scale-label" data-i18n="growth.scale">Quantity axis</span>
+        <button type="button" id="growth-linear" aria-pressed="true" data-i18n="growth.linear">Linear</button>
+        <button type="button" id="growth-log" aria-pressed="false" data-i18n="growth.log">Logarithmic</button>
+      </div>
+      <p id="growth-log-note" class="note" hidden></p>
       <h3 data-i18n="growth.curve">Growth curve</h3>
-      <svg id="growth-curve" class="growth-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="table-scroll">
+      <div class="chart-plot">
+        <p id="growth-y-label" class="axis-name" data-i18n="growth.axisQuantity">Quantity (index)</p>
+        <div id="growth-y-ticks" class="y-ticks"></div>
+        <svg id="growth-curve" class="growth-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div id="growth-x-ticks" class="x-ticks"></div>
+      </div>
+      <p id="growth-x-label" class="axis-name" data-i18n="growth.axisYear">Calendar year</p>
+      <ul id="growth-legend" class="legend">
+        <li><span class="swatch chosen" aria-hidden="true"></span><span data-i18n="growth.chosen">Chosen doubling</span></li>
+        <li><span class="swatch baseline" aria-hidden="true"></span><span data-i18n="growth.baseline">15-year baseline</span></li>
+      </ul>
+      <p id="growth-baseline-note" class="note" data-i18n="growth.baselineNote">The cyan curve keeps a 15-year doubling on the same axes. It is a comparison, not a forecast.</p>
+      <p id="growth-baseline-warning" class="note" hidden></p>
+      <details id="growth-exact">
+        <summary data-i18n="growth.exact">Exact figures</summary>
+        <dl class="diagnostics">
+          <div><dt data-i18n="growth.quantity">Quantity</dt><dd id="growth-exact-quantity"></dd></div>
+          <div><dt data-i18n="growth.factor">Factor</dt><dd id="growth-exact-factor"></dd></div>
+          <div><dt data-i18n="growth.exactYear">Target year</dt><dd id="growth-exact-year"></dd></div>
+          <div><dt data-i18n="growth.exactElapsed">Elapsed years to target</dt><dd id="growth-exact-elapsed"></dd></div>
+        </dl>
+      </details>
+      <div class="table-scroll growth-samples-scroll">
         <table id="growth-table">
-          <caption class="note" data-i18n="growth.tableCaption">Samples returned by Ada. The last row is the reported quantity.</caption>
+          <caption class="note" data-i18n="growth.tableCaption">Samples returned by Ada. The last row is the reported quantity. The baseline column uses a 15-year doubling.</caption>
           <thead>
             <tr>
-              <th scope="col" data-i18n="growth.elapsed">Elapsed time (years)</th>
-              <th scope="col" data-i18n="growth.quantity">Quantity</th>
+              <th scope="col" data-i18n="growth.axisYear">Calendar year</th>
+              <th scope="col" data-i18n="growth.chosen">Chosen doubling</th>
+              <th scope="col" data-i18n="growth.baseline">15-year baseline</th>
             </tr>
           </thead>
           <tbody id="growth-samples"></tbody>

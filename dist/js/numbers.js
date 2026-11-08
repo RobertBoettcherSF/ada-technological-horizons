@@ -36,6 +36,36 @@ export function formatProbability(value) {
   return formatCanonical(value);
 }
 
+export function formatReadable(value, lang, kind = "quantity") {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error("Refusing to present a non-finite value as a result");
+  }
+  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  if (kind === "year" && Math.abs(value - Math.round(value)) <= 1e-6) {
+    return new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+      useGrouping: false,
+    }).format(Math.round(value));
+  }
+  if (kind === "year") {
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 4,
+      useGrouping: false,
+    }).format(value);
+  }
+  if (Number.isInteger(value) && Math.abs(value) < 1e15) {
+    return new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+      useGrouping: false,
+    }).format(value);
+  }
+  return new Intl.NumberFormat(locale, {
+    maximumSignificantDigits: 6,
+    useGrouping: false,
+  }).format(value);
+}
+
 export function formatCanonical(value) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Refusing to present a non-finite value as a result");
