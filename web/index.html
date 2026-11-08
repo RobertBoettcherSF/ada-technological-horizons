@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="ath-release" content="0.1.0">
+  <title>Ada Technological Horizons</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#content" data-i18n="skip.content">Skip to content</a>
+  <div class="horizon" aria-hidden="true"></div>
+  <header class="site-header wrap">
+    <div class="header-row">
+      <div class="identity">
+        <p class="eyebrow"><span data-i18n="diag.version">Release</span> <span id="header-version">0.1.0</span></p>
+        <h1 data-i18n="app.title">Ada Technological Horizons</h1>
+        <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
+        <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
+      </div>
+      <div class="lang-wrap">
+        <label for="language" data-i18n="lang.label">Language</label>
+        <select id="language">
+          <option value="en-GB" data-i18n="lang.en-GB" selected>English (United Kingdom)</option>
+          <option value="de" data-i18n="lang.de">Deutsch</option>
+          <option value="es" data-i18n="lang.es">Español</option>
+          <option value="fr" data-i18n="lang.fr">Français</option>
+        </select>
+      </div>
+    </div>
+    <nav class="chapter-nav" aria-labelledby="chapters-label">
+      <h2 id="chapters-label" data-i18n="nav.chapters">Chapters</h2>
+      <ul id="chapter-list" class="chapter-list"></ul>
+    </nav>
+  </header>
+  <main id="content" class="wrap">
+    <section id="diagnostics" aria-labelledby="diagnostics-label">
+      <h2 id="diagnostics-label" data-i18n="diag.heading">Release identity</h2>
+      <dl class="diag">
+        <div><dt data-i18n="diag.version">Release</dt><dd id="diag-version">0.1.0</dd></div>
+        <div><dt data-i18n="diag.commit">Published commit</dt><dd id="diag-commit"></dd></div>
+        <div><dt data-i18n="diag.module">Module fingerprint</dt><dd id="diag-module"></dd></div>
+        <div><dt data-i18n="diag.toolchain">Toolchain</dt><dd id="diag-toolchain"></dd></div>
+        <div><dt data-i18n="diag.execution">Execution</dt><dd id="diag-execution" data-execution="idle"></dd></div>
+        <div><dt data-i18n="diag.calls">Ada calls</dt><dd id="diag-calls">0</dd></div>
+        <div><dt data-i18n="diag.locale">Locale</dt><dd id="diag-locale">en-GB</dd></div>
+        <div><dt data-i18n="diag.mime">Wasm response type</dt><dd id="diag-mime"></dd></div>
+      </dl>
+    </section>
+    <article id="reading" aria-labelledby="reading-title" tabindex="-1">
+      <h2 id="reading-title" tabindex="-1"></h2>
+      <p id="reading-meta"></p>
+      <p id="reading-summary"></p>
+      <div id="reading-pager" class="pager"></div>
+    </article>
+    <section id="catalogue" aria-labelledby="catalogue-label">
+      <h2 id="catalogue-label" data-i18n="catalogue.heading">Catalogue</h2>
+      <p data-i18n="catalogue.intro"></p>
+      <p data-i18n="catalogue.plannedNote"></p>
+      <div class="catalogue-controls">
+        <div class="search-wrap">
+          <label for="search" data-i18n="catalogue.search">Search titles, summaries and topics</label>
+          <input id="search" type="search" autocomplete="off">
+        </div>
+        <div class="sort-wrap">
+          <label for="sort" data-i18n="catalogue.sort">Order</label>
+          <select id="sort">
+            <option value="reading" data-i18n="catalogue.sort.reading" selected>Reading order</option>
+            <option value="calculators" data-i18n="catalogue.sort.calculators">Calculators first</option>
+            <option value="topic" data-i18n="catalogue.sort.topic">Topic</option>
+            <option value="title" data-i18n="catalogue.sort.title">Title</option>
+          </select>
+        </div>
+      </div>
+      <div id="filters" class="filters"></div>
+      <div class="button-row">
+        <button type="button" id="open-all" data-i18n="catalogue.openAll">Open all</button>
+        <button type="button" id="close-all" class="secondary" data-i18n="catalogue.closeAll">Close all</button>
+        <button type="button" id="clear-filters" class="secondary" data-i18n="catalogue.clear" aria-describedby="clear-help">Clear filters</button>
+      </div>
+      <p id="clear-help" class="note" data-i18n="catalogue.clearHelp"></p>
+      <dl class="counts">
+        <div><dt data-i18n="catalogue.results">Results</dt><dd id="result-count">0</dd></div>
+        <div><dt data-i18n="catalogue.activeFilters">Active filters</dt><dd id="active-count">0</dd></div>
+        <div><dt data-i18n="catalogue.workingCalculators">Working calculators</dt><dd id="working-count">0</dd></div>
+      </dl>
+      <div id="catalogue-results"></div>
+    </section>
+    <section id="about" aria-labelledby="about-label">
+      <h2 id="about-label" data-i18n="about.heading">About this release</h2>
+      <p data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
+      <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
+      <p data-i18n="about.scope"></p>
+      <p data-i18n="about.queue"></p>
+      <p data-i18n="about.decimal"></p>
+      <p data-i18n="app.licence"></p>
+    </section>
+    <noscript>
+      <p>JavaScript is required to load the Ada module and the catalogue. This page does not calculate a result without it.</p>
+    </noscript>
+  </main>
+  <footer class="wrap">
+    <p><a href="#about" data-i18n="nav.about">About</a></p>
+    <p data-i18n="footer.note"></p>
+  </footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
