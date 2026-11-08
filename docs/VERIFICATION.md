@@ -6,7 +6,11 @@
 
 Node suites passed, including the new light-time parity. Headless Chromium printed `BROWSER OK` for `application/wasm` and for `application/octet-stream`. The prefilled card showed 1000 years and 2000 years, with Sources closed. The Mars preset showed a minute-scale delay and the note that it is not the distance today. At 320px, `scrollWidth - clientWidth` was at most 1. The catalogue counted 3 working calculators.
 
-The immutable raw.githack check for this commit is recorded below once that URL has been loaded.
+Verified in a browser on 8 November 2026 at the immutable URL:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/7b947fa0d9ac201b0b75955e509d592e311a7fc7/dist/index.html
+
+The page showed release `0.1.7`, that commit, `application/wasm`, Sources and Technical details closed, three working calculators, growth quantity **4** with chart end **2076**, and headline **6500** with exact mean **6523**. The prefilled light-time was **1000 years** one way and **2000 years** for the reply. The Earth–Mars example showed **12.5087 min** and **25.0173 min**, with the note that 225 million km is not the distance today. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (44229 bytes, SHA-256 `19cb4b895f476b4518a4092562c8b04ab3f93a47f9c5240ffa45d98cc7d2b4ff`, `access-control-allow-origin: *`).
 
 ## v0.1.6 extended chart horizon
 
