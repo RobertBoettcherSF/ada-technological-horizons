@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { messageKeys, messages, t } from "../web/js/messages.js";
 
-const LOCALES = ["en-GB", "de", "es", "fr"];
+const LOCALES = ["en-GB", "de", "es", "fr", "pl"];
 const CREDIT = "An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.";
 
-test("every shell string exists in all four languages", () => {
+test("every shell string exists in all five languages", () => {
   for (const locale of LOCALES) {
     assert.deepEqual(Object.keys(messages[locale]).sort(), messageKeys.slice().sort());
     for (const key of messageKeys) {
@@ -23,7 +23,7 @@ test("representative controls are actually translated", () => {
   const keys = ["nav.previous", "nav.next", "catalogue.clear", "demo.empty", "demo.loadFailed", "type.planned", "app.invite", "demo.friendlyTitle", "diag.toggle"];
   for (const key of keys) {
     const values = new Set(LOCALES.map((locale) => t(locale, key)));
-    assert.equal(values.size, 4, key);
+    assert.equal(values.size, 5, key);
   }
 });
 

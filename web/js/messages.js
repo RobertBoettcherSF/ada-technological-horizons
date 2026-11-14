@@ -1,4 +1,6 @@
-const LOCALES = ["en-GB", "de", "es", "fr"];
+import { polish } from "./messages-pl.js";
+
+const LOCALES = ["en-GB", "de", "es", "fr", "pl"];
 
 const ROWS = [
   ["app.title", "Ada Technological Horizons", "Ada Technological Horizons", "Ada Technological Horizons", "Ada Technological Horizons"],
@@ -12,6 +14,7 @@ const ROWS = [
   ["lang.de", "Deutsch", "Deutsch", "Deutsch", "Deutsch"],
   ["lang.es", "Español", "Español", "Español", "Español"],
   ["lang.fr", "Français", "Français", "Français", "Français"],
+  ["lang.pl", "Polski", "Polski", "Polski", "Polski"],
   ["nav.chapters", "Chapters", "Kapitel", "Capítulos", "Chapitres"],
   ["chapters.note", "All chapters shows every calculator. A chosen chapter, section or catalogue filter shows only that selection. A planned chapter has no working calculator.", "Alle Kapitel zeigt jeden Rechner. Ein gewähltes Kapitel, ein Abschnitt oder ein Katalogfilter zeigt nur diese Auswahl. Ein geplantes Kapitel hat keinen funktionierenden Rechner.", "Todos los capítulos muestra cada calculadora. Un capítulo, una sección o un filtro del catálogo elegidos muestra solo esa selección. Un capítulo previsto no tiene calculadora en funcionamiento.", "Tous les chapitres affiche chaque calculateur. Un chapitre, une section ou un filtre du catalogue choisi n’affiche que cette sélection. Un chapitre prévu n’a pas de calculateur en service."],
   ["nav.allChapters", "All chapters", "Alle Kapitel", "Todos los capítulos", "Tous les chapitres"],
@@ -93,9 +96,9 @@ const ROWS = [
   ["exec.failed", "Load failed", "Laden fehlgeschlagen", "Carga fallida", "Échec du chargement"],
   ["exec.idle", "Not loaded", "Nicht geladen", "No cargado", "Non chargé"],
   ["about.heading", "About this release", "Über diese Ausgabe", "Acerca de esta entrega", "À propos de cette version"],
-  ["about.scope", "Version 0.1.21 compares two doubling indices in The Megabit Bomb: discoveries every 30 years, the researcher index every 10. The ratio is not a forecast from headcount.", "Version 0.1.21 vergleicht zwei Verdopplungsindizes in Die Megabit-Bombe: Entdeckungen alle 30 Jahre, der Index der Forschenden alle 10. Das Verhältnis ist keine Prognose aus der Kopfzahl.", "La versión 0.1.21 compara dos índices de duplicación en La bomba del megabit: descubrimientos cada 30 años, el índice de investigadores cada 10. La razón no es un pronóstico a partir del número de personas.", "La version 0.1.21 compare deux indices de doublement dans La bombe du mégabit : découvertes tous les 30 ans, indice des chercheurs tous les 10 ans. Le rapport n’est pas une prévision à partir des effectifs."],
+  ["about.scope", "Version 0.1.22 names the scientists each chapter draws on, and adds Polish. The Wikipedia link follows the language you chose, and uses English when that language has no article.", "Version 0.1.22 nennt die Wissenschaftler, auf die sich jedes Kapitel stützt, und ergänzt Polnisch. Der Wikipedia-Link folgt der gewählten Sprache und nutzt Englisch, wenn es dort keinen Artikel gibt.", "La versión 0.1.22 nombra a los científicos en los que se apoya cada capítulo y añade el polaco. El enlace de Wikipedia sigue el idioma elegido y usa el inglés cuando ese idioma no tiene artículo.", "La version 0.1.22 nomme les scientifiques sur lesquels s’appuie chaque chapitre, et ajoute le polonais. Le lien Wikipédia suit la langue choisie, et utilise l’anglais lorsqu’il n’y a pas d’article dans cette langue."],
   ["about.queue", "Spacing, contact, recurrence and logistic limits are not in this release. The Megabit Bomb comparison is two doubling indices, not a hiring forecast.", "Abstand, Kontakt, Wiederkehr und logistische Grenzen fehlen in dieser Ausgabe. Der Vergleich in Die Megabit-Bombe sind zwei Verdopplungsindizes, keine Einstellungsprognose.", "Esta entrega no incluye espaciamiento, contacto, recurrencia ni límites logísticos. La comparación de La bomba del megabit son dos índices de duplicación, no un pronóstico de contratación.", "Cette version n’inclut pas l’espacement, le contact, la récurrence ni les limites logistiques. La comparaison de La bombe du mégabit est deux indices de doublement, non une prévision d’embauche."],
-  ["about.decimal", "Results are shown in canonical decimal form, with a dot separator and no grouping marks, so the digits do not change with the language.", "Ergebnisse erscheinen in kanonischer Dezimalform, mit Punkt und ohne Gruppierungszeichen, damit die Ziffern sich nicht mit der Sprache ändern.", "Los resultados se muestran en forma decimal canónica, con punto y sin separadores de millares, de modo que las cifras no cambian con el idioma.", "Les résultats sont affichés en forme décimale canonique, avec un point et sans séparateur de milliers, afin que les chiffres ne changent pas avec la langue."],
+  ["about.decimal", "Readable results follow the chosen language. Exact figures in Technical details stay in canonical form, with a dot and no grouping, and every input still uses a dot.", "Lesbare Ergebnisse folgen der gewählten Sprache. Genaue Angaben in den technischen Details bleiben kanonisch, mit Punkt und ohne Gruppierung, und jede Eingabe benutzt weiter einen Punkt.", "Los resultados legibles siguen el idioma elegido. Las cifras exactas de los detalles técnicos siguen en forma canónica, con punto y sin agrupación, y toda entrada sigue usando un punto.", "Les résultats lisibles suivent la langue choisie. Les chiffres exacts des détails techniques restent canoniques, avec un point et sans groupement, et toute saisie continue d’utiliser un point."],
   ["footer.note", "Literary inspiration is acknowledged separately from any future software licence.", "Die literarische Anregung wird getrennt von einer künftigen Softwarelizenz genannt.", "La inspiración literaria se reconoce aparte de cualquier licencia futura del programa.", "L’inspiration littéraire est indiquée à part de toute licence logicielle future."],
   ["reading.prompt", "Select a chapter or a section. Previous and Next follow the book, whatever the catalogue order.", "Wählen Sie ein Kapitel oder einen Abschnitt. Zurück und Weiter folgen dem Buch, unabhängig von der Katalogreihenfolge.", "Elija un capítulo o una sección. Anterior y Siguiente siguen el libro, sea cual sea el orden del catálogo.", "Choisissez un chapitre ou une section. Précédent et Suivant suivent le livre, quel que soit l’ordre du catalogue."],
   ["reading.chapter", "Chapter", "Kapitel", "Capítulo", "Chapitre"],
@@ -474,12 +477,19 @@ const ROWS = [
   ["throughput.exactRate", "Rate in bits per second", "Rate in Bit pro Sekunde", "Tasa en bits por segundo", "Taux en bits par seconde"],
   ["throughput.exactTime", "Time in seconds", "Zeit in Sekunden", "Tiempo en segundos", "Temps en secondes"],
   ["throughput.exactTotal", "Total in bits", "Summe in Bit", "Total en bits", "Total en bits"],
+  ["credits.heading", "Scientists Lem draws on", "Wissenschaftler, auf die Lem sich stützt", "Científicos en los que se apoya Lem", "Scientifiques sur lesquels Lem s’appuie"],
+  ["credits.line", "Inspired by the scientific work of {name}", "Angeregt durch die wissenschaftliche Arbeit von {name}", "Inspirado por el trabajo científico de {name}", "Inspiré par le travail scientifique de {name}"],
+  ["credits.wiki", "Wikipedia", "Wikipedia", "Wikipedia", "Wikipédia"],
+  ["credits.wikiRussian", "Wikipedia (Russian)", "Wikipedia (russisch)", "Wikipedia (en ruso)", "Wikipédia (en russe)"],
+  ["credits.unlinked", "First name not given in the book", "Der Vorname steht nicht im Buch", "El nombre de pila no figura en el libro", "Le prénom n’est pas donné dans le livre"],
+  ["credits.tag.eponym", "named via a concept", "benannt über einen Begriff", "nombrado a través de un concepto", "nommé par un concept"],
+  ["credits.tag.borderline", "not only a laboratory scientist", "nicht nur Laborwissenschaft", "no solo ciencia de laboratorio", "pas seulement un scientifique de laboratoire"],
 ];
 
 function buildMessages(rows) {
-  const messages = { "en-GB": {}, de: {}, es: {}, fr: {} };
+  const messages = { "en-GB": {}, de: {}, es: {}, fr: {}, pl: {} };
   for (const [key, en, de, es, fr] of rows) {
-    const values = { "en-GB": en, de, es, fr };
+    const values = { "en-GB": en, de, es, fr, pl: polish[key] };
     for (const locale of LOCALES) {
       if (typeof values[locale] !== "string" || values[locale].trim() === "") {
         throw new Error(`Empty translation ${locale} ${key}`);

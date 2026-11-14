@@ -276,6 +276,8 @@ rm -rf "$ROOT/dist/js"
 mkdir -p "$ROOT/dist/js"
 cp "$ROOT/web/index.html" "$ROOT/web/styles.css" "$ROOT/dist/"
 cp "$ROOT/web/js/"*.js "$ROOT/dist/js/"
+mkdir -p "$ROOT/dist/data"
+cp "$ROOT/data/scientists.tsv" "$ROOT/dist/data/scientists.tsv"
 
 WASM_SHA="$(sha256sum "$ROOT/dist/ath_addition.wasm" | awk '{print $1}')"
 BUILT_FROM="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo not-stamped)"
@@ -283,7 +285,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.21",
+  version: "0.1.22",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -294,7 +296,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

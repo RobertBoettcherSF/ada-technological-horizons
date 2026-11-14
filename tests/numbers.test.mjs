@@ -36,6 +36,8 @@ test("readable growth figures keep exact integers and shorten long values", asyn
   assert.ok(long.length < 12, long);
   assert.equal(long.includes(" "), false);
   assert.notEqual(formatReadable(1.5, "de"), formatReadable(1.5, "en-GB"));
+  assert.equal(formatReadable(0.25, "pl"), "0,25");
+  assert.match(formatReadable(1_000_000, "pl"), /^1[\s\u00a0\u202f]000[\s\u00a0\u202f]000$/);
 });
 
 test("duration formatting follows the size of the light-time", async () => {

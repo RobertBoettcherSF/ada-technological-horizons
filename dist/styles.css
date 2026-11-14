@@ -144,6 +144,44 @@ button.collapse {
   color: var(--lime);
 }
 
+.preset-row button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+
+.chapter-credits {
+  margin: 1rem 0 0;
+  padding: 0.95rem 1rem 1.05rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.chapter-credits h3 {
+  margin: 0 0 0.55rem;
+  font-size: 1.05rem;
+}
+.credit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.credit-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.55rem;
+  min-width: 0;
+}
+.credit-tag {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.chapter-credits a { white-space: nowrap; }
+
 .chapter-nav, #catalogue, #about, #reading, .lifetime-card, .group, .card {
   margin: 1rem 0;
 }

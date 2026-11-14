@@ -167,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.21/);
+  assert.match(report, /Release: 0\.1\.22/);
   assert.match(report, /Preset: book/);
   assert.match(report, /Ratio: 0\.25/);
   assert.match(report, /Preset: historical/);
@@ -834,7 +834,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.21");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.22");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1151,11 +1151,30 @@ async function exercise(page, label) {
 
   await page.setViewportSize({ width: 1280, height: 900 });
   assert.ok((await overflow(page)) <= 1, "desktop overflow");
+  await page.locator('a[href="#cosmic-civilisations"]').click();
+  await page.waitForFunction(() => {
+    const block = document.querySelector("#chapter-credits");
+    return block && !block.hidden && block.innerText.includes("Iosif Shklovsky") && block.innerText.includes("Baumsztejn");
+  });
+  assert.equal(await page.locator("#chapter-credits a[href*='Iosif_Shklovsky']").getAttribute("rel"), "noopener");
+  assert.equal(await page.locator("#chapter-credits a[href*='Iosif_Shklovsky']").getAttribute("target"), "_blank");
+  assert.match(await page.locator("#chapter-credits").innerText(), /first name not given in the book/i);
+  assert.equal(await page.locator("#chapter-credits a", { hasText: "Baumsztejn" }).count(), 0);
+  await shotElement(page, label, "credits-iii-desktop.png", "#chapter-credits");
   await page.locator("#addition-form").scrollIntoViewIfNeeded();
   await shot(page, label, "desktop-demo.png");
 
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow overflow");
+  await shotElement(page, label, "credits-iii-narrow.png", "#chapter-credits");
+  await page.selectOption("#language", "pl");
+  await page.waitForFunction(() => document.querySelector("#chapter-credits h3")?.textContent === "Naukowcy, na których powołuje się Lem");
+  assert.match(await page.locator("#chapter-credits a[href*='Iosif_Szk']").getAttribute("href"), /^https:\/\/pl\.wikipedia\.org\/wiki\//);
+  assert.match(await page.locator("#chapter-credits a[href*='W._Ross_Ashby']").getAttribute("href"), /^https:\/\/en\.wikipedia\.org\/wiki\/W\._Ross_Ashby$/);
+  assert.ok((await overflow(page)) <= 1, "narrow overflow in Polish");
+  await page.selectOption("#language", "en-GB");
+  await page.click("#show-all");
+  await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");
   await page.waitForFunction(() => document.querySelector("#lottery-none")?.textContent === "7/15");
   await shotElement(page, label, "lottery-small-narrow.png", "#lottery-card");

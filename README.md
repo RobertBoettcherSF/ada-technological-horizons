@@ -8,6 +8,8 @@ This is original educational software, not an official edition or an endorsed ad
 
 ## This release
 
+Version **0.1.22** names the scientists each chapter draws on, in the language you chose, and adds Polish. A missing article in that language uses the English Wikipedia page. Oleg K. Tikhomirov and Leonid S. Marochnik stay on their Russian pages. Three names stay unlinked because the book gives no first name.
+
 Version **0.1.21** compares two doubling indices in The Megabit Bomb. Discoveries double every 30 years and the researcher index every 10. Both start at 1, which is our scale. After 30 years the indices are 2 and 8, so discoveries per researcher index are 0.25. A same-pace button sets both doublings to 30 years. The ratio is not a forecast that hiring a person creates a discovery.
 
 Version **0.1.20** adds the Return to Earth lottery. You set the tickets, the prizes among them, and how many tickets you buy. Each ticket is bought once. The expected number of prizes is the long-run average, not one draw. The chance of winning nothing is the hypergeometric ratio, and a chance too small to store is shown as a power of ten rather than as zero. The small example, 10 tickets, 2 prizes and 3 bought, is a teaching case: average 0.6, chance of nothing 7/15. The book sizes are one million tickets, one thousand prizes and buying half.
@@ -97,7 +99,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.21`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.22`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

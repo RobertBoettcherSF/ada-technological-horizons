@@ -198,7 +198,7 @@ test("production catalogue keeps eight book chapters and stable English ids", ()
   assert.equal(ids.size, entries.length);
   for (const entry of entries) {
     assert.match(entry.id, /^[a-z0-9-]+\/[a-z0-9-]+$/);
-    for (const locale of ["en-GB", "de", "es", "fr"]) {
+    for (const locale of ["en-GB", "de", "es", "fr", "pl"]) {
       assert.equal(typeof entry.title[locale], "string");
       assert.ok(entry.title[locale].trim() !== "");
     }

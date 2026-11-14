@@ -17,6 +17,7 @@ import {
   visibleEntries,
 } from "./catalogue.js";
 import { t } from "./messages.js";
+import { creditHref, displayName, isUnlinked, parseScientists, scientistsForChapter } from "./scientists.js";
 import { formatCanonical, formatDuration, formatHeadlineYears, formatProbability, formatReadable, formatShortDuration, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
@@ -465,6 +466,7 @@ function renderResults() {
     updateChoice();
     updateLottery();
     updateResearch();
+    renderSelectedCredits();
     applyVisibility();
     return;
   }
@@ -496,6 +498,10 @@ function renderResults() {
     for (const entry of group.entries) {
       body.append(renderCard(entry));
     }
+    if (group.kind === "chapter") {
+      const credits = creditBlock(group.key);
+      if (credits) body.append(credits);
+    }
     const section = h("section", { class: "group", id: group.kind === "chapter" ? `chapter-${group.key}` : `topic-${group.key}` }, [
       h("div", { class: "group-bar" }, [button, h("h2", { text: headingText })]),
       body,
@@ -512,7 +518,66 @@ function renderResults() {
   updateChoice();
   updateLottery();
   updateResearch();
+  renderSelectedCredits();
   applyVisibility();
+}
+
+let scientistRows = [];
+
+function creditBlock(chapterId) {
+  const rows = scientistsForChapter(scientistRows, chapterId);
+  if (rows.length === 0) return null;
+  const list = h("ul", { class: "credit-list" });
+  for (const row of rows) {
+    const name = displayName(row);
+    const sentence = h("span", { text: t(state.lang, "credits.line").replace("{name}", name) });
+    const children = [sentence];
+    if (row.category === "eponym") {
+      children.push(h("span", { class: "credit-tag", text: t(state.lang, "credits.tag.eponym") }));
+    } else if (row.category === "borderline") {
+      children.push(h("span", { class: "credit-tag", text: t(state.lang, "credits.tag.borderline") }));
+    }
+    const link = creditHref(row, state.lang);
+    if (link) {
+      children.push(h("a", {
+        href: link.href,
+        target: "_blank",
+        rel: "noopener",
+        text: t(state.lang, link.kind === "ru" ? "credits.wikiRussian" : "credits.wiki"),
+      }));
+    } else if (isUnlinked(row)) {
+      children.push(h("span", { class: "credit-tag", text: t(state.lang, "credits.unlinked") }));
+    }
+    list.append(h("li", {}, children));
+  }
+  return h("section", { class: "chapter-credits", dataset: { chapterCredits: chapterId } }, [
+    h("h3", { text: t(state.lang, "credits.heading") }),
+    list,
+  ]);
+}
+
+function renderSelectedCredits() {
+  const host = document.getElementById("chapter-credits");
+  if (!host) return;
+  const route = contentRoute();
+  const chapterId = !route ? "" : chapterById(route) ? route : entries.find((item) => item.id === route)?.chapterId || "";
+  const block = chapterId ? creditBlock(chapterId) : null;
+  host.hidden = !block;
+  host.replaceChildren(...(block ? [...block.childNodes] : []));
+  if (block) host.dataset.chapterCredits = chapterId;
+  else delete host.dataset.chapterCredits;
+}
+
+async function loadScientists() {
+  try {
+    const response = await fetch("data/scientists.tsv");
+    if (!response.ok) throw new Error(String(response.status));
+    scientistRows = parseScientists(await response.text());
+  } catch (error) {
+    scientistRows = [];
+    console.error(error);
+  }
+  renderResults();
 }
 
 function updateDiagnostics() {
@@ -2912,6 +2977,7 @@ function main() {
     showRoute(routeFromHash(), { focus: false });
   }
   boot();
+  loadScientists();
 }
 
 main();

@@ -59,11 +59,11 @@ export function formatDuration(seconds, lang) {
     unit = "min";
   }
   const sign = seconds < 0 ? "-" : "";
-  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  const locale = uiLocale(lang);
   const text = new Intl.NumberFormat(locale, {
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
-    useGrouping: false,
+    useGrouping: locale === "pl",
   }).format(value);
   return { text: `${sign}${text}`, unit };
 }
@@ -74,13 +74,13 @@ export function formatShortDuration(seconds, lang) {
   }
   const absolute = Math.abs(seconds);
   const sign = seconds < 0 ? "-" : "";
-  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  const locale = uiLocale(lang);
   const write = (value, unit) => {
     const near = Math.abs(value - Math.round(value));
     const shown = near < 1e-6 && Math.abs(value) < 1e15 ? Math.round(value) : value;
     const text = new Intl.NumberFormat(locale, {
       maximumSignificantDigits: 6,
-      useGrouping: false,
+      useGrouping: locale === "pl",
     }).format(shown);
     return { text: `${sign}${text}`, unit };
   };
@@ -100,11 +100,12 @@ export function formatReadable(value, lang, kind = "quantity") {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error("Refusing to present a non-finite value as a result");
   }
-  const locale = lang === "de" || lang === "es" || lang === "fr" || lang === "en-GB" ? lang : "en-GB";
+  const locale = uiLocale(lang);
+  const grouping = locale === "pl" && kind !== "year";
   if (kind === "year" && Math.abs(value - Math.round(value)) <= 1e-6) {
     return new Intl.NumberFormat(locale, {
       maximumFractionDigits: 0,
-      useGrouping: false,
+      useGrouping: grouping,
     }).format(Math.round(value));
   }
   if (kind === "year") {
@@ -117,13 +118,18 @@ export function formatReadable(value, lang, kind = "quantity") {
   if (Number.isInteger(value) && Math.abs(value) < 1e15) {
     return new Intl.NumberFormat(locale, {
       maximumFractionDigits: 0,
-      useGrouping: false,
+      useGrouping: grouping,
     }).format(value);
   }
   return new Intl.NumberFormat(locale, {
     maximumSignificantDigits: 6,
-    useGrouping: false,
+    useGrouping: grouping,
   }).format(value);
+}
+
+function uiLocale(lang) {
+  if (lang === "de" || lang === "es" || lang === "fr" || lang === "pl" || lang === "en-GB") return lang;
+  return "en-GB";
 }
 
 export function formatCanonical(value) {
