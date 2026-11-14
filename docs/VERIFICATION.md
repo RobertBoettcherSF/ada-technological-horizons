@@ -1,5 +1,19 @@
 # Verification
 
+## v0.1.22 scientist credits and Polish
+
+Each chapter ends with the scientists that chapter draws on. The names and line numbers were verified against the Polish text; the line numbers refer to the 1184-line plain-text edition. The book text is not in the repository. The table is `data/scientists.tsv`.
+
+Polish is a fifth interface language. Chapter titles in Polish are Lem’s: Dylematy, Dwie ewolucje, Cywilizacje kosmiczne, Intelektronika, Prolegomena wszechmocy, Fantomologia, Stwarzanie światów, Paszkwil na ewolucję, plus Zakończenie and Posłowie: dwadzieścia lat później. The Wikipedia link follows the chosen language. A missing article uses the English page. Readable numbers in Polish use a decimal comma and grouping spaces. Inputs still use a dot.
+
+Of 96 linked people, 75 have a Polish Wikipedia article checked with HTTP 200. These 21 do not, so Polish falls back to English, except the last two, who have no English article either and stay on Russian Wikipedia: Hans Thirring, Pierre de Latil, Ronald N. Bracewell, Giuseppe Cocconi, Philip Morrison, W. Ross Ashby, Mortimer Taube, Albert Uttley, Frank Rosenblatt, Cliff Shaw (J. C. Shaw), Horace W. Magoun, James Olds, Peter Milner, Brian Goodwin, Sidney Dancoff, George Spencer-Brown, J. B. Rhine, S. G. Soal, Karl Zener, Oleg K. Tikhomirov, Leonid S. Marochnik. Baumsztejn, Jasper, and Jacobsen stay unlinked because the book gives no first name.
+
+Verified in a browser on 14 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b3e1d212e63348a0d2f70ed173d191ca34871008/dist/index.html
+
+The page showed release `0.1.22`, commit `b3e1d212e63348a0d2f70ed173d191ca34871008`, and `application/wasm`. Chapter III listed Iosif Shklovsky. In Polish the chapter title was **Cywilizacje kosmiczne**, his link was `https://pl.wikipedia.org/wiki/Iosif_Szkłowski`, and W. Ross Ashby stayed on the English article. At 320px in Polish, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (122313 bytes, SHA-256 `4c9a3308a648fbc8708d6e9d2ed2732fc2899b5cf5979f798dec51785bfabc4c`, `access-control-allow-origin: *`).
+
 ## v0.1.21 researchers and discoveries
 
 The calculator is on Intellectronics / The Megabit Bomb. The design note gives two doubling times: discoveries 30 years, the researcher index 10 years. Both indices start at 1, which is our scale, not a census. Ada computes D = D₀·2^(t/30) and R = R₀·2^(t/10), then the ratio D/R, by reusing the growth power. After 30 years the indices are 2 and 8, and the ratio is 0.25. A same-pace button sets both doublings to 30 years and is labelled as ours. The ratio is not a forecast that hiring a person creates a discovery. There is no saturation date.
