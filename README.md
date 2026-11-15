@@ -4,11 +4,13 @@ An independent interactive exploration inspired by Stanisław Lem’s Summa Tech
 
 This is original educational software, not an official edition or an endorsed adaptation. The sentence above acknowledges a literary inspiration. It is not permission to copy the book, and it is not a software licence.
 
+The interactive plan is [docs/DESIGN.md](docs/DESIGN.md). Line locators in that file refer to the Polish e-text used for `data/scientists.tsv`. The e-text itself is not in this repository.
+
 **No code licence has been selected.** Do not treat this repository as open-source software, and do not assume a right to copy, modify, or redistribute it. The compiled `ath_addition.wasm` file also contains the GNAT WebAssembly run-time from AdaWebPack, which is covered by the GNU General Public License with the GCC Runtime Library Exception. That exception is a term of the embedded run-time, not a licence chosen for the original Ada, HTML, CSS, or JavaScript in this repository.
 
 ## This release
 
-Version **0.1.23** adds a schematic technetium spectrum to A Metatheory of Miracles. The marks and the wavelength scale come from Ada. Version **0.1.22** names the scientists each chapter draws on, in the language you chose, and adds Polish. A missing article in that language uses the English Wikipedia page. Oleg K. Tikhomirov and Leonid S. Marochnik stay on their Russian pages. Three names stay unlinked because the book gives no first name.
+Version **0.1.24** adds the blinking galaxy to Statistics of Cosmic Civilisations. Ada counts how many civilisations are awake and places them on a declared disc. Lem's 10, 50 and 1,000 light-year figures stay as pins. Version **0.1.23** adds a schematic technetium spectrum to A Metatheory of Miracles. The marks and the wavelength scale come from Ada. Version **0.1.22** names the scientists each chapter draws on, in the language you chose, and adds Polish. A missing article in that language uses the English Wikipedia page. Oleg K. Tikhomirov and Leonid S. Marochnik stay on their Russian pages. Three names stay unlinked because the book gives no first name.
 
 Version **0.1.21** compares two doubling indices in The Megabit Bomb. Discoveries double every 30 years and the researcher index every 10. Both start at 1, which is our scale. After 30 years the indices are 2 and 8, so discoveries per researcher index are 0.25. A same-pace button sets both doublings to 30 years. The ratio is not a forecast that hiring a person creates a discovery.
 
@@ -99,7 +101,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.23`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.24`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 

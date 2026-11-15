@@ -10,7 +10,6 @@ import {
 } from "./catalogue-data.js";
 import {
   activeFilterCount,
-  countWorkingCalculators,
   entryVisible,
   groupEntries,
   neighbors,
@@ -46,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callExplore, callLottery, callResearch, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGalaxy, callLottery, callResearch, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -148,6 +147,7 @@ const LINE_KEYS = [
 
 const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "galaxy-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "lottery-card", sectionId: "intellectronics/return-to-earth" },
@@ -462,7 +462,9 @@ function renderResults() {
   const visible = visibleEntries(entries, state, labelsFor(state.lang));
   document.getElementById("result-count").textContent = String(visible.length);
   document.getElementById("active-count").textContent = String(activeFilterCount(state));
-  document.getElementById("working-count").textContent = String(countWorkingCalculators(entries));
+  document.getElementById("working-count").textContent = String(
+    CALCULATOR_CARDS.filter((item) => item.cardId !== "spectrum-card").length,
+  );
 
   if (visible.length === 0) {
     host.replaceChildren(
@@ -2500,6 +2502,7 @@ async function boot() {
   updateLottery();
   updateResearch();
   renderSpectrum();
+  bootGalaxy();
 }
 
 function simulateFailure() {
@@ -2516,6 +2519,8 @@ function simulateFailure() {
   updateLottery();
   updateResearch();
   renderSpectrum();
+  stopGalaxyDemo();
+  renderGalaxy();
 }
 
 function bind() {
@@ -2912,6 +2917,45 @@ function bind() {
     syncThroughputForm();
     updateThroughput();
   });
+  document.getElementById("galaxy-life")?.addEventListener("input", () => {
+    if (galaxySettingSlider || !session.exports) return;
+    stopGalaxyDemo();
+    const phase = Number(document.getElementById("galaxy-life").value) / 1000;
+    galaxy.years = session.exports.ath_galaxy_years_of(phase);
+    renderGalaxy();
+  });
+  document.getElementById("galaxy-pins")?.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-galaxy-pin]") : null;
+    if (!(button instanceof HTMLButtonElement) || !session.exports) return;
+    stopGalaxyDemo();
+    galaxy.years = Number(button.dataset.galaxyYears);
+    renderGalaxy();
+  });
+  document.getElementById("galaxy-calm")?.addEventListener("click", () => {
+    galaxy.calm = !galaxy.calm;
+    if (galaxy.calm) {
+      holdGalaxyAtBook();
+    } else {
+      startGalaxyDemo();
+    }
+    document.getElementById("galaxy-calm")?.setAttribute("aria-pressed", galaxy.calm ? "true" : "false");
+  });
+  document.getElementById("galaxy-reset")?.addEventListener("click", () => {
+    galaxy.modern = false;
+    const modern = document.getElementById("galaxy-modern");
+    if (modern) modern.checked = false;
+    galaxy.clock = 0;
+    if (galaxy.calm || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      holdGalaxyAtBook();
+    } else {
+      galaxy.years = session.exports?.ath_galaxy_years_of(0) ?? galaxy.years;
+      startGalaxyDemo();
+    }
+  });
+  document.getElementById("galaxy-modern")?.addEventListener("change", (event) => {
+    galaxy.modern = event.target instanceof HTMLInputElement && event.target.checked;
+    renderGalaxy();
+  });
   document.getElementById("chapter-list").addEventListener("click", (event) => {
     if (!(event.target instanceof Element) || !event.target.closest("#show-all")) return;
     state = clearFilters(state);
@@ -3107,6 +3151,216 @@ function renderSpectrum() {
     .replace("{tc98}", formatReadable(spec.tc98, state.lang, "year"));
 }
 
+const galaxy = {
+  years: null,
+  modern: false,
+  calm: false,
+  demo: false,
+  clock: 0,
+  stamp: 0,
+  frame: 0,
+};
+
+let galaxySettingSlider = false;
+
+function formatGalaxySpan(value, lang) {
+  if (value >= 1e9) return t(lang, "galaxy.billion").replace("{n}", formatGalaxyNumber(value / 1e9, lang));
+  if (value >= 1e6) return t(lang, "galaxy.million").replace("{n}", formatGalaxyNumber(value / 1e6, lang));
+  return t(lang, "galaxy.years").replace("{n}", formatReadable(value, lang, "year"));
+}
+
+function formatGalaxyCount(value, lang) {
+  if (value > 0 && value < 10000) {
+    const text = value.toFixed(2);
+    return lang === "en-GB" ? text : text.replace(".", ",");
+  }
+  return formatReadable(Math.round(value), lang);
+}
+
+function formatGalaxyNumber(value, lang) {
+  const text = value >= 100 || Math.abs(value - Math.round(value)) < 1e-6
+    ? String(Math.round(value))
+    : value.toFixed(1);
+  return lang === "en-GB" ? text : text.replace(".", ",");
+}
+
+function formatGalaxyDistance(value, lang) {
+  return t(lang, "galaxy.ly").replace("{n}", formatGalaxyNumber(value, lang));
+}
+
+function stopGalaxyDemo() {
+  galaxy.demo = false;
+  if (galaxy.frame) cancelAnimationFrame(galaxy.frame);
+  galaxy.frame = 0;
+}
+
+function stepGalaxy(now) {
+  if (!galaxy.demo || !session.exports) return;
+  if (!galaxy.stamp) galaxy.stamp = now;
+  const elapsed = (now - galaxy.stamp) / 1000;
+  const cycle = 8;
+  const tri = (elapsed % cycle) / cycle;
+  const phase = tri < 0.5 ? tri * 2 : (1 - tri) * 2;
+  galaxy.clock = (elapsed * 0.15) % 1;
+  galaxy.years = session.exports.ath_galaxy_years_of(phase);
+  renderGalaxy();
+  galaxy.frame = requestAnimationFrame(stepGalaxy);
+}
+
+function startGalaxyDemo() {
+  if (!session.exports || galaxy.calm) return;
+  galaxy.demo = true;
+  galaxy.stamp = 0;
+  if (galaxy.frame) cancelAnimationFrame(galaxy.frame);
+  galaxy.frame = requestAnimationFrame(stepGalaxy);
+}
+
+function holdGalaxyAtBook() {
+  stopGalaxyDemo();
+  galaxy.clock = 0;
+  galaxy.years = session.exports.ath_galaxy_book_years();
+  renderGalaxy();
+}
+
+function bootGalaxy() {
+  if (!session.exports) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  galaxy.calm = reduce;
+  const calmButton = document.getElementById("galaxy-calm");
+  if (calmButton) calmButton.setAttribute("aria-pressed", reduce ? "true" : "false");
+  if (reduce) {
+    holdGalaxyAtBook();
+    return;
+  }
+  galaxy.years = session.exports.ath_galaxy_years_of(0);
+  startGalaxyDemo();
+}
+
+function renderGalaxy() {
+  const caption = document.getElementById("galaxy-caption");
+  const count = document.getElementById("galaxy-count");
+  const distance = document.getElementById("galaxy-distance");
+  const readout = document.getElementById("galaxy-life-readout");
+  const sky = document.getElementById("galaxy-sky");
+  const legend = document.getElementById("galaxy-legend");
+  const pins = document.getElementById("galaxy-pins");
+  const chart = document.getElementById("galaxy-chart");
+  const playing = document.getElementById("galaxy-playing");
+  const slider = document.getElementById("galaxy-life");
+  const tech = document.getElementById("galaxy-tech");
+  const calmButton = document.getElementById("galaxy-calm");
+  if (!caption || !sky || !session.exports || galaxy.years == null) return;
+  const spec = callGalaxy(session, galaxy.years, galaxy.modern, galaxy.clock);
+  if (spec.status !== 0) {
+    caption.textContent = "";
+    count.textContent = "";
+    distance.textContent = "";
+    return;
+  }
+  const countText = formatGalaxyCount(spec.count, state.lang);
+  const shownDistance = spec.distanceKnown ? formatGalaxyNumber(spec.distance, state.lang) : "";
+  const distanceText = spec.distanceKnown
+    ? formatGalaxyDistance(spec.distance, state.lang)
+    : t(state.lang, "galaxy.noDistance");
+  caption.textContent = spec.caption === 0
+    ? t(state.lang, "galaxy.caption.0")
+    : t(state.lang, `galaxy.caption.${spec.caption}`).replace("{n}", countText).replace("{d}", shownDistance);
+  count.textContent = countText;
+  distance.textContent = distanceText;
+  readout.textContent = formatGalaxySpan(galaxy.years, state.lang);
+  if (playing) playing.hidden = !galaxy.demo;
+  if (calmButton) calmButton.setAttribute("aria-pressed", galaxy.calm ? "true" : "false");
+  if (slider && document.activeElement !== slider) {
+    galaxySettingSlider = true;
+    slider.value = String(Math.round(spec.slider * 1000));
+    slider.setAttribute("aria-valuetext", readout.textContent);
+    galaxySettingSlider = false;
+  }
+  tech.textContent = t(state.lang, "galaxy.tech")
+    .replace("{window}", formatReadable(spec.windowYears, state.lang, "year"))
+    .replace("{systems}", formatReadable(spec.systems, state.lang, "year"))
+    .replace("{radius}", formatReadable(spec.radius, state.lang, "year"));
+  const signature = `${state.lang}|${galaxy.modern}`;
+  if (sky.dataset.signature !== signature) {
+    sky.dataset.signature = signature;
+    const marks = spec.dots.map((dot) => svgEl("circle", {
+      class: "star",
+      cx: 100 + dot.x * 82,
+      cy: 100 - dot.y * 82,
+      r: dot.lit ? 2.4 : 1.5,
+      fill: dot.lit ? "#f0b429" : "#35506a",
+    }));
+    sky.replaceChildren(svgEl("svg", {
+      viewBox: "0 0 200 200",
+      role: "img",
+      "aria-label": t(state.lang, "galaxy.title"),
+    }, [
+      svgEl("rect", { x: 0, y: 0, width: 200, height: 200, rx: 12, fill: "#101820" }),
+      svgEl("circle", { cx: 100, cy: 100, r: 28, fill: "none", stroke: "#f0b429", "stroke-dasharray": "3 2" }),
+      svgEl("text", { x: 100, y: 14, fill: "#f0b429", "font-size": 7, "text-anchor": "middle", text: formatGalaxyDistance(spec.ring, state.lang) }),
+      ...marks,
+    ]));
+    legend.replaceChildren(
+      h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "galaxy.legend.lit"))]),
+      h("li", {}, [h("span", { class: "swatch shared" }), document.createTextNode(t(state.lang, "galaxy.legend.quiet"))]),
+      h("li", {}, [document.createTextNode(t(state.lang, "galaxy.legend.ring"))]),
+    );
+    pins.replaceChildren(...spec.pins.map((pin, index) => {
+      const distanceLabel = pin.upper
+        ? t(state.lang, "galaxy.underLy").replace("{n}", formatGalaxyNumber(pin.distance, state.lang))
+        : formatGalaxyDistance(pin.distance, state.lang);
+      return h("button", {
+        type: "button",
+        class: "secondary",
+        dataset: { galaxyPin: String(index), galaxyYears: String(pin.life) },
+        text: `${formatGalaxySpan(pin.life, state.lang)} · ${distanceLabel}`,
+      });
+    }));
+    const left = 56;
+    const top = 16;
+    const width = 560;
+    const height = 150;
+    const curve = spec.samples.map((sample) => `${left + sample.x * width},${top + (1 - sample.y) * height}`).join(" ");
+    const pinMarks = spec.pins.map((pin) => svgEl("circle", {
+      cx: left + pin.slider * width,
+      cy: top + (1 - pin.y) * height,
+      r: 5,
+      fill: "#f0b429",
+    }));
+    chart.replaceChildren(svgEl("svg", {
+      viewBox: "0 0 640 210",
+      role: "img",
+      "aria-label": t(state.lang, "galaxy.axis.y"),
+    }, [
+      svgEl("text", { x: left, y: 12, fill: "#9fb0c3", "font-size": 12, text: t(state.lang, "galaxy.axis.y") }),
+      svgEl("polyline", { id: "galaxy-curve", points: curve, fill: "none", stroke: "#d7e7ff", "stroke-width": 2 }),
+      ...pinMarks,
+      svgEl("circle", { id: "galaxy-now", r: 6, fill: "#c8f25a" }),
+      svgEl("text", { x: left, y: 196, fill: "#d7e2ee", "font-size": 12, text: formatReadable(spec.samples[0].life, state.lang, "year") }),
+      svgEl("text", { x: left + width, y: 196, fill: "#d7e2ee", "font-size": 12, "text-anchor": "end", text: formatReadable(spec.samples.at(-1).life, state.lang, "year") }),
+      svgEl("text", { x: 320, y: 208, fill: "#9fb0c3", "font-size": 12, "text-anchor": "middle", text: t(state.lang, "galaxy.axis.x") }),
+      svgEl("text", { x: 8, y: top + 8, fill: "#d7e2ee", "font-size": 11, text: formatReadable(spec.distanceMax, state.lang, "year") }),
+      svgEl("text", { x: 8, y: top + height, fill: "#d7e2ee", "font-size": 11, text: formatReadable(spec.distanceMin, state.lang, "year") }),
+    ]));
+    legend.append(
+      h("li", {}, [h("span", { class: "swatch shared" }), document.createTextNode(t(state.lang, "galaxy.legend.curve"))]),
+      h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "galaxy.legend.pin"))]),
+    );
+  }
+  const circles = sky.querySelectorAll("circle.star");
+  spec.dots.forEach((dot, index) => {
+    const node = circles[index];
+    if (!node) return;
+    node.setAttribute("fill", dot.lit ? "#f0b429" : "#35506a");
+    node.setAttribute("r", dot.lit ? "2.4" : "1.5");
+  });
+  const now = chart.querySelector("#galaxy-now");
+  if (now && spec.distancePos != null) {
+    now.setAttribute("cx", String(56 + spec.slider * 560));
+    now.setAttribute("cy", String(16 + (1 - spec.distancePos) * 150));
+  }
+}
+
 function refresh() {
   applyI18n();
   renderChapterNav();
@@ -3114,6 +3368,7 @@ function refresh() {
   renderResults();
   renderReading(routeFromHash());
   renderSpectrum();
+  renderGalaxy();
   document.getElementById("language").value = state.lang;
   document.getElementById("sort").value = state.sort;
   document.getElementById("search").value = state.query;

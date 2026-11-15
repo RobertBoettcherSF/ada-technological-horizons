@@ -1076,5 +1076,49 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 .swatch.tc { background: #f0b429; }
 
 .tc-stars li { margin: 0.85rem 0; }
+
+.galaxy-caption {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+.galaxy-readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.6rem;
+}
+
+.galaxy-readout output {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 750;
+  color: var(--lime);
+}
+
+.galaxy-sky, .galaxy-chart { max-width: 100%; }
+.galaxy-sky svg, .galaxy-chart svg { width: 100%; height: auto; display: block; }
+
+.galaxy-control { margin-top: 0.8rem; }
+#galaxy-life {
+  width: 100%;
+  min-height: 44px;
+  accent-color: #f0b429;
+}
+
+.galaxy-pins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.galaxy-pins button { min-height: 44px; }
+
+.galaxy-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+}
 .tc-stars a { font-weight: 750; }
 .tc-stars .note { display: block; margin-top: 0.2rem; }

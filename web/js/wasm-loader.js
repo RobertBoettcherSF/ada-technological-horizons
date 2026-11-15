@@ -73,6 +73,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_spectrum_map !== "function") {
     throw new Error("Ada module is missing ath_spectrum_map");
   }
+  if (typeof instance.exports.ath_galaxy_f64 !== "function") {
+    throw new Error("Ada module is missing ath_galaxy_f64");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -511,6 +514,70 @@ export function callSpectrum(session) {
     tc99: session.exports.ath_spectrum_tc99_years(),
     tc97: session.exports.ath_spectrum_tc97_years(),
     tc98: session.exports.ath_spectrum_tc98_years(),
+  };
+}
+
+export function callGalaxy(session, years, modern, clock = 0) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  const status = session.exports.ath_galaxy_f64(years, modern ? 1 : 0);
+  session.invocations += 1;
+  const ready = status === 0;
+  const samples = [];
+  const sampleCount = ready ? session.exports.ath_galaxy_sample_count() : 0;
+  for (let index = 1; index <= sampleCount; index += 1) {
+    samples.push({
+      life: session.exports.ath_galaxy_sample_life(index),
+      count: session.exports.ath_galaxy_sample_count_n(index),
+      distance: session.exports.ath_galaxy_sample_distance(index),
+      x: session.exports.ath_galaxy_sample_x(index),
+      y: session.exports.ath_galaxy_sample_y(index),
+    });
+  }
+  const pins = [];
+  const pinCount = ready ? session.exports.ath_galaxy_pin_count() : 0;
+  for (let index = 1; index <= pinCount; index += 1) {
+    pins.push({
+      life: session.exports.ath_galaxy_pin_life(index),
+      distance: session.exports.ath_galaxy_pin_distance(index),
+      upper: session.exports.ath_galaxy_pin_upper(index) === 1,
+      slider: session.exports.ath_galaxy_pin_slider(index),
+      y: session.exports.ath_galaxy_pin_y(index),
+    });
+  }
+  const dots = [];
+  const dotCount = session.exports.ath_galaxy_dot_count();
+  const share = ready ? session.exports.ath_galaxy_share() : 0;
+  for (let index = 1; index <= dotCount; index += 1) {
+    dots.push({
+      x: session.exports.ath_galaxy_dot_x(index),
+      y: session.exports.ath_galaxy_dot_y(index),
+      lit: ready && session.exports.ath_galaxy_dot_lit(index, share, clock) === 1,
+    });
+  }
+  return {
+    status,
+    count: ready ? session.exports.ath_galaxy_count() : null,
+    distance: ready ? session.exports.ath_galaxy_distance() : null,
+    distanceKnown: ready && session.exports.ath_galaxy_distance_known() === 1,
+    share,
+    saturated: ready && session.exports.ath_galaxy_saturated() === 1,
+    caption: ready ? session.exports.ath_galaxy_caption() : 0,
+    systems: ready ? session.exports.ath_galaxy_systems() : null,
+    windowYears: session.exports.ath_galaxy_window(),
+    radius: session.exports.ath_galaxy_radius(),
+    ring: session.exports.ath_galaxy_ring(),
+    bookYears: session.exports.ath_galaxy_book_years(),
+    distanceMin: session.exports.ath_galaxy_distance_min(),
+    distanceMax: session.exports.ath_galaxy_distance_max(),
+    distancePos: ready && session.exports.ath_galaxy_distance_known() === 1
+      ? session.exports.ath_galaxy_distance_pos(session.exports.ath_galaxy_distance())
+      : null,
+    slider: session.exports.ath_galaxy_slider_of(years),
+    samples,
+    pins,
+    dots,
   };
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.23">
+  <meta name="ath-release" content="0.1.24">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.23</p>
+        <p class="release-pill" id="header-version">0.1.24</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -141,6 +141,38 @@
         </tbody>
       </table>
       </div>
+    </section>
+
+    <section id="galaxy-card" class="lifetime-card" aria-labelledby="galaxy-title">
+      <p class="kicker" data-i18n="galaxy.path">Cosmic Civilisations · Statistics of Cosmic Civilisations</p>
+      <h2 id="galaxy-title" data-i18n="galaxy.title">How many civilisations are awake at once?</h2>
+      <p class="schematic-flag" data-i18n="galaxy.ours">Our illustration, not Lem's model.</p>
+      <p data-i18n="galaxy.lead">Lem reports a picture from Bracewell and von Hoerner: about 150 billion stars, and only one star in 150 with planets, so about a billion planetary systems. A short-lived civilisation leaves few neighbours awake. The lights, the disc and the distances drawn here are our picture. Lem's own spacings stay as separate marks.</p>
+      <p id="galaxy-caption" class="galaxy-caption" aria-live="polite"></p>
+      <div class="galaxy-readout">
+        <p><span data-i18n="galaxy.alive">Alive right now</span> <output id="galaxy-count"></output></p>
+        <p><span data-i18n="galaxy.nearest">Nearest neighbour</span> <output id="galaxy-distance"></output></p>
+      </div>
+      <div id="galaxy-sky" class="galaxy-sky"></div>
+      <ul id="galaxy-legend" class="spectrum-legend"></ul>
+      <div class="galaxy-control">
+        <label id="galaxy-life-label" for="galaxy-life" data-i18n="galaxy.lifeLabel">How long does a civilisation last?</label>
+        <input id="galaxy-life" type="range" min="0" max="1000" step="1" value="0" aria-describedby="galaxy-life-readout">
+        <div id="galaxy-pins" class="galaxy-pins"></div>
+        <p id="galaxy-life-readout" class="note"></p>
+        <p id="galaxy-playing" class="note" data-i18n="galaxy.playing">The lifetime is sweeping on its own.</p>
+      </div>
+      <div class="button-row">
+        <button type="button" id="galaxy-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
+        <button type="button" id="galaxy-reset" class="secondary" data-i18n="galaxy.reset">Reset</button>
+        <label class="galaxy-modern"><input id="galaxy-modern" type="checkbox"> <span data-i18n="galaxy.modern">Today's estimate: most stars have planets</span></label>
+      </div>
+      <div id="galaxy-chart" class="galaxy-chart"></div>
+      <details id="galaxy-sources">
+        <summary data-i18n="galaxy.details">What Lem says, and the technical details</summary>
+        <p class="note" data-i18n="galaxy.lem">Lem's report</p>
+        <p id="galaxy-tech" class="note"></p>
+      </details>
     </section>
 
     <section id="spectrum-card" class="lifetime-card" aria-labelledby="spectrum-title">

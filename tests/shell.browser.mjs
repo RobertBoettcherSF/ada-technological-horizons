@@ -167,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.23/);
+  assert.match(report, /Release: 0\.1\.24/);
   assert.match(report, /Preset: book/);
   assert.match(report, /Ratio: 0\.25/);
   assert.match(report, /Preset: historical/);
@@ -834,7 +834,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.23");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.24");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -891,7 +891,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "6");
+  assert.equal(await page.locator("#working-count").textContent(), "8");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -908,7 +908,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "6");
+  assert.equal(await page.locator("#working-count").textContent(), "8");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -1174,6 +1174,15 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#lifetime-card").isHidden(), true);
   assert.equal(await page.locator("#tc-stars a[href*='R_Andromedae']").getAttribute("rel"), "noopener");
   await shotElement(page, label, "spectrum-desktop.png", "#spectrum-card");
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/statistics-of-cosmic-civilisations"; });
+  await page.waitForFunction(() => {
+    const card = document.querySelector("#galaxy-card");
+    return card && !card.hidden && document.querySelector("#galaxy-count")?.textContent;
+  });
+  await page.waitForTimeout(3900);
+  await shotElement(page, label, "galaxy-desktop.png", "#galaxy-card");
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/a-metatheory-of-miracles"; });
+  await page.waitForFunction(() => !document.querySelector("#spectrum-card").hidden);
   await page.locator("#addition-form").scrollIntoViewIfNeeded();
   await shot(page, label, "desktop-demo.png");
 
@@ -1192,7 +1201,17 @@ async function exercise(page, label) {
   await page.locator("#spectrum-card").scrollIntoViewIfNeeded();
   await shotElement(page, label, "spectrum-narrow.png", "#spectrum-card");
   assert.ok((await overflow(page)) <= 1, "narrow spectrum");
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/statistics-of-cosmic-civilisations"; });
+  await page.waitForFunction(() => !document.querySelector("#galaxy-card").hidden && document.querySelector("#galaxy-title")?.textContent?.includes("cywilizacji"));
+  await page.click("#galaxy-reset");
+  await page.waitForTimeout(3900);
+  await shotElement(page, label, "galaxy-narrow.png", "#galaxy-card");
+  assert.ok((await overflow(page)) <= 1, "narrow galaxy");
+  await page.click("#galaxy-calm");
+  await page.waitForFunction(() => document.querySelector("#galaxy-count")?.textContent === "434,87");
+  assert.match(await page.locator("#galaxy-card .schematic-flag").innerText(), /ilustracja/i);
   await page.selectOption("#language", "en-GB");
+  await page.waitForFunction(() => document.querySelector("#galaxy-count")?.textContent === "434.87");
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");

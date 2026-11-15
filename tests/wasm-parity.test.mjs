@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -556,6 +556,41 @@ test("the spectrum map keeps technetium off the shared lines", async () => {
   assert.ok(Math.abs(technetium[3].position - placed(429.706)) < 1e-12);
   assert.equal(spec.ticks.length, 6);
   assert.ok(Math.abs(spec.ticks[1].position - 0.2) < 1e-12);
+});
+
+test("the blinking galaxy matches the book lifetime and the saturation", async () => {
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const book = callGalaxy(session, 6523, false, 0);
+  assert.equal(book.status, 0);
+  assert.ok(Math.abs(book.count - 6523 / 15) < 1e-6);
+  assert.equal(book.count.toFixed(2), "434.87");
+  assert.equal(book.saturated, false);
+  assert.equal(book.distanceKnown, true);
+  assert.equal(book.pins.map((pin) => pin.distance).join(","), "1000,50,10");
+  assert.equal(book.pins[2].upper, true);
+  const none = callGalaxy(session, 0, false, 0);
+  assert.equal(none.count, 0);
+  assert.equal(none.distanceKnown, false);
+  const full = callGalaxy(session, 1.5e10, false, 0);
+  assert.equal(full.count, 1e9);
+  assert.equal(full.saturated, true);
+  const beyond = callGalaxy(session, 3e10, false, 0);
+  assert.equal(beyond.count, 1e9);
+  assert.equal(callGalaxy(session, -5, false, 0).status, 2);
+  const mid = callGalaxy(session, 7.5e9, false, 0);
+  const lit = mid.dots.filter((dot) => dot.lit).length;
+  assert.ok(lit > 10 && lit < mid.dots.length);
 });
 
 test("a failed module load does not invent a sum", async () => {
