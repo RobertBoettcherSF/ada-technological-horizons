@@ -6,6 +6,7 @@ with Ath_Growth_Exports;
 with Ath_Lifetime_Exports;
 with Ath_Lottery_Exports;
 with Ath_Research_Exports;
+with Ath_Sixes_Exports;
 with Ath_Spectrum_Exports;
 with Ath_Throughput_Exports;
 
@@ -18,6 +19,7 @@ pragma Unreferenced (Ath_Growth_Exports);
 pragma Unreferenced (Ath_Lifetime_Exports);
 pragma Unreferenced (Ath_Lottery_Exports);
 pragma Unreferenced (Ath_Research_Exports);
+pragma Unreferenced (Ath_Sixes_Exports);
 pragma Unreferenced (Ath_Spectrum_Exports);
 pragma Unreferenced (Ath_Throughput_Exports);
 package Ath_Browser is

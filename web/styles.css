@@ -1113,6 +1113,38 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 .galaxy-sky circle.star,
 .galaxy-sky circle.glow { transition: opacity 0.45s linear; }
+
+.lem-note, .ours-note {
+  margin: 0.45rem 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.6rem;
+}
+.lem-note {
+  border: 2px solid #f0b429;
+  background: rgba(240, 180, 41, 0.08);
+}
+.ours-note {
+  border: 2px dashed #9fb0c3;
+  background: transparent;
+}
+.dice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0;
+}
+.die {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: #e7eef6;
+  color: #142033;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+.die.is-six { outline: 3px solid #f0b429; }
 #galaxy-legend .swatch {
   width: 0.7rem;
   height: 0.7rem;

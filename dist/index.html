@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.26">
+  <meta name="ath-release" content="0.1.27">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.26</p>
+        <p class="release-pill" id="header-version">0.1.27</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -207,6 +207,71 @@
         <summary data-i18n="spectrum.details">Wavelengths, half-lives and blends</summary>
         <p class="note" data-i18n="spectrum.sources">Sources</p>
         <p id="spectrum-halflife" class="note"></p>
+      </details>
+    </section>
+
+    <section id="sixes-card" class="lifetime-card" aria-labelledby="sixes-title">
+      <p class="kicker" data-i18n="sixes.path">Cosmic Civilisations · Human Uniqueness</p>
+      <h2 id="sixes-title" data-i18n="sixes.title">When does a rare throw become almost sure?</h2>
+      <p class="lem-note" data-i18n="sixes.lem">Lem reports Baumsztejn: one player almost never throws ten sixes, but a billion players at once make it almost sure. About three million cod eggs in one spawning yield one adult fish, and he calls the chance of at least one or two fish a certainty. Baumsztejn has no Wikipedia link here: the spelling was not checked in print.</p>
+      <p class="ours-note" data-i18n="sixes.ours">The rolls, the curve and the per-egg chance are our illustration, not Lem's model.</p>
+      <p id="sixes-caption" class="galaxy-caption" aria-live="polite"></p>
+      <div class="button-row" role="tablist">
+        <button type="button" id="sixes-tab-dice" role="tab" aria-selected="true" data-i18n="sixes.tab.dice">Ten dice</button>
+        <button type="button" id="sixes-tab-eggs" role="tab" aria-selected="false" data-i18n="sixes.tab.eggs">Three million eggs</button>
+      </div>
+      <div id="sixes-dice">
+        <div id="sixes-faces" class="dice-row"></div>
+        <p id="sixes-roll-note" class="note"></p>
+        <div class="button-row galaxy-transport">
+          <button type="button" id="sixes-roll" data-i18n="sixes.roll">Roll</button>
+          <button type="button" id="sixes-play" data-state="paused">Play</button>
+          <button type="button" id="sixes-restart" data-i18n="sixes.restart">Restart</button>
+        </div>
+        <label id="sixes-players-label" for="sixes-players" data-i18n="sixes.players">How many players throw at once?</label>
+        <input id="sixes-players" type="range" min="0" max="1000" step="1" value="1000">
+        <div class="galaxy-readout">
+          <p><span data-i18n="sixes.playersOut">Players</span> <output id="sixes-player-count"></output></p>
+          <p><span data-i18n="sixes.chanceOut">Chance someone throws ten sixes</span> <output id="sixes-chance"></output></p>
+        </div>
+        <div id="sixes-chart" class="galaxy-chart"></div>
+        <ul class="spectrum-legend">
+          <li><span class="swatch shared"></span> <span data-i18n="sixes.legend.curve">Our calculated chance</span></li>
+          <li><span class="swatch tc"></span> <span data-i18n="sixes.legend.pin">Lem's number</span></li>
+        </ul>
+      </div>
+      <div id="sixes-eggs" hidden>
+        <p class="lem-note" data-i18n="sixes.eggsLem">Lem's clutch is about three million eggs, and he accepts that one adult fish comes from it. He does not give the chance for a single egg.</p>
+        <label for="sixes-egg-slider" data-i18n="sixes.eggsLabel">How many eggs?</label>
+        <input id="sixes-egg-slider" type="range" min="0" max="1000" step="1" value="0">
+        <div class="galaxy-readout">
+          <p><span data-i18n="sixes.eggsOut">Eggs</span> <output id="sixes-egg-count"></output></p>
+          <p><span data-i18n="sixes.fishOut">Expected adult fish</span> <output id="sixes-fish"></output></p>
+          <p><span data-i18n="sixes.eggChanceOut">Chance of at least one fish</span> <output id="sixes-egg-chance"></output></p>
+        </div>
+        <div id="sixes-egg-chart" class="galaxy-chart"></div>
+        <ul class="spectrum-legend">
+          <li><span class="swatch shared"></span> <span data-i18n="sixes.legend.curve">Our calculated chance</span></li>
+          <li><span class="swatch tc"></span> <span data-i18n="sixes.legend.pin">Lem's number</span></li>
+        </ul>
+      </div>
+      <p class="lem-note" data-i18n="sixes.objection">Lem's objection: an egg that never becomes a fish is destroyed. A line of animals that never becomes human can still lead to minds another way. Evolution is not a dice game that only wins or loses.</p>
+      <div class="button-row">
+        <button type="button" id="sixes-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
+      </div>
+      <details id="sixes-sources">
+        <summary data-i18n="sixes.details">Technical details</summary>
+        <p class="note" data-i18n="sixes.tech">The chance one player throws ten sixes is 6 to the power −10. The chance at least one of N players does it is one minus the quantity (1 − that chance) to the power N, computed as −expm1(N · log1p(−p)) so a tiny chance does not vanish. The egg chance per egg is one divided by three million, our reading of “one fish from three million eggs”. The rolls use a seeded sequence in Ada, so the same roll number always shows the same faces.</p>
+        <table id="sixes-table">
+          <caption class="note" data-i18n="sixes.table">Chances returned by Ada.</caption>
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="sixes.col.amount">Players or eggs</th>
+              <th scope="col" data-i18n="sixes.col.chance">Chance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </details>
     </section>
 

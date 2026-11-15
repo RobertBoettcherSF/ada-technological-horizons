@@ -178,7 +178,7 @@ Little quantitative content. It is mostly forecasting history.
 - Interactive ⭐ "Racing rocket rainbow": reuse the 0.1.23 spectrum strip. The child drags the rocket's speed toward c, and the coloured lines slide toward red, then off the strip into "radio", using the relativistic Doppler factor. A siren analogy sits in the caption.
 - The **formula is standard physics (OURS)**. Lem gives none.
 
-**III-11 · Unikalność człowieka · l. 199–201 · LEM-Q · planned (0.1.27) ⭐⭐**
+**III-11 · Unikalność człowieka · l. 199–201 · LEM-Q · BUILT (0.1.27) ⭐⭐**
 - *„jest niezwykle mało prawdopodobne, aby jeden gracz, rzucając dziesięć kości, wyrzucił dziesięć szóstek”*. Baumsztejn: one player rolling ten sixes is very unlikely, but with a billion players at once someone almost surely will. With about 3 million cod eggs, the chance that at least one or two become fish is close to one. Lem objects (l. 201): a lost egg is destroyed, whereas a planet that fails to make minds is not.
 - Scientist: Baumsztejn (not in the scientist table under that spelling; flagged in §4).
 - Interactive ⭐⭐ "Ten sixes":

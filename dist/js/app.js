@@ -45,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callExplore, callGalaxy, callLottery, callResearch, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callLottery, callResearch, callSixes, callSixesRoll, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -149,6 +149,7 @@ const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "galaxy-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
+  { cardId: "sixes-card", sectionId: "cosmic-civilisations/human-uniqueness" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "lottery-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "research-card", sectionId: "intellectronics/the-megabit-bomb" },
@@ -2339,6 +2340,18 @@ function debugReport() {
     `Speed: ${galaxy.report ? galaxy.report.speed : "(not ready)"}`,
     `Calm: ${galaxy.report ? galaxy.report.calm : "(not ready)"}`,
     "",
+    "Ten sixes",
+    `Players: ${sixes.report ? formatCanonical(sixes.report.players) : "(not ready)"}`,
+    `Chance: ${sixes.report ? formatCanonical(sixes.report.chance) : "(not ready)"}`,
+    `Roll: ${sixes.report ? String(sixes.report.setIndex) : "(not ready)"}`,
+    `Faces: ${sixes.report ? sixes.report.faces.join(" ") : "(not ready)"}`,
+    `Sixes: ${sixes.report ? String(sixes.report.sixes) : "(not ready)"}`,
+    `Eggs: ${sixes.report ? formatCanonical(sixes.report.eggs) : "(not ready)"}`,
+    `Expected fish: ${sixes.report ? formatCanonical(sixes.report.expected) : "(not ready)"}`,
+    `Egg chance: ${sixes.report ? formatCanonical(sixes.report.eggChance) : "(not ready)"}`,
+    `Play: ${sixes.report ? sixes.report.play : "(not ready)"}`,
+    `Calm: ${sixes.report ? sixes.report.calm : "(not ready)"}`,
+    "",
     "Lifetime",
     `Probabilities: ${[1, 2, 3, 4].map((index) => valueOf(`prob-${index}`)).join(", ")}`,
     `Durations: ${[1, 2, 3, 4].map((index) => valueOf(`years-${index}`)).join(", ")}`,
@@ -2512,6 +2525,7 @@ async function boot() {
   updateResearch();
   renderSpectrum();
   bootGalaxy();
+  bootSixes();
 }
 
 function simulateFailure() {
@@ -2530,6 +2544,8 @@ function simulateFailure() {
   renderSpectrum();
   stopGalaxyDemo();
   renderGalaxy();
+  stopSixesPlay();
+  renderSixes();
 }
 
 function bind() {
@@ -2991,6 +3007,81 @@ function bind() {
     galaxy.modern = event.target instanceof HTMLInputElement && event.target.checked;
     renderGalaxy();
   });
+  document.getElementById("sixes-roll")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    stopSixesPlay();
+    rollSixes(sixes.setIndex + 1);
+    renderSixes();
+  });
+  document.getElementById("sixes-play")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    if (sixes.playing) {
+      stopSixesPlay();
+      renderSixes();
+    } else {
+      startSixesPlay();
+    }
+  });
+  document.getElementById("sixes-restart")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    rollSixes(1);
+    if (sixes.playing) startSixesPlay();
+    else renderSixes();
+  });
+  document.getElementById("sixes-players")?.addEventListener("input", () => {
+    if (!session.exports) return;
+    stopSixesPlay();
+    const phase = Number(document.getElementById("sixes-players").value) / 1000;
+    sixes.players = session.exports.ath_sixes_players_of(phase);
+    renderSixes();
+  });
+  document.getElementById("sixes-egg-slider")?.addEventListener("input", () => {
+    if (!session.exports) return;
+    const phase = Number(document.getElementById("sixes-egg-slider").value) / 1000;
+    sixes.eggs = session.exports.ath_sixes_eggs_of(phase);
+    renderSixes();
+  });
+  document.getElementById("sixes-tab-dice")?.addEventListener("click", () => {
+    sixes.tab = "dice";
+    document.getElementById("sixes-dice").hidden = false;
+    document.getElementById("sixes-eggs").hidden = true;
+    document.getElementById("sixes-tab-dice").setAttribute("aria-selected", "true");
+    document.getElementById("sixes-tab-eggs").setAttribute("aria-selected", "false");
+    renderSixes();
+  });
+  document.getElementById("sixes-tab-eggs")?.addEventListener("click", () => {
+    sixes.tab = "eggs";
+    document.getElementById("sixes-dice").hidden = true;
+    document.getElementById("sixes-eggs").hidden = false;
+    document.getElementById("sixes-tab-dice").setAttribute("aria-selected", "false");
+    document.getElementById("sixes-tab-eggs").setAttribute("aria-selected", "true");
+    renderSixes();
+  });
+  document.getElementById("sixes-calm")?.addEventListener("click", () => {
+    sixes.calm = !sixes.calm;
+    document.getElementById("sixes-calm").setAttribute("aria-pressed", sixes.calm ? "true" : "false");
+    if (sixes.calm) {
+      stopSixesPlay();
+      renderSixes();
+    }
+  });
+  document.getElementById("sixes-card")?.addEventListener("keydown", (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.type === "text") return;
+    if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
+      event.preventDefault();
+      if (sixes.playing) {
+        stopSixesPlay();
+        renderSixes();
+      } else {
+        startSixesPlay();
+      }
+    } else if (event.key === "r" || event.key === "R") {
+      if (event.target instanceof HTMLInputElement) return;
+      rollSixes(1);
+      if (sixes.playing) startSixesPlay();
+      else renderSixes();
+    }
+  });
   document.getElementById("chapter-list").addEventListener("click", (event) => {
     if (!(event.target instanceof Element) || !event.target.closest("#show-all")) return;
     state = clearFilters(state);
@@ -3436,6 +3527,177 @@ function renderGalaxy() {
   }
 }
 
+const sixes = {
+  tab: "dice",
+  players: null,
+  eggs: null,
+  setIndex: 1,
+  playing: false,
+  calm: false,
+  timer: 0,
+  faces: [],
+  sixCount: 0,
+  report: null,
+};
+
+function formatChance(value, lang) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  const text = value > 0 && value < 0.001
+    ? value.toExponential(4)
+    : value > 0.99
+      ? value.toFixed(10)
+      : value.toFixed(4);
+  return lang === "en-GB" ? text : text.replaceAll(".", ",");
+}
+
+function stopSixesPlay() {
+  sixes.playing = false;
+  if (sixes.timer) clearInterval(sixes.timer);
+  sixes.timer = 0;
+}
+
+function rollSixes(setIndex) {
+  const outcome = callSixesRoll(session, setIndex);
+  sixes.setIndex = setIndex;
+  sixes.faces = outcome.faces;
+  sixes.sixCount = outcome.sixes;
+}
+
+function startSixesPlay() {
+  if (!session.exports) return;
+  sixes.playing = true;
+  sixes.calm = false;
+  if (sixes.timer) clearInterval(sixes.timer);
+  sixes.timer = setInterval(() => {
+    rollSixes(sixes.setIndex + 1);
+    renderSixes();
+  }, 1200);
+  const calmButton = document.getElementById("sixes-calm");
+  if (calmButton) calmButton.setAttribute("aria-pressed", "false");
+  renderSixes();
+}
+
+function drawChanceChart(host, samples, axisKey, pins) {
+  if (!host) return;
+  const left = 48;
+  const top = 16;
+  const width = 560;
+  const height = 140;
+  const curve = samples.map((sample) => `${left + sample.x * width},${top + (1 - sample.chance) * height}`).join(" ");
+  host.replaceChildren(svgEl("svg", {
+    viewBox: "0 0 640 190",
+    role: "img",
+    "aria-label": t(state.lang, "sixes.axis.chance"),
+  }, [
+    svgEl("text", { x: left, y: 12, fill: "#9fb0c3", "font-size": 12, text: t(state.lang, "sixes.axis.chance") }),
+    svgEl("line", { x1: left, x2: left + width, y1: top + height, y2: top + height, stroke: "#9fb0c3" }),
+    svgEl("polyline", { points: curve, fill: "none", stroke: "#d7e7ff", "stroke-width": 2, "stroke-dasharray": "6 4" }),
+    ...pins.map((pin) => svgEl("circle", {
+      cx: left + pin * width,
+      cy: top + height - 4,
+      r: 5,
+      fill: "#f0b429",
+    })),
+    svgEl("text", { x: left, y: 186, fill: "#d7e2ee", "font-size": 12, text: formatReadable(samples[0].amount, state.lang) }),
+    svgEl("text", { x: left + width, y: 186, fill: "#d7e2ee", "font-size": 12, "text-anchor": "end", text: formatReadable(samples.at(-1).amount, state.lang) }),
+    svgEl("text", { x: 320, y: 188, fill: "#9fb0c3", "font-size": 12, "text-anchor": "middle", text: t(state.lang, axisKey) }),
+  ]));
+}
+
+function renderSixes() {
+  const caption = document.getElementById("sixes-caption");
+  const faces = document.getElementById("sixes-faces");
+  if (!caption || !faces || !session.exports || sixes.players == null) return;
+  const playButton = document.getElementById("sixes-play");
+  if (playButton) {
+    playButton.dataset.state = sixes.playing ? "playing" : "paused";
+    playButton.textContent = t(state.lang, sixes.playing ? "galaxy.pause" : "galaxy.play");
+    playButton.setAttribute("aria-pressed", sixes.playing ? "true" : "false");
+  }
+  const playing = document.getElementById("sixes-playing");
+  if (playing) playing.hidden = !sixes.playing;
+  faces.replaceChildren(...sixes.faces.map((face) => h("span", {
+    class: face === 6 ? "die is-six" : "die",
+    text: String(face),
+  })));
+  const note = document.getElementById("sixes-roll-note");
+  if (note) {
+    const key = sixes.sixCount === 10 ? "sixes.rollHit" : "sixes.rollNote";
+    note.textContent = t(state.lang, key)
+      .replace("{n}", formatReadable(sixes.setIndex, state.lang))
+      .replace("{k}", formatReadable(sixes.sixCount, state.lang));
+  }
+  const dice = callSixes(session, sixes.players);
+  const eggs = callEggs(session, sixes.eggs);
+  if (dice.status === 0) {
+    document.getElementById("sixes-player-count").textContent = formatReadable(Math.round(sixes.players), state.lang);
+    document.getElementById("sixes-chance").textContent = formatChance(dice.chance, state.lang);
+    const slider = document.getElementById("sixes-players");
+    if (slider && document.activeElement !== slider) slider.value = String(Math.round(dice.slider * 1000));
+    if (sixes.tab === "dice") {
+      caption.textContent = t(state.lang, `sixes.caption.${dice.caption}`);
+      drawChanceChart(document.getElementById("sixes-chart"), dice.samples, "sixes.axis.players", [0, 1]);
+      fillSixesTable(dice.samples);
+    }
+  }
+  if (eggs.status === 0) {
+    document.getElementById("sixes-egg-count").textContent = formatReadable(Math.round(sixes.eggs), state.lang);
+    document.getElementById("sixes-fish").textContent = formatReadable(eggs.expected, state.lang);
+    document.getElementById("sixes-egg-chance").textContent = formatChance(eggs.chance, state.lang);
+    const slider = document.getElementById("sixes-egg-slider");
+    if (slider && document.activeElement !== slider) slider.value = String(Math.round(eggs.slider * 1000));
+    if (sixes.tab === "eggs") {
+      caption.textContent = t(state.lang, `sixes.caption.${eggs.caption}`);
+      drawChanceChart(
+        document.getElementById("sixes-egg-chart"),
+        eggs.samples,
+        "sixes.axis.eggs",
+        [session.exports.ath_sixes_egg_slider(session.exports.ath_sixes_egg_count())],
+      );
+      fillSixesTable(eggs.samples);
+    }
+  }
+  sixes.report = {
+    players: sixes.players,
+    chance: dice.chance ?? 0,
+    setIndex: sixes.setIndex,
+    faces: sixes.faces,
+    sixes: sixes.sixCount,
+    eggs: sixes.eggs,
+    expected: eggs.expected ?? 0,
+    eggChance: eggs.chance ?? 0,
+    play: sixes.playing ? "playing" : "paused",
+    calm: sixes.calm ? "on" : "off",
+  };
+}
+
+function fillSixesTable(samples) {
+  const body = document.querySelector("#sixes-table tbody");
+  if (!body) return;
+  const picked = [samples[0], samples[Math.floor(samples.length / 2)], samples.at(-1)].filter(Boolean);
+  body.replaceChildren(...picked.map((sample) => h("tr", {}, [
+    h("td", { text: formatReadable(Math.round(sample.amount), state.lang) }),
+    h("td", { text: formatChance(sample.chance, state.lang) }),
+  ])));
+}
+
+function bootSixes() {
+  if (!session.exports) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  sixes.calm = reduce;
+  sixes.players = session.exports.ath_sixes_players_of(1);
+  sixes.eggs = session.exports.ath_sixes_egg_count();
+  rollSixes(1);
+  const calmButton = document.getElementById("sixes-calm");
+  if (calmButton) calmButton.setAttribute("aria-pressed", reduce ? "true" : "false");
+  if (reduce) {
+    stopSixesPlay();
+    renderSixes();
+    return;
+  }
+  startSixesPlay();
+}
+
 function refresh() {
   applyI18n();
   renderChapterNav();
@@ -3444,6 +3706,7 @@ function refresh() {
   renderReading(routeFromHash());
   renderSpectrum();
   renderGalaxy();
+  renderSixes();
   document.getElementById("language").value = state.lang;
   document.getElementById("sort").value = state.sort;
   document.getElementById("search").value = state.query;

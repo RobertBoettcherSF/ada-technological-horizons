@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -595,6 +595,34 @@ test("the blinking galaxy matches the book lifetime and the saturation", async (
   assert.equal(high.dots.filter((dot) => dot.lit).length, high.dots.length);
   const midLit = mid.dots.filter((dot) => dot.lit).length;
   assert.ok(midLit > 0 && midLit < mid.dots.length);
+});
+
+test("ten sixes uses a stable chance and a repeatable roll", async () => {
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const one = callSixes(session, 1);
+  assert.equal(one.status, 0);
+  assert.ok(Math.abs(one.single - 1.65381716879202e-8) < 1e-18);
+  assert.ok(Math.abs(one.chance - one.single) < 1e-18);
+  const billion = callSixes(session, 1e9);
+  assert.ok(Math.abs(billion.chance - 0.9999999343003227) < 1e-12);
+  const first = callSixesRoll(session, 4);
+  const again = callSixesRoll(session, 4);
+  assert.deepEqual(again.faces, first.faces);
+  assert.ok(first.faces.every((face) => face >= 1 && face <= 6));
+  const eggs = callEggs(session, 3e6);
+  assert.equal(eggs.expected, 1);
+  assert.ok(Math.abs(eggs.chance - 0.6321206201418064) < 1e-9);
 });
 
 test("a failed module load does not invent a sum", async () => {

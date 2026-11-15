@@ -76,6 +76,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_galaxy_f64 !== "function") {
     throw new Error("Ada module is missing ath_galaxy_f64");
   }
+  if (typeof instance.exports.ath_sixes_chance !== "function") {
+    throw new Error("Ada module is missing ath_sixes_chance");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -579,6 +582,70 @@ export function callGalaxy(session, years, modern) {
     samples,
     pins,
     dots,
+  };
+}
+
+function sixesSamples(session, kind) {
+  const count = session.exports.ath_sixes_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    if (kind === "eggs") {
+      samples.push({
+        amount: session.exports.ath_sixes_egg_sample_eggs(index),
+        chance: session.exports.ath_sixes_egg_sample_chance(index),
+        x: session.exports.ath_sixes_egg_sample_x(index),
+      });
+    } else {
+      samples.push({
+        amount: session.exports.ath_sixes_sample_players(index),
+        chance: session.exports.ath_sixes_sample_chance(index),
+        x: session.exports.ath_sixes_sample_x(index),
+      });
+    }
+  }
+  return samples;
+}
+
+export function callSixes(session, players) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  const status = session.exports.ath_sixes_chance(players);
+  session.invocations += 1;
+  const ready = status === 0;
+  return {
+    status,
+    chance: ready ? session.exports.ath_sixes_chance_value() : null,
+    caption: ready ? session.exports.ath_sixes_caption() : 0,
+    single: session.exports.ath_sixes_single(),
+    slider: session.exports.ath_sixes_slider_of(players),
+    samples: ready ? sixesSamples(session, "players") : [],
+  };
+}
+
+export function callSixesRoll(session, setIndex) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  const status = session.exports.ath_sixes_roll(setIndex);
+  session.invocations += 1;
+  const faces = [];
+  for (let die = 1; die <= 10; die += 1) {
+    faces.push(session.exports.ath_sixes_face(die));
+  }
+  return { status, faces, sixes: session.exports.ath_sixes_six_count() };
+}
+
+export function callEggs(session, eggs) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  const status = session.exports.ath_sixes_egg_chance(eggs);
+  session.invocations += 1;
+  const ready = status === 0;
+  return {
+    status,
+    chance: ready ? session.exports.ath_sixes_egg_chance_value() : null,
+    expected: ready ? session.exports.ath_sixes_egg_expected() : null,
+    caption: ready ? session.exports.ath_sixes_caption(session.exports.ath_sixes_egg_chance_value()) : 0,
+    clutch: session.exports.ath_sixes_egg_count(),
+    single: session.exports.ath_sixes_egg_single(),
+    slider: session.exports.ath_sixes_egg_slider(eggs),
+    samples: ready ? sixesSamples(session, "eggs") : [],
   };
 }
 

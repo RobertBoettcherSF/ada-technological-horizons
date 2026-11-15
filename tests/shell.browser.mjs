@@ -200,7 +200,8 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.26/);
+  assert.match(report, /Release: 0\.1\.27/);
+  assert.match(report, /Ten sixes\nPlayers:/);
   assert.match(report, /Galaxy\nLifetime years:/);
   assert.match(report, /Drawn dots: \d+/);
   assert.match(report, /Play: (playing|paused)/);
@@ -872,7 +873,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.26");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.27");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -929,7 +930,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "8");
+  assert.equal(await page.locator("#working-count").textContent(), "9");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -946,7 +947,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "8");
+  assert.equal(await page.locator("#working-count").textContent(), "9");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -1266,6 +1267,16 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "playing");
   await page.click("#galaxy-play");
   assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "paused");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/human-uniqueness"; });
+  await page.waitForFunction(() => !document.querySelector("#sixes-card").hidden && document.querySelector("#sixes-chance")?.textContent === "0.9999999343");
+  assert.equal(await page.locator("#sixes-faces .die").count(), 10);
+  await shotElement(page, label, "sixes-desktop.png", "#sixes-card");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow sixes");
+  await shotElement(page, label, "sixes-narrow.png", "#sixes-card");
+  await page.click("#sixes-tab-eggs");
+  await page.waitForFunction(() => document.querySelector("#sixes-egg-count")?.textContent === "3000000");
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");

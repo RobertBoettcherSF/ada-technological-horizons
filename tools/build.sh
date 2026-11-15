@@ -101,6 +101,10 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/galaxy_tests" \
   "$ROOT/tests/native/galaxy_tests.adb" \
   -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
 "$ROOT/build/native/galaxy_tests" | tee "$ROOT/build/native/galaxy-fixtures.txt"
+gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/sixes_tests" \
+  "$ROOT/tests/native/sixes_tests.adb" \
+  -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
+"$ROOT/build/native/sixes_tests" | tee "$ROOT/build/native/sixes-fixtures.txt"
 
 compile_wasm() {
   local Source="$1"
@@ -119,6 +123,7 @@ compile_wasm "$ROOT/ada/core/ath_lottery.adb" ath_lottery.o
 compile_wasm "$ROOT/ada/core/ath_research.adb" ath_research.o
 compile_wasm "$ROOT/ada/core/ath_spectrum.adb" ath_spectrum.o
 compile_wasm "$ROOT/ada/core/ath_galaxy.adb" ath_galaxy.o
+compile_wasm "$ROOT/ada/core/ath_sixes.adb" ath_sixes.o
 compile_wasm "$ROOT/ada/browser/ath_addition_exports.adb" ath_addition_exports.o
 compile_wasm "$ROOT/ada/browser/ath_lifetime_exports.adb" ath_lifetime_exports.o
 compile_wasm "$ROOT/ada/browser/ath_growth_exports.adb" ath_growth_exports.o
@@ -129,6 +134,7 @@ compile_wasm "$ROOT/ada/browser/ath_lottery_exports.adb" ath_lottery_exports.o
 compile_wasm "$ROOT/ada/browser/ath_research_exports.adb" ath_research_exports.o
 compile_wasm "$ROOT/ada/browser/ath_spectrum_exports.adb" ath_spectrum_exports.o
 compile_wasm "$ROOT/ada/browser/ath_galaxy_exports.adb" ath_galaxy_exports.o
+compile_wasm "$ROOT/ada/browser/ath_sixes_exports.adb" ath_sixes_exports.o
 compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
 (
   cd "$ROOT/build/wasm"
@@ -138,8 +144,8 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
     -o b~ath_browser.o
   "$TOOLCHAIN/bin/llvm-gcc" --target=wasm32 -o ath_addition.wasm \
-    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o ath_lottery.o ath_research.o ath_spectrum.o ath_galaxy.o \
-    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o ath_lottery_exports.o ath_research_exports.o ath_spectrum_exports.o ath_galaxy_exports.o \
+    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o ath_lottery.o ath_research.o ath_spectrum.o ath_galaxy.o ath_sixes.o \
+    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o ath_lottery_exports.o ath_research_exports.o ath_spectrum_exports.o ath_galaxy_exports.o ath_sixes_exports.o \
     ath_browser.o b~ath_browser.o \
     -L"$TOOLCHAIN/lib/rts-native/adalib" -lgnat \
     -nostdlib \
@@ -329,6 +335,29 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_galaxy_pin_upper \
     -Wl,--export=ath_galaxy_pin_slider \
     -Wl,--export=ath_galaxy_pin_y \
+    -Wl,--export=ath_sixes_single \
+    -Wl,--export=ath_sixes_chance \
+    -Wl,--export=ath_sixes_chance_value \
+    -Wl,--export=ath_sixes_caption \
+    -Wl,--export=ath_sixes_players_of \
+    -Wl,--export=ath_sixes_slider_of \
+    -Wl,--export=ath_sixes_sample_count \
+    -Wl,--export=ath_sixes_sample_players \
+    -Wl,--export=ath_sixes_sample_chance \
+    -Wl,--export=ath_sixes_sample_x \
+    -Wl,--export=ath_sixes_egg_count \
+    -Wl,--export=ath_sixes_egg_single \
+    -Wl,--export=ath_sixes_eggs_of \
+    -Wl,--export=ath_sixes_egg_slider \
+    -Wl,--export=ath_sixes_egg_chance \
+    -Wl,--export=ath_sixes_egg_chance_value \
+    -Wl,--export=ath_sixes_egg_expected \
+    -Wl,--export=ath_sixes_egg_sample_eggs \
+    -Wl,--export=ath_sixes_egg_sample_chance \
+    -Wl,--export=ath_sixes_egg_sample_x \
+    -Wl,--export=ath_sixes_roll \
+    -Wl,--export=ath_sixes_face \
+    -Wl,--export=ath_sixes_six_count \
     -Wl,--export-memory
 )
 
@@ -346,7 +375,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.26",
+  version: "0.1.27",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -357,7 +386,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
