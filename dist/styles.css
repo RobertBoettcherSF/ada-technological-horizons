@@ -1015,7 +1015,8 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
-  .galaxy-sky circle.star { transition: none; }
+  .galaxy-sky circle.star,
+  .galaxy-sky circle.glow { transition: none; }
 }
 
 .schematic-flag {
@@ -1110,7 +1111,18 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
   gap: 0.4rem;
 }
 
-.galaxy-sky circle.star { transition: opacity 0.45s linear; }
+.galaxy-sky circle.star,
+.galaxy-sky circle.glow { transition: opacity 0.45s linear; }
+#galaxy-legend .swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+}
+#galaxy-legend .swatch.shared { background: #8fb4d4; }
+#galaxy-legend .swatch.tc {
+  background: #f0b429;
+  box-shadow: 0 0 0.28rem 0.08rem rgba(240, 180, 41, 0.45);
+}
 
 .galaxy-sky, .galaxy-chart { max-width: 100%; }
 .galaxy-sky svg, .galaxy-chart svg { width: 100%; height: auto; display: block; }

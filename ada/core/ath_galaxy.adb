@@ -199,20 +199,57 @@ package body Ath_Galaxy is
       return Slider_Min * Exp (Phase * Log (Slider_Max / Slider_Min));
    end Years_Of;
 
+   type Dot_Point is record
+      X, Y : Long_Float;
+   end record;
+
+   Stored_Dots : array (1 .. Dot_Count) of Dot_Point := (others => (0.0, 0.0));
+
+   procedure Place_Dots is
+      Placed : Natural := 0;
+
+      function Clear (X, Y : Long_Float) return Boolean is
+         Dx, Dy : Long_Float;
+      begin
+         for Index in 1 .. Placed loop
+            Dx := X - Stored_Dots (Index).X;
+            Dy := Y - Stored_Dots (Index).Y;
+            if Dx * Dx + Dy * Dy < Min_Separation * Min_Separation then
+               return False;
+            end if;
+         end loop;
+         return True;
+      end Clear;
+   begin
+      for Seed in 1 .. 12_000 loop
+         exit when Placed = Dot_Count;
+         declare
+            Arm : constant Natural := (Seed - 1) mod 3;
+            Along : constant Long_Float := Unit (Seed);
+            Theta : constant Long_Float :=
+              2.0 * Ada.Numerics.Pi * (Long_Float (Arm) / 3.0 + Along * 2.15);
+            Radial : constant Long_Float := 0.16 + 0.78 * Along;
+            Side : constant Long_Float := (Unit (Seed + 9_000) - 0.5) * 0.035;
+            X : constant Long_Float :=
+              Radial * Cos (Theta) - Side * Sin (Theta);
+            Y : constant Long_Float :=
+              Radial * Sin (Theta) + Side * Cos (Theta);
+         begin
+            if X * X + Y * Y <= 1.02 and then Clear (X, Y) then
+               Placed := Placed + 1;
+               Stored_Dots (Placed) := (X, Y);
+            end if;
+         end;
+      end loop;
+   end Place_Dots;
+
    procedure Dot
      (Index : Positive;
       X     : out Long_Float;
       Y     : out Long_Float) is
-      Arm : constant Natural := (Index - 1) mod 3;
-      Step : constant Natural := (Index - 1) / 3;
-      Along : constant Long_Float := Long_Float (Step) / 47.0;
-      Theta : constant Long_Float :=
-        2.0 * Ada.Numerics.Pi * (Long_Float (Arm) / 3.0 + Along * 2.4);
-      Radius : constant Long_Float :=
-        0.10 + 0.86 * Along + (Unit (Index + 400) - 0.5) * 0.05;
    begin
-      X := Radius * Cos (Theta);
-      Y := Radius * Sin (Theta);
+      X := Stored_Dots (Index).X;
+      Y := Stored_Dots (Index).Y;
    end Dot;
 
    function Dot_Brightness (Index : Positive; Years : Long_Float) return Long_Float is
@@ -243,4 +280,6 @@ package body Ath_Galaxy is
    begin
       return Dot_Brightness (Index, Years) >= 0.5;
    end Dot_Lit;
+begin
+   Place_Dots;
 end Ath_Galaxy;

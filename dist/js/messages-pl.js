@@ -92,7 +92,7 @@ export const polish = {
   "exec.failed": "Ładowanie nie powiodło się",
   "exec.idle": "Nie załadowano",
   "about.heading": "O tym wydaniu",
-  "about.scope": "Wersja 0.1.25 daje migoczącej galaktyce wolniejszy przebieg, Graj, Pauzę i suwak, który zmienia światła. Wersja 0.1.24 dodaje migoczącą galaktykę w Statystyce cywilizacji kosmicznych. Wersja 0.1.23 dodaje schematyczne widmo technetu w Metateorii cudów. Wersja 0.1.22 wymienia naukowców, na których powołuje się każdy rozdział, i dodaje polski. Odnośnik do Wikipedii idzie za wybranym językiem, a gdy nie ma artykułu, prowadzi do angielskiego.",
+  "about.scope": "Wersja 0.1.26 zostawia każdą kropkę galaktyki w tym samym rozmiarze i rozsuwa je, żeby przytomne się nie tłoczyły. Wersja 0.1.25 daje migoczącej galaktyce wolniejszy przebieg, Graj, Pauzę i suwak, który zmienia światła. Wersja 0.1.24 dodaje migoczącą galaktykę w Statystyce cywilizacji kosmicznych. Wersja 0.1.23 dodaje schematyczne widmo technetu w Metateorii cudów. Wersja 0.1.22 wymienia naukowców, na których powołuje się każdy rozdział, i dodaje polski. Odnośnik do Wikipedii idzie za wybranym językiem, a gdy nie ma artykułu, prowadzi do angielskiego.",
   "about.queue": "W tym wydaniu nie ma odstępów, kontaktu, powrotu ani granic logistycznych. Porównanie w Bombie megabitowej to dwa wskaźniki podwajania, a nie prognoza zatrudnienia.",
   "about.decimal": "Czytelne wyniki idą za wybranym językiem. Dokładne liczby w szczegółach technicznych zostają w postaci kanonicznej, z kropką i bez grupowania, a każde pole nadal przyjmuje kropkę.",
   "footer.note": "Inspiracja literacka jest osobno od ewentualnej przyszłej licencji programu.",

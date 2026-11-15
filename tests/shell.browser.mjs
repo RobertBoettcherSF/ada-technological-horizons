@@ -7,6 +7,39 @@ import { chromium } from "playwright";
 import { sections } from "../web/js/catalogue-data.js";
 import { t } from "../web/js/messages.js";
 
+async function assertStarsSeparated(page) {
+  const separated = await page.evaluate(() => {
+    const nodes = [...document.querySelectorAll("#galaxy-sky circle.star")];
+    const points = nodes.map((node) => {
+      const box = node.getBoundingClientRect();
+      return { x: box.x + box.width / 2, y: box.y + box.height / 2, r: box.width / 2 };
+    });
+    if (points.length < 100 || points[0].r < 0.5) return false;
+    const gap = points[0].r * 0.15;
+    for (let i = 0; i < points.length; i += 1) {
+      if (Math.abs(points[i].r - points[0].r) > 0.4) return false;
+      for (let j = i + 1; j < points.length; j += 1) {
+        const distance = Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y);
+        if (distance < points[i].r + points[j].r + gap) return false;
+      }
+    }
+    return true;
+  });
+  assert.equal(separated, true);
+}
+
+async function showFullGalaxy(page) {
+  const play = page.locator("#galaxy-play");
+  if (await play.getAttribute("data-state") === "playing") {
+    await play.click();
+  }
+  await page.locator("#galaxy-life").evaluate((el) => {
+    el.value = "1000";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#galaxy-sky [data-lit='1']").length > 50);
+}
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const shots = path.join(root, "docs", "review");
 fs.mkdirSync(shots, { recursive: true });
@@ -167,7 +200,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.25/);
+  assert.match(report, /Release: 0\.1\.26/);
   assert.match(report, /Galaxy\nLifetime years:/);
   assert.match(report, /Drawn dots: \d+/);
   assert.match(report, /Play: (playing|paused)/);
@@ -839,7 +872,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.25");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.26");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1184,7 +1217,8 @@ async function exercise(page, label) {
     const card = document.querySelector("#galaxy-card");
     return card && !card.hidden && document.querySelector("#galaxy-count")?.textContent;
   });
-  await page.waitForTimeout(3900);
+  await showFullGalaxy(page);
+  await assertStarsSeparated(page);
   await shotElement(page, label, "galaxy-desktop.png", "#galaxy-card");
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/a-metatheory-of-miracles"; });
   await page.waitForFunction(() => !document.querySelector("#spectrum-card").hidden);
@@ -1208,9 +1242,8 @@ async function exercise(page, label) {
   assert.ok((await overflow(page)) <= 1, "narrow spectrum");
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/statistics-of-cosmic-civilisations"; });
   await page.waitForFunction(() => !document.querySelector("#galaxy-card").hidden && document.querySelector("#galaxy-title")?.textContent?.includes("cywilizacji"));
-  await page.click("#galaxy-reset");
-  await page.click("#galaxy-play");
-  await page.waitForTimeout(2500);
+  await showFullGalaxy(page);
+  await assertStarsSeparated(page);
   await shotElement(page, label, "galaxy-narrow.png", "#galaxy-card");
   assert.ok((await overflow(page)) <= 1, "narrow galaxy");
   await page.click("#galaxy-calm");

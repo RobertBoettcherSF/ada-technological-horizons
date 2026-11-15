@@ -24,6 +24,10 @@ package Ath_Galaxy is
    Slider_Max     : constant Long_Float := Window_Years;
    Ring_Ly        : constant Long_Float := 50.0;
 
+   --  Model units. The page draws these with a scale of 82 and a star
+   --  radius of 1.5, so this separation is a gap past two radii.
+   Min_Separation : constant Long_Float := 0.048;
+
    Dot_Count    : constant := 144;
    Sample_Count : constant := 21;
    Pin_Count    : constant := 3;

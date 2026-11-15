@@ -86,9 +86,21 @@ begin
    begin
       for Index in 1 .. Ath_Galaxy.Dot_Count loop
          Ath_Galaxy.Dot (Index, X, Y);
-         if X * X + Y * Y > 1.2 then
+         if X * X + Y * Y > 1.2 or else (X = 0.0 and then Y = 0.0) then
             Fail ("dot-outside");
          end if;
+         for Other in Index + 1 .. Ath_Galaxy.Dot_Count loop
+            declare
+               Ox, Oy : Long_Float;
+            begin
+               Ath_Galaxy.Dot (Other, Ox, Oy);
+               if (X - Ox) ** 2 + (Y - Oy) ** 2
+                 < Ath_Galaxy.Min_Separation ** 2
+               then
+                  Fail ("dot-gap");
+               end if;
+            end;
+         end loop;
       end loop;
       Low := Drawn (100.0);
       Mid := Drawn (1.0e6);

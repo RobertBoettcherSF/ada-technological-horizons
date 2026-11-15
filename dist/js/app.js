@@ -3339,13 +3339,14 @@ function renderGalaxy() {
   const signature = `${state.lang}|${galaxy.modern}`;
   if (sky.dataset.signature !== signature) {
     sky.dataset.signature = signature;
-    const marks = spec.dots.map((dot) => svgEl("circle", {
-      class: "star",
-      cx: 100 + dot.x * 82,
-      cy: 100 - dot.y * 82,
-      r: dot.lit ? 2.4 : 1.5,
-      fill: dot.lit ? "#f0b429" : "#35506a",
-    }));
+    const marks = spec.dots.map((dot) => {
+      const cx = 100 + dot.x * 82;
+      const cy = 100 - dot.y * 82;
+      return svgEl("g", {}, [
+        svgEl("circle", { class: "glow", cx, cy, r: 1.85, fill: "#f0b429", opacity: 0 }),
+        svgEl("circle", { class: "star", cx, cy, r: 1.5, fill: "#8fb4d4" }),
+      ]);
+    });
     sky.replaceChildren(svgEl("svg", {
       viewBox: "0 0 200 200",
       role: "img",
@@ -3404,14 +3405,20 @@ function renderGalaxy() {
     );
   }
   const circles = sky.querySelectorAll("circle.star");
+  const glows = sky.querySelectorAll("circle.glow");
   spec.dots.forEach((dot, index) => {
     const node = circles[index];
+    const glow = glows[index];
     if (!node) return;
     const brightness = dot.brightness ?? (dot.lit ? 1 : 0);
     node.setAttribute("data-lit", brightness >= 0.5 ? "1" : "0");
-    node.style.opacity = String(0.22 + 0.78 * brightness);
+    node.setAttribute("r", "1.5");
+    node.style.opacity = "1";
     node.setAttribute("fill", brightness >= 0.5 ? "#f0b429" : "#8fb4d4");
-    node.setAttribute("r", brightness >= 0.5 ? "2.6" : "1.5");
+    if (glow) {
+      glow.setAttribute("r", "1.85");
+      glow.style.opacity = String(0.4 * brightness);
+    }
   });
   galaxy.report = {
     years: galaxy.years,
