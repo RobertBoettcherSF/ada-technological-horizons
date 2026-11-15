@@ -65,32 +65,39 @@ begin
    Check (6_523.0, True, "modern");
 
    if abs (Ath_Galaxy.Years_Of (0.0) - 100.0) > 1.0e-6
-     or else abs (Ath_Galaxy.Years_Of (1.0) - 1.0e10) > 1.0e-2
+     or else abs (Ath_Galaxy.Years_Of (1.0) - Ath_Galaxy.Window_Years) > 1.0
    then
       Fail ("slider");
    end if;
 
    declare
-      Lit : Natural := 0;
+      function Drawn (Years : Long_Float) return Natural is
+         Total : Natural := 0;
+      begin
+         for Index in 1 .. Ath_Galaxy.Dot_Count loop
+            if Ath_Galaxy.Dot_Lit (Index, Years) then
+               Total := Total + 1;
+            end if;
+         end loop;
+         return Total;
+      end Drawn;
       X, Y : Long_Float;
+      Low, Mid, High : Natural;
    begin
       for Index in 1 .. Ath_Galaxy.Dot_Count loop
          Ath_Galaxy.Dot (Index, X, Y);
          if X * X + Y * Y > 1.2 then
             Fail ("dot-outside");
          end if;
-         if Ath_Galaxy.Dot_Lit (Index, 0.0, 0.2) then
-            Fail ("lit-zero");
-         end if;
-         if not Ath_Galaxy.Dot_Lit (Index, 1.0, 0.2) then
-            Fail ("lit-all");
-         end if;
-         if Ath_Galaxy.Dot_Lit (Index, 0.25, 0.0) then
-            Lit := Lit + 1;
-         end if;
       end loop;
-      if Lit = 0 or else Lit = Ath_Galaxy.Dot_Count then
-         Fail ("lit-some");
+      Low := Drawn (100.0);
+      Mid := Drawn (1.0e6);
+      High := Drawn (Ath_Galaxy.Window_Years);
+      if Low /= 0 or else High /= Ath_Galaxy.Dot_Count then
+         Fail ("lit-ends");
+      end if;
+      if Mid = 0 or else Mid >= High or else Drawn (1.0e5) >= Mid then
+         Fail ("lit-moves");
       end if;
    end;
 

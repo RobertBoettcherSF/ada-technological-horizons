@@ -2330,6 +2330,15 @@ function debugReport() {
     "Expectation:",
     comment.trim() === "" ? "(none)" : comment,
     "",
+    "Galaxy",
+    `Lifetime years: ${galaxy.report ? formatCanonical(galaxy.report.years) : "(not ready)"}`,
+    `Count: ${galaxy.report ? formatCanonical(galaxy.report.count) : "(not ready)"}`,
+    `Nearest distance: ${galaxy.report?.distance == null ? "(none)" : formatCanonical(galaxy.report.distance)}`,
+    `Drawn dots: ${galaxy.report ? String(galaxy.report.drawn) : "(not ready)"}`,
+    `Play: ${galaxy.report ? galaxy.report.play : "(not ready)"}`,
+    `Speed: ${galaxy.report ? galaxy.report.speed : "(not ready)"}`,
+    `Calm: ${galaxy.report ? galaxy.report.calm : "(not ready)"}`,
+    "",
     "Lifetime",
     `Probabilities: ${[1, 2, 3, 4].map((index) => valueOf(`prob-${index}`)).join(", ")}`,
     `Durations: ${[1, 2, 3, 4].map((index) => valueOf(`years-${index}`)).join(", ")}`,
@@ -2920,8 +2929,8 @@ function bind() {
   document.getElementById("galaxy-life")?.addEventListener("input", () => {
     if (galaxySettingSlider || !session.exports) return;
     stopGalaxyDemo();
-    const phase = Number(document.getElementById("galaxy-life").value) / 1000;
-    galaxy.years = session.exports.ath_galaxy_years_of(phase);
+    galaxy.phase = Number(document.getElementById("galaxy-life").value) / 1000;
+    galaxy.years = session.exports.ath_galaxy_years_of(galaxy.phase);
     renderGalaxy();
   });
   document.getElementById("galaxy-pins")?.addEventListener("click", (event) => {
@@ -2931,26 +2940,52 @@ function bind() {
     galaxy.years = Number(button.dataset.galaxyYears);
     renderGalaxy();
   });
-  document.getElementById("galaxy-calm")?.addEventListener("click", () => {
-    galaxy.calm = !galaxy.calm;
-    if (galaxy.calm) {
-      holdGalaxyAtBook();
+  document.getElementById("galaxy-play")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    if (galaxy.playing) {
+      stopGalaxyDemo();
+      renderGalaxy();
     } else {
       startGalaxyDemo();
     }
+  });
+  document.getElementById("galaxy-restart")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    galaxy.phase = 0;
+    galaxy.years = session.exports.ath_galaxy_years_of(0);
+    if (galaxy.playing) {
+      galaxy.stamp = performance.now();
+      renderGalaxy();
+    } else {
+      stopGalaxyDemo();
+      renderGalaxy();
+    }
+  });
+  document.getElementById("galaxy-card")?.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-galaxy-speed]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const speed = button.dataset.galaxySpeed;
+    if (!GALAXY_SPEEDS[speed]) return;
+    galaxy.speed = speed;
+    if (galaxy.playing) {
+      galaxy.stamp = performance.now() - galaxy.phase * GALAXY_SPEEDS[speed] * 1000;
+    }
+    renderGalaxy();
+  });
+  document.getElementById("galaxy-calm")?.addEventListener("click", () => {
+    galaxy.calm = !galaxy.calm;
     document.getElementById("galaxy-calm")?.setAttribute("aria-pressed", galaxy.calm ? "true" : "false");
+    if (galaxy.calm) {
+      holdGalaxyAtBook();
+    } else {
+      renderGalaxy();
+    }
   });
   document.getElementById("galaxy-reset")?.addEventListener("click", () => {
     galaxy.modern = false;
     const modern = document.getElementById("galaxy-modern");
     if (modern) modern.checked = false;
-    galaxy.clock = 0;
-    if (galaxy.calm || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      holdGalaxyAtBook();
-    } else {
-      galaxy.years = session.exports?.ath_galaxy_years_of(0) ?? galaxy.years;
-      startGalaxyDemo();
-    }
+    holdGalaxyAtBook();
   });
   document.getElementById("galaxy-modern")?.addEventListener("change", (event) => {
     galaxy.modern = event.target instanceof HTMLInputElement && event.target.checked;
@@ -3151,14 +3186,18 @@ function renderSpectrum() {
     .replace("{tc98}", formatReadable(spec.tc98, state.lang, "year"));
 }
 
+const GALAXY_SPEEDS = { slow: 40, normal: 20, fast: 10 };
+
 const galaxy = {
   years: null,
   modern: false,
   calm: false,
-  demo: false,
-  clock: 0,
+  playing: false,
+  phase: 0,
+  speed: "normal",
   stamp: 0,
   frame: 0,
+  report: null,
 };
 
 let galaxySettingSlider = false;
@@ -3166,7 +3205,7 @@ let galaxySettingSlider = false;
 function formatGalaxySpan(value, lang) {
   if (value >= 1e9) return t(lang, "galaxy.billion").replace("{n}", formatGalaxyNumber(value / 1e9, lang));
   if (value >= 1e6) return t(lang, "galaxy.million").replace("{n}", formatGalaxyNumber(value / 1e6, lang));
-  return t(lang, "galaxy.years").replace("{n}", formatReadable(value, lang, "year"));
+  return t(lang, "galaxy.years").replace("{n}", formatReadable(Math.round(value), lang, "year"));
 }
 
 function formatGalaxyCount(value, lang) {
@@ -3189,36 +3228,39 @@ function formatGalaxyDistance(value, lang) {
 }
 
 function stopGalaxyDemo() {
-  galaxy.demo = false;
+  galaxy.playing = false;
   if (galaxy.frame) cancelAnimationFrame(galaxy.frame);
   galaxy.frame = 0;
 }
 
 function stepGalaxy(now) {
-  if (!galaxy.demo || !session.exports) return;
-  if (!galaxy.stamp) galaxy.stamp = now;
+  if (!galaxy.playing || !session.exports) return;
+  const duration = GALAXY_SPEEDS[galaxy.speed] ?? GALAXY_SPEEDS.normal;
+  if (!galaxy.stamp) galaxy.stamp = now - galaxy.phase * duration * 1000;
   const elapsed = (now - galaxy.stamp) / 1000;
-  const cycle = 8;
-  const tri = (elapsed % cycle) / cycle;
-  const phase = tri < 0.5 ? tri * 2 : (1 - tri) * 2;
-  galaxy.clock = (elapsed * 0.15) % 1;
-  galaxy.years = session.exports.ath_galaxy_years_of(phase);
+  galaxy.phase = (elapsed / duration) % 1;
+  galaxy.years = session.exports.ath_galaxy_years_of(galaxy.phase);
   renderGalaxy();
   galaxy.frame = requestAnimationFrame(stepGalaxy);
 }
 
 function startGalaxyDemo() {
-  if (!session.exports || galaxy.calm) return;
-  galaxy.demo = true;
-  galaxy.stamp = 0;
+  if (!session.exports) return;
+  galaxy.playing = true;
+  galaxy.calm = false;
+  const duration = GALAXY_SPEEDS[galaxy.speed] ?? GALAXY_SPEEDS.normal;
+  galaxy.stamp = performance.now() - galaxy.phase * duration * 1000;
   if (galaxy.frame) cancelAnimationFrame(galaxy.frame);
   galaxy.frame = requestAnimationFrame(stepGalaxy);
+  const calmButton = document.getElementById("galaxy-calm");
+  if (calmButton) calmButton.setAttribute("aria-pressed", "false");
+  renderGalaxy();
 }
 
 function holdGalaxyAtBook() {
   stopGalaxyDemo();
-  galaxy.clock = 0;
   galaxy.years = session.exports.ath_galaxy_book_years();
+  galaxy.phase = session.exports.ath_galaxy_slider_of(galaxy.years);
   renderGalaxy();
 }
 
@@ -3226,6 +3268,8 @@ function bootGalaxy() {
   if (!session.exports) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   galaxy.calm = reduce;
+  galaxy.speed = "normal";
+  galaxy.phase = 0;
   const calmButton = document.getElementById("galaxy-calm");
   if (calmButton) calmButton.setAttribute("aria-pressed", reduce ? "true" : "false");
   if (reduce) {
@@ -3250,7 +3294,7 @@ function renderGalaxy() {
   const tech = document.getElementById("galaxy-tech");
   const calmButton = document.getElementById("galaxy-calm");
   if (!caption || !sky || !session.exports || galaxy.years == null) return;
-  const spec = callGalaxy(session, galaxy.years, galaxy.modern, galaxy.clock);
+  const spec = callGalaxy(session, galaxy.years, galaxy.modern);
   if (spec.status !== 0) {
     caption.textContent = "";
     count.textContent = "";
@@ -3267,13 +3311,25 @@ function renderGalaxy() {
     : t(state.lang, `galaxy.caption.${spec.caption}`).replace("{n}", countText).replace("{d}", shownDistance);
   count.textContent = countText;
   distance.textContent = distanceText;
-  readout.textContent = formatGalaxySpan(galaxy.years, state.lang);
-  if (playing) playing.hidden = !galaxy.demo;
+  const lifetimeText = formatGalaxySpan(galaxy.years, state.lang);
+  const lifetimeOut = document.getElementById("galaxy-lifetime");
+  if (lifetimeOut) lifetimeOut.textContent = lifetimeText;
+  if (readout) readout.textContent = lifetimeText;
+  if (playing) playing.hidden = !galaxy.playing;
+  const playButton = document.getElementById("galaxy-play");
+  if (playButton) {
+    playButton.dataset.state = galaxy.playing ? "playing" : "paused";
+    playButton.textContent = t(state.lang, galaxy.playing ? "galaxy.pause" : "galaxy.play");
+    playButton.setAttribute("aria-pressed", galaxy.playing ? "true" : "false");
+  }
+  for (const button of document.querySelectorAll("[data-galaxy-speed]")) {
+    button.setAttribute("aria-pressed", button.dataset.galaxySpeed === galaxy.speed ? "true" : "false");
+  }
   if (calmButton) calmButton.setAttribute("aria-pressed", galaxy.calm ? "true" : "false");
   if (slider && document.activeElement !== slider) {
     galaxySettingSlider = true;
     slider.value = String(Math.round(spec.slider * 1000));
-    slider.setAttribute("aria-valuetext", readout.textContent);
+    slider.setAttribute("aria-valuetext", lifetimeText);
     galaxySettingSlider = false;
   }
   tech.textContent = t(state.lang, "galaxy.tech")
@@ -3351,9 +3407,21 @@ function renderGalaxy() {
   spec.dots.forEach((dot, index) => {
     const node = circles[index];
     if (!node) return;
-    node.setAttribute("fill", dot.lit ? "#f0b429" : "#35506a");
-    node.setAttribute("r", dot.lit ? "2.4" : "1.5");
+    const brightness = dot.brightness ?? (dot.lit ? 1 : 0);
+    node.setAttribute("data-lit", brightness >= 0.5 ? "1" : "0");
+    node.style.opacity = String(0.22 + 0.78 * brightness);
+    node.setAttribute("fill", brightness >= 0.5 ? "#f0b429" : "#8fb4d4");
+    node.setAttribute("r", brightness >= 0.5 ? "2.6" : "1.5");
   });
+  galaxy.report = {
+    years: galaxy.years,
+    count: spec.count,
+    distance: spec.distanceKnown ? spec.distance : null,
+    drawn: spec.dots.filter((dot) => dot.lit).length,
+    play: galaxy.playing ? "playing" : "paused",
+    speed: galaxy.speed,
+    calm: galaxy.calm ? "on" : "off",
+  };
   const now = chart.querySelector("#galaxy-now");
   if (now && spec.distancePos != null) {
     now.setAttribute("cx", String(56 + spec.slider * 560));

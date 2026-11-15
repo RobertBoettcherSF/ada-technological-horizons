@@ -588,9 +588,13 @@ test("the blinking galaxy matches the book lifetime and the saturation", async (
   const beyond = callGalaxy(session, 3e10, false, 0);
   assert.equal(beyond.count, 1e9);
   assert.equal(callGalaxy(session, -5, false, 0).status, 2);
-  const mid = callGalaxy(session, 7.5e9, false, 0);
-  const lit = mid.dots.filter((dot) => dot.lit).length;
-  assert.ok(lit > 10 && lit < mid.dots.length);
+  const low = callGalaxy(session, 100, false);
+  const mid = callGalaxy(session, 1e6, false);
+  const high = callGalaxy(session, 1.5e10, false);
+  assert.equal(low.dots.filter((dot) => dot.lit).length, 0);
+  assert.equal(high.dots.filter((dot) => dot.lit).length, high.dots.length);
+  const midLit = mid.dots.filter((dot) => dot.lit).length;
+  assert.ok(midLit > 0 && midLit < mid.dots.length);
 });
 
 test("a failed module load does not invent a sum", async () => {

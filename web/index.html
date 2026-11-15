@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.24">
+  <meta name="ath-release" content="0.1.25">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.24</p>
+        <p class="release-pill" id="header-version">0.1.25</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -150,6 +150,7 @@
       <p data-i18n="galaxy.lead">Lem reports a picture from Bracewell and von Hoerner: about 150 billion stars, and only one star in 150 with planets, so about a billion planetary systems. A short-lived civilisation leaves few neighbours awake. The lights, the disc and the distances drawn here are our picture. Lem's own spacings stay as separate marks.</p>
       <p id="galaxy-caption" class="galaxy-caption" aria-live="polite"></p>
       <div class="galaxy-readout">
+        <p><span data-i18n="galaxy.lifeLabel">How long does a civilisation last?</span> <output id="galaxy-lifetime"></output></p>
         <p><span data-i18n="galaxy.alive">Alive right now</span> <output id="galaxy-count"></output></p>
         <p><span data-i18n="galaxy.nearest">Nearest neighbour</span> <output id="galaxy-distance"></output></p>
       </div>
@@ -157,10 +158,18 @@
       <ul id="galaxy-legend" class="spectrum-legend"></ul>
       <div class="galaxy-control">
         <label id="galaxy-life-label" for="galaxy-life" data-i18n="galaxy.lifeLabel">How long does a civilisation last?</label>
-        <input id="galaxy-life" type="range" min="0" max="1000" step="1" value="0" aria-describedby="galaxy-life-readout">
+        <input id="galaxy-life" type="range" min="0" max="1000" step="1" value="0" aria-describedby="galaxy-lifetime">
         <div id="galaxy-pins" class="galaxy-pins"></div>
-        <p id="galaxy-life-readout" class="note"></p>
         <p id="galaxy-playing" class="note" data-i18n="galaxy.playing">The lifetime is sweeping on its own.</p>
+      </div>
+      <div class="button-row galaxy-transport">
+        <button type="button" id="galaxy-play" data-state="paused">Play</button>
+        <button type="button" id="galaxy-restart" data-i18n="galaxy.restart">Restart</button>
+        <div class="galaxy-speeds" role="group">
+          <button type="button" data-galaxy-speed="slow" data-i18n="galaxy.speed.slow">Slow</button>
+          <button type="button" data-galaxy-speed="normal" data-i18n="galaxy.speed.normal" aria-pressed="true">Normal</button>
+          <button type="button" data-galaxy-speed="fast" data-i18n="galaxy.speed.fast">Fast</button>
+        </div>
       </div>
       <div class="button-row">
         <button type="button" id="galaxy-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>

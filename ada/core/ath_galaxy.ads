@@ -21,7 +21,7 @@ package Ath_Galaxy is
    Disc_Radius_Ly : constant Long_Float := 50_000.0;
    Book_Years     : constant Long_Float := 6_523.0;
    Slider_Min     : constant Long_Float := 100.0;
-   Slider_Max     : constant Long_Float := 1.0e10;
+   Slider_Max     : constant Long_Float := Window_Years;
    Ring_Ly        : constant Long_Float := 50.0;
 
    Dot_Count    : constant := 144;
@@ -76,10 +76,11 @@ package Ath_Galaxy is
       X     : out Long_Float;
       Y     : out Long_Float);
 
-   function Dot_Lit
-     (Index : Positive;
-      Share : Long_Float;
-      Clock : Long_Float) return Boolean;
+   --  Brightness follows the logarithmic slider, from 0 at 100 years to 1
+   --  at the galaxy's age. It is the drawing, not the coexisting count.
+   function Dot_Brightness (Index : Positive; Years : Long_Float) return Long_Float;
+
+   function Dot_Lit (Index : Positive; Years : Long_Float) return Boolean;
 
    Distance_Axis_Min : constant Long_Float := 1.0;
    Distance_Axis_Max : constant Long_Float := 100_000.0;

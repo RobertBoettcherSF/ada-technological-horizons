@@ -1015,6 +1015,7 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
+  .galaxy-sky circle.star { transition: none; }
 }
 
 .schematic-flag {
@@ -1090,10 +1091,26 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 .galaxy-readout output {
   display: block;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 750;
   color: var(--lime);
 }
+
+.galaxy-transport button,
+.galaxy-speeds button {
+  min-height: 48px;
+  min-width: 6.5rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.galaxy-speeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.galaxy-sky circle.star { transition: opacity 0.45s linear; }
 
 .galaxy-sky, .galaxy-chart { max-width: 100%; }
 .galaxy-sky svg, .galaxy-chart svg { width: 100%; height: auto; display: block; }

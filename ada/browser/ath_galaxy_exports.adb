@@ -142,15 +142,24 @@ package body Ath_Galaxy_Exports is
       return Y;
    end Ath_Galaxy_Dot_Y;
 
+   function Ath_Galaxy_Dot_Brightness
+     (Index : Interfaces.Integer_32;
+      Years : Long_Float) return Long_Float is
+   begin
+      if not In_Dots (Index) then
+         return 0.0;
+      end if;
+      return Ath_Galaxy.Dot_Brightness (Positive (Index), Years);
+   end Ath_Galaxy_Dot_Brightness;
+
    function Ath_Galaxy_Dot_Lit
      (Index : Interfaces.Integer_32;
-      Share : Long_Float;
-      Clock : Long_Float) return Interfaces.Integer_32 is
+      Years : Long_Float) return Interfaces.Integer_32 is
    begin
       if not In_Dots (Index) then
          return 0;
       end if;
-      if Ath_Galaxy.Dot_Lit (Positive (Index), Share, Clock) then
+      if Ath_Galaxy.Dot_Lit (Positive (Index), Years) then
          return 1;
       end if;
       return 0;

@@ -517,7 +517,7 @@ export function callSpectrum(session) {
   };
 }
 
-export function callGalaxy(session, years, modern, clock = 0) {
+export function callGalaxy(session, years, modern) {
   if (!session.exports) {
     throw new Error("Ada module is not loaded");
   }
@@ -548,12 +548,13 @@ export function callGalaxy(session, years, modern, clock = 0) {
   }
   const dots = [];
   const dotCount = session.exports.ath_galaxy_dot_count();
-  const share = ready ? session.exports.ath_galaxy_share() : 0;
   for (let index = 1; index <= dotCount; index += 1) {
+    const brightness = ready ? session.exports.ath_galaxy_dot_brightness(index, years) : 0;
     dots.push({
       x: session.exports.ath_galaxy_dot_x(index),
       y: session.exports.ath_galaxy_dot_y(index),
-      lit: ready && session.exports.ath_galaxy_dot_lit(index, share, clock) === 1,
+      brightness,
+      lit: brightness >= 0.5,
     });
   }
   return {
@@ -561,7 +562,7 @@ export function callGalaxy(session, years, modern, clock = 0) {
     count: ready ? session.exports.ath_galaxy_count() : null,
     distance: ready ? session.exports.ath_galaxy_distance() : null,
     distanceKnown: ready && session.exports.ath_galaxy_distance_known() === 1,
-    share,
+    share: ready ? session.exports.ath_galaxy_share() : 0,
     saturated: ready && session.exports.ath_galaxy_saturated() === 1,
     caption: ready ? session.exports.ath_galaxy_caption() : 0,
     systems: ready ? session.exports.ath_galaxy_systems() : null,

@@ -54,10 +54,14 @@ package Ath_Galaxy_Exports is
    function Ath_Galaxy_Dot_Y (Index : Interfaces.Integer_32) return Long_Float
    with Export, Convention => C, External_Name => "ath_galaxy_dot_y";
 
+   function Ath_Galaxy_Dot_Brightness
+     (Index : Interfaces.Integer_32;
+      Years : Long_Float) return Long_Float
+   with Export, Convention => C, External_Name => "ath_galaxy_dot_brightness";
+
    function Ath_Galaxy_Dot_Lit
      (Index : Interfaces.Integer_32;
-      Share : Long_Float;
-      Clock : Long_Float) return Interfaces.Integer_32
+      Years : Long_Float) return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_galaxy_dot_lit";
 
    function Ath_Galaxy_Sample_Count return Interfaces.Integer_32

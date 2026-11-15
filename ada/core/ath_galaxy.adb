@@ -155,7 +155,7 @@ package body Ath_Galaxy is
       Upper    : out Pin_Flags;
       Slider   : out Pin_Values) is
    begin
-      Life := (6_500.0, 1.0e8, Slider_Max);
+      Life := (6_500.0, 1.0e8, 1.0e10);
       Distance := (1_000.0, 50.0, 10.0);
       Upper := (0, 0, 1);
       for Index in 1 .. Pin_Count loop
@@ -215,29 +215,32 @@ package body Ath_Galaxy is
       Y := Radius * Sin (Theta);
    end Dot;
 
-   function Dot_Lit
-     (Index : Positive;
-      Share : Long_Float;
-      Clock : Long_Float) return Boolean is
-      Phase : constant Long_Float := Unit (Index + 900);
-      Span : Long_Float := Share;
-      Here : Long_Float := Clock;
-      Gap : Long_Float;
+   function Dot_Brightness (Index : Positive; Years : Long_Float) return Long_Float is
+      Share : constant Long_Float := Slider_Of (Years);
+      Rank : constant Long_Float := Unit (Index + 900);
+      Ahead : Long_Float;
    begin
-      if not Is_Finite (Span) or else not Is_Finite (Here) then
-         return False;
+      if not Is_Finite (Years) then
+         return 0.0;
       end if;
-      if Span <= 0.0 then
-         return False;
+      if Share >= 1.0 then
+         return 1.0;
       end if;
-      if Span >= 1.0 then
-         return True;
+      if Share <= 0.0 then
+         return 0.0;
       end if;
-      Here := Here - Long_Float'Floor (Here);
-      Gap := Here - Phase;
-      if Gap < 0.0 then
-         Gap := Gap + 1.0;
+      Ahead := (Share - Rank) * Long_Float (Dot_Count);
+      if Ahead >= 1.0 then
+         return 1.0;
+      elsif Ahead <= 0.0 then
+         return 0.0;
+      else
+         return Ahead;
       end if;
-      return Gap < Span;
+   end Dot_Brightness;
+
+   function Dot_Lit (Index : Positive; Years : Long_Float) return Boolean is
+   begin
+      return Dot_Brightness (Index, Years) >= 0.5;
    end Dot_Lit;
 end Ath_Galaxy;

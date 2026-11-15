@@ -167,7 +167,12 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.24/);
+  assert.match(report, /Release: 0\.1\.25/);
+  assert.match(report, /Galaxy\nLifetime years:/);
+  assert.match(report, /Drawn dots: \d+/);
+  assert.match(report, /Play: (playing|paused)/);
+  assert.match(report, /Speed: (slow|normal|fast)/);
+  assert.match(report, /Calm: (on|off)/);
   assert.match(report, /Preset: book/);
   assert.match(report, /Ratio: 0\.25/);
   assert.match(report, /Preset: historical/);
@@ -834,7 +839,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.24");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.25");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1204,7 +1209,8 @@ async function exercise(page, label) {
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/statistics-of-cosmic-civilisations"; });
   await page.waitForFunction(() => !document.querySelector("#galaxy-card").hidden && document.querySelector("#galaxy-title")?.textContent?.includes("cywilizacji"));
   await page.click("#galaxy-reset");
-  await page.waitForTimeout(3900);
+  await page.click("#galaxy-play");
+  await page.waitForTimeout(2500);
   await shotElement(page, label, "galaxy-narrow.png", "#galaxy-card");
   assert.ok((await overflow(page)) <= 1, "narrow galaxy");
   await page.click("#galaxy-calm");
@@ -1212,6 +1218,21 @@ async function exercise(page, label) {
   assert.match(await page.locator("#galaxy-card .schematic-flag").innerText(), /ilustracja/i);
   await page.selectOption("#language", "en-GB");
   await page.waitForFunction(() => document.querySelector("#galaxy-count")?.textContent === "434.87");
+  await page.locator("#galaxy-life").evaluate((el) => {
+    el.value = "0";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#galaxy-sky [data-lit='1']").length === 0);
+  await page.locator("#galaxy-life").evaluate((el) => {
+    el.value = "1000";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelectorAll("#galaxy-sky [data-lit='1']").length > 50);
+  assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "paused");
+  await page.click("#galaxy-play");
+  assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "playing");
+  await page.click("#galaxy-play");
+  assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "paused");
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");

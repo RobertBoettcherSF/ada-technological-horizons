@@ -312,6 +312,7 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_galaxy_dot_count \
     -Wl,--export=ath_galaxy_dot_x \
     -Wl,--export=ath_galaxy_dot_y \
+    -Wl,--export=ath_galaxy_dot_brightness \
     -Wl,--export=ath_galaxy_dot_lit \
     -Wl,--export=ath_galaxy_sample_count \
     -Wl,--export=ath_galaxy_sample_life \
@@ -345,7 +346,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.24",
+  version: "0.1.25",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -356,7 +357,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
