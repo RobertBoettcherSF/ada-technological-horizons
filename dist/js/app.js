@@ -45,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callLottery, callResearch, callSixes, callSixesRoll, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -2349,6 +2349,9 @@ function debugReport() {
     `Eggs: ${sixes.report ? formatCanonical(sixes.report.eggs) : "(not ready)"}`,
     `Expected fish: ${sixes.report ? formatCanonical(sixes.report.expected) : "(not ready)"}`,
     `Egg chance: ${sixes.report ? formatCanonical(sixes.report.eggChance) : "(not ready)"}`,
+    `Expected winners: ${sixes.report ? formatCanonical(sixes.report.winners) : "(not ready)"}`,
+    `Ladder: ${sixes.report ? sixes.report.ladder : "(not ready)"}`,
+    `Until: ${sixes.report?.until == null ? "(not drawn)" : formatCanonical(sixes.report.until)}`,
     `Play: ${sixes.report ? sixes.report.play : "(not ready)"}`,
     `Calm: ${sixes.report ? sixes.report.calm : "(not ready)"}`,
     "",
@@ -3033,6 +3036,7 @@ function bind() {
     stopSixesPlay();
     const phase = Number(document.getElementById("sixes-players").value) / 1000;
     sixes.players = session.exports.ath_sixes_players_of(phase);
+    sixes.ladder = "slider";
     renderSixes();
   });
   document.getElementById("sixes-egg-slider")?.addEventListener("input", () => {
@@ -3057,11 +3061,26 @@ function bind() {
     document.getElementById("sixes-tab-eggs").setAttribute("aria-selected", "true");
     renderSixes();
   });
+  document.getElementById("sixes-ladder")?.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-sixes-ladder]") : null;
+    if (!(button instanceof HTMLButtonElement) || !session.exports) return;
+    stopSixesPlay();
+    sixes.players = Number(button.dataset.sixesLadder);
+    sixes.ladder = button.dataset.sixesLadder;
+    renderSixes();
+  });
+  document.getElementById("sixes-until")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    sixes.untilDraw += 1;
+    showUntil(callSixesUntil(session, sixes.untilDraw), true);
+    renderSixes();
+  });
   document.getElementById("sixes-calm")?.addEventListener("click", () => {
     sixes.calm = !sixes.calm;
     document.getElementById("sixes-calm").setAttribute("aria-pressed", sixes.calm ? "true" : "false");
     if (sixes.calm) {
       stopSixesPlay();
+      if (sixes.untilTarget != null) showUntil(sixes.untilTarget, false);
       renderSixes();
     }
   });
@@ -3532,6 +3551,10 @@ const sixes = {
   players: null,
   eggs: null,
   setIndex: 1,
+  ladder: "1000000000",
+  untilDraw: 0,
+  untilTarget: null,
+  untilFrame: 0,
   playing: false,
   calm: false,
   timer: 0,
@@ -3604,6 +3627,68 @@ function drawChanceChart(host, samples, axisKey, pins) {
   ]));
 }
 
+function formatPeople(value, lang) {
+  const rounded = Math.round(value);
+  if (rounded >= 1e9) return t(lang, "sixes.billion").replace("{n}", formatGalaxyNumber(rounded / 1e9, lang));
+  if (rounded >= 1e6) return t(lang, "sixes.million").replace("{n}", formatGalaxyNumber(rounded / 1e6, lang));
+  return formatReadable(rounded, lang);
+}
+
+function formatWinners(value, lang) {
+  if (value >= 0.05 && value < 100) {
+    const text = value.toFixed(1);
+    return lang === "en-GB" ? text : text.replace(".", ",");
+  }
+  if (value >= 100) return formatReadable(Math.round(value), lang);
+  return formatChance(value, lang);
+}
+
+function drawLadder(steps) {
+  const host = document.getElementById("sixes-ladder");
+  if (!host) return;
+  host.replaceChildren(...steps.map((step) => {
+    const button = h("button", {
+      type: "button",
+      dataset: { sixesLadder: String(step.amount) },
+    }, [
+      h("span", { class: "bar" }),
+      h("span", { class: "label", text: `${formatPeople(step.amount, state.lang)} · ${t(state.lang, `sixes.word.${step.word}`)}` }),
+    ]);
+    button.querySelector(".bar").style.width = `${Math.min(100, step.chance * 100)}%`;
+    button.setAttribute("aria-pressed", sixes.ladder === String(step.amount) ? "true" : "false");
+    return button;
+  }));
+}
+
+function drawCrowd(marks) {
+  const host = document.getElementById("sixes-crowd");
+  if (!host) return;
+  host.replaceChildren(...marks.map((marked) => h("span", { class: marked ? "is-winner" : "" })));
+}
+
+function showUntil(target, animate) {
+  const note = document.getElementById("sixes-until-note");
+  sixes.untilTarget = target;
+  if (sixes.untilFrame) cancelAnimationFrame(sixes.untilFrame);
+  if (note) note.dataset.until = String(Math.round(target));
+  const write = (value) => {
+    if (note) {
+      note.textContent = t(state.lang, "sixes.untilNote").replace("{n}", formatReadable(Math.round(value), state.lang));
+    }
+  };
+  if (!animate || sixes.calm || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    write(target);
+    return;
+  }
+  const started = performance.now();
+  const frame = (now) => {
+    const portion = Math.min(1, (now - started) / 2500);
+    write(target * portion);
+    if (portion < 1) sixes.untilFrame = requestAnimationFrame(frame);
+  };
+  sixes.untilFrame = requestAnimationFrame(frame);
+}
+
 function renderSixes() {
   const caption = document.getElementById("sixes-caption");
   const faces = document.getElementById("sixes-faces");
@@ -3635,7 +3720,16 @@ function renderSixes() {
     const slider = document.getElementById("sixes-players");
     if (slider && document.activeElement !== slider) slider.value = String(Math.round(dice.slider * 1000));
     if (sixes.tab === "dice") {
-      caption.textContent = t(state.lang, `sixes.caption.${dice.caption}`);
+      caption.textContent = t(state.lang, "sixes.point");
+      document.getElementById("sixes-winners").textContent = t(state.lang, "sixes.winnersLine")
+        .replace("{players}", formatPeople(sixes.players, state.lang))
+        .replace("{winners}", formatWinners(dice.expected, state.lang));
+      document.getElementById("sixes-winner-count").textContent = formatWinners(dice.expected, state.lang);
+      document.getElementById("sixes-crowd-note").textContent = t(state.lang, "sixes.crowdNote")
+        .replace("{pictures}", formatReadable(dice.crowd.length, state.lang))
+        .replace("{group}", formatPeople(Math.max(dice.group, 1), state.lang));
+      drawLadder(dice.ladder);
+      drawCrowd(dice.crowd);
       drawChanceChart(document.getElementById("sixes-chart"), dice.samples, "sixes.axis.players", [0, 1]);
       fillSixesTable(dice.samples);
     }
@@ -3666,6 +3760,9 @@ function renderSixes() {
     eggs: sixes.eggs,
     expected: eggs.expected ?? 0,
     eggChance: eggs.chance ?? 0,
+    winners: dice.expected ?? 0,
+    ladder: sixes.ladder,
+    until: sixes.untilTarget,
     play: sixes.playing ? "playing" : "paused",
     calm: sixes.calm ? "on" : "off",
   };

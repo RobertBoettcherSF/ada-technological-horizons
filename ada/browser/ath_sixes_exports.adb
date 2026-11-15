@@ -181,4 +181,58 @@ package body Ath_Sixes_Exports is
    begin
       return Ath_Sixes.Six_Count;
    end Ath_Sixes_Six_Count;
+
+   function Ath_Sixes_Expected (Players : Long_Float) return Long_Float is
+   begin
+      return Ath_Sixes.Expected_Winners (Players);
+   end Ath_Sixes_Expected;
+
+   function Ath_Sixes_Crowd_Count return Interfaces.Integer_32 is
+   begin
+      return Ath_Sixes.Crowd_Count;
+   end Ath_Sixes_Crowd_Count;
+
+   function Ath_Sixes_Crowd_Group (Players : Long_Float) return Long_Float is
+   begin
+      return Ath_Sixes.Crowd_Group (Players);
+   end Ath_Sixes_Crowd_Group;
+
+   function Ath_Sixes_Crowd_Mark
+     (Index : Interfaces.Integer_32;
+      Players : Long_Float) return Interfaces.Integer_32 is
+   begin
+      if Index < 1 then
+         return 0;
+      end if;
+      if Ath_Sixes.Crowd_Marked (Positive (Index), Players) then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Sixes_Crowd_Mark;
+
+   function Ath_Sixes_Throws_Until (Draw : Interfaces.Integer_32) return Long_Float is
+   begin
+      if Draw < 1 then
+         return 0.0;
+      end if;
+      return Ath_Sixes.Throws_Until (Positive (Draw));
+   end Ath_Sixes_Throws_Until;
+
+   function Ath_Sixes_Ladder_Count return Interfaces.Integer_32 is
+   begin
+      return Ath_Sixes.Ladder_Count;
+   end Ath_Sixes_Ladder_Count;
+
+   function Ath_Sixes_Ladder_Players (Index : Interfaces.Integer_32) return Long_Float is
+   begin
+      if Index < 1 or else Index > Ath_Sixes.Ladder_Count then
+         return 0.0;
+      end if;
+      return Ath_Sixes.Ladder_Players (Positive (Index));
+   end Ath_Sixes_Ladder_Players;
+
+   function Ath_Sixes_Word (Chance : Long_Float) return Interfaces.Integer_32 is
+   begin
+      return Ath_Sixes.Word (Chance);
+   end Ath_Sixes_Word;
 end Ath_Sixes_Exports;

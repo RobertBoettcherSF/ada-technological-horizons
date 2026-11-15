@@ -81,6 +81,33 @@ begin
       Fail ("slider");
    end if;
 
+   if abs (Ath_Sixes.Expected_Winners (1.0e9) - 1.0e9 * Ath_Sixes.Single_Chance) > 1.0e-6
+     or else abs (Ath_Sixes.Expected_Winners (3.33e8) - 5.507211172177626) > 1.0e-6
+   then
+      Fail ("expected");
+   end if;
+
+   declare
+      First : constant Long_Float := Ath_Sixes.Throws_Until (1);
+      Sum : Long_Float := 0.0;
+   begin
+      if Ath_Sixes.Throws_Until (1) /= First or else First < 1.0 then
+         Fail ("until");
+      end if;
+      for Draw in 1 .. 12 loop
+         Sum := Sum + Ath_Sixes.Throws_Until (Draw);
+      end loop;
+      if Sum / 12.0 < 1.0e6 or else Sum / 12.0 > 5.0e8 then
+         Fail ("until-scale");
+      end if;
+   end;
+
+   if Ath_Sixes.Word (0.01) /= 0 or else Ath_Sixes.Word (0.63) /= 1
+     or else Ath_Sixes.Word (0.9999999343) /= 2
+   then
+      Fail ("word");
+   end if;
+
    if Ath_Sixes.Caption (1.0e-8) /= Ath_Sixes.Caption_Rare
      or else Ath_Sixes.Caption (0.9999999343) /= Ath_Sixes.Caption_Sure
    then

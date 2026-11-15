@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -616,6 +616,11 @@ test("ten sixes uses a stable chance and a repeatable roll", async () => {
   assert.ok(Math.abs(one.chance - one.single) < 1e-18);
   const billion = callSixes(session, 1e9);
   assert.ok(Math.abs(billion.chance - 0.9999999343003227) < 1e-12);
+  assert.ok(Math.abs(billion.expected - 16.5381716879202) < 1e-6);
+  assert.ok(billion.crowd.filter(Boolean).length > callSixes(session, 1).crowd.filter(Boolean).length);
+  const until = callSixesUntil(session, 2);
+  assert.equal(callSixesUntil(session, 2), until);
+  assert.ok(until >= 1);
   const first = callSixesRoll(session, 4);
   const again = callSixesRoll(session, 4);
   assert.deepEqual(again.faces, first.faces);

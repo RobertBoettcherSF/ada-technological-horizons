@@ -23,6 +23,8 @@ package Ath_Sixes is
    Egg_Max    : constant Long_Float := 3.0e7;
 
    Sample_Count : constant := 17;
+   Crowd_Count : constant := 48;
+   Ladder_Count : constant := 5;
 
    subtype Status_Code is Interfaces.Integer_32;
    Ok         : constant Status_Code := 0;
@@ -39,6 +41,12 @@ package Ath_Sixes is
 
    function Single_Chance return Long_Float;
    function Egg_Single return Long_Float;
+   function Expected_Winners (Players : Long_Float) return Long_Float;
+   function Crowd_Group (Players : Long_Float) return Long_Float;
+   function Crowd_Marked (Index : Positive; Players : Long_Float) return Boolean;
+   function Throws_Until (Draw : Positive) return Long_Float;
+   function Ladder_Players (Index : Positive) return Long_Float;
+   function Word (Chance : Long_Float) return Interfaces.Integer_32;
 
    procedure At_Least_One
      (Trials : Long_Float;

@@ -200,7 +200,8 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.27/);
+  assert.match(report, /Release: 0\.1\.28/);
+  assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
   assert.match(report, /Galaxy\nLifetime years:/);
   assert.match(report, /Drawn dots: \d+/);
@@ -873,7 +874,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.27");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.28");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1269,12 +1270,39 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#galaxy-play").getAttribute("data-state"), "paused");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/human-uniqueness"; });
-  await page.waitForFunction(() => !document.querySelector("#sixes-card").hidden && document.querySelector("#sixes-chance")?.textContent === "0.9999999343");
+  await page.waitForFunction(() => !document.querySelector("#sixes-card").hidden && document.querySelector("#sixes-chance")?.textContent === "0.9999999343" && document.querySelector("#sixes-winner-count")?.textContent === "16.5" && document.querySelectorAll("#sixes-crowd span").length === 48);
   assert.equal(await page.locator("#sixes-faces .die").count(), 10);
+  assert.match(await page.locator("#sixes-winners").textContent(), /1 billion/);
+  assert.match(await page.locator("#sixes-winners").textContent(), /16\.5/);
+  const bars = await page.locator("#sixes-ladder .bar").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().width));
+  assert.equal(bars.length, 5);
+  assert.ok(bars[0] < 8, "one player barely fills the bar");
+  assert.ok(bars[3] > bars[2] + 20, "sixty million fills more than a million");
+  assert.ok(bars[4] > bars[3], "a billion fills more than sixty million");
   await shotElement(page, label, "sixes-desktop.png", "#sixes-card");
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow sixes");
+  const crowd = await page.locator("#sixes-crowd span").evaluateAll((nodes) => nodes.map((node) => {
+    const box = node.getBoundingClientRect();
+    return { w: box.width, h: box.height, x: box.x, y: box.y };
+  }));
+  assert.equal(crowd.length, 48);
+  for (const box of crowd) {
+    assert.ok(Math.abs(box.w - crowd[0].w) < 0.6 && Math.abs(box.h - crowd[0].h) < 0.6);
+  }
+  for (let i = 0; i < crowd.length; i += 1) {
+    for (let j = i + 1; j < crowd.length; j += 1) {
+      const a = crowd[i];
+      const b = crowd[j];
+      const overlap = a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
+      assert.equal(overlap, false);
+    }
+  }
   await shotElement(page, label, "sixes-narrow.png", "#sixes-card");
+  await page.click("#sixes-ladder button[data-sixes-ladder='1000000']");
+  await page.waitForFunction(() => document.querySelector("#sixes-player-count")?.textContent === "1000000");
+  await page.click("#sixes-until");
+  await page.waitForFunction(() => Number(document.querySelector("#sixes-until-note")?.dataset.until) >= 1);
   await page.click("#sixes-tab-eggs");
   await page.waitForFunction(() => document.querySelector("#sixes-egg-count")?.textContent === "3000000");
   await page.click("#show-all");

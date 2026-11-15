@@ -358,6 +358,14 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_sixes_roll \
     -Wl,--export=ath_sixes_face \
     -Wl,--export=ath_sixes_six_count \
+    -Wl,--export=ath_sixes_expected \
+    -Wl,--export=ath_sixes_crowd_count \
+    -Wl,--export=ath_sixes_crowd_group \
+    -Wl,--export=ath_sixes_crowd_mark \
+    -Wl,--export=ath_sixes_throws_until \
+    -Wl,--export=ath_sixes_ladder_count \
+    -Wl,--export=ath_sixes_ladder_players \
+    -Wl,--export=ath_sixes_word \
     -Wl,--export-memory
 )
 
@@ -375,7 +383,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.27",
+  version: "0.1.28",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -386,7 +394,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

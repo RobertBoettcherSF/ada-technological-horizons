@@ -69,4 +69,30 @@ package Ath_Sixes_Exports is
 
    function Ath_Sixes_Six_Count return Interfaces.Integer_32
    with Export, Convention => C, External_Name => "ath_sixes_six_count";
+
+   function Ath_Sixes_Expected (Players : Long_Float) return Long_Float
+   with Export, Convention => C, External_Name => "ath_sixes_expected";
+
+   function Ath_Sixes_Crowd_Count return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_sixes_crowd_count";
+
+   function Ath_Sixes_Crowd_Group (Players : Long_Float) return Long_Float
+   with Export, Convention => C, External_Name => "ath_sixes_crowd_group";
+
+   function Ath_Sixes_Crowd_Mark
+     (Index : Interfaces.Integer_32;
+      Players : Long_Float) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_sixes_crowd_mark";
+
+   function Ath_Sixes_Throws_Until (Draw : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_sixes_throws_until";
+
+   function Ath_Sixes_Ladder_Count return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_sixes_ladder_count";
+
+   function Ath_Sixes_Ladder_Players (Index : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_sixes_ladder_players";
+
+   function Ath_Sixes_Word (Chance : Long_Float) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_sixes_word";
 end Ath_Sixes_Exports;

@@ -608,17 +608,45 @@ function sixesSamples(session, kind) {
 
 export function callSixes(session, players) {
   if (!session.exports) throw new Error("Ada module is not loaded");
+  const ladder = [];
+  const ladderCount = session.exports.ath_sixes_ladder_count();
+  for (let index = 1; index <= ladderCount; index += 1) {
+    const amount = session.exports.ath_sixes_ladder_players(index);
+    session.exports.ath_sixes_chance(amount);
+    const chance = session.exports.ath_sixes_chance_value();
+    ladder.push({
+      amount,
+      chance,
+      word: session.exports.ath_sixes_word(chance),
+    });
+  }
   const status = session.exports.ath_sixes_chance(players);
   session.invocations += 1;
   const ready = status === 0;
+  const crowdCount = session.exports.ath_sixes_crowd_count();
+  const crowd = [];
+  for (let index = 1; index <= crowdCount; index += 1) {
+    crowd.push(session.exports.ath_sixes_crowd_mark(index, players) === 1);
+  }
   return {
     status,
     chance: ready ? session.exports.ath_sixes_chance_value() : null,
     caption: ready ? session.exports.ath_sixes_caption() : 0,
     single: session.exports.ath_sixes_single(),
+    expected: session.exports.ath_sixes_expected(players),
+    group: session.exports.ath_sixes_crowd_group(players),
+    word: ready ? session.exports.ath_sixes_word(session.exports.ath_sixes_chance_value()) : 0,
+    crowd,
+    ladder,
     slider: session.exports.ath_sixes_slider_of(players),
     samples: ready ? sixesSamples(session, "players") : [],
   };
+}
+
+export function callSixesUntil(session, draw) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  session.invocations += 1;
+  return session.exports.ath_sixes_throws_until(draw);
 }
 
 export function callSixesRoll(session, setIndex) {

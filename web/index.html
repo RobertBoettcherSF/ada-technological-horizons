@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.27">
+  <meta name="ath-release" content="0.1.28">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.27</p>
+        <p class="release-pill" id="header-version">0.1.28</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -221,6 +221,17 @@
         <button type="button" id="sixes-tab-eggs" role="tab" aria-selected="false" data-i18n="sixes.tab.eggs">Three million eggs</button>
       </div>
       <div id="sixes-dice">
+        <div id="sixes-ladder" class="ladder"></div>
+        <p id="sixes-winners" class="galaxy-caption"></p>
+        <div class="galaxy-readout">
+          <p><span data-i18n="sixes.playersOut">Players</span> <output id="sixes-player-count"></output></p>
+          <p><span data-i18n="sixes.winnersOut">Expected ten-sixes</span> <output id="sixes-winner-count"></output></p>
+          <p><span data-i18n="sixes.chanceOut">Chance someone throws ten sixes</span> <output id="sixes-chance"></output></p>
+        </div>
+        <p id="sixes-crowd-note" class="note"></p>
+        <div id="sixes-crowd" class="crowd"></div>
+        <label id="sixes-players-label" for="sixes-players" data-i18n="sixes.playersAny">Or choose any number of players</label>
+        <input id="sixes-players" type="range" min="0" max="1000" step="1" value="1000">
         <div id="sixes-faces" class="dice-row"></div>
         <p id="sixes-roll-note" class="note"></p>
         <div class="button-row galaxy-transport">
@@ -228,12 +239,10 @@
           <button type="button" id="sixes-play" data-state="paused">Play</button>
           <button type="button" id="sixes-restart" data-i18n="sixes.restart">Restart</button>
         </div>
-        <label id="sixes-players-label" for="sixes-players" data-i18n="sixes.players">How many players throw at once?</label>
-        <input id="sixes-players" type="range" min="0" max="1000" step="1" value="1000">
-        <div class="galaxy-readout">
-          <p><span data-i18n="sixes.playersOut">Players</span> <output id="sixes-player-count"></output></p>
-          <p><span data-i18n="sixes.chanceOut">Chance someone throws ten sixes</span> <output id="sixes-chance"></output></p>
+        <div class="button-row">
+          <button type="button" id="sixes-until" data-i18n="sixes.until">Roll until ten sixes</button>
         </div>
+        <p id="sixes-until-note" class="note"></p>
         <div id="sixes-chart" class="galaxy-chart"></div>
         <ul class="spectrum-legend">
           <li><span class="swatch shared"></span> <span data-i18n="sixes.legend.curve">Our calculated chance</span></li>

@@ -65,6 +65,72 @@ package body Ath_Sixes is
       return Egg_Adults / Egg_Count;
    end Egg_Single;
 
+   function Expected_Winners (Players : Long_Float) return Long_Float is
+   begin
+      if not Is_Finite (Players) or else Players <= 0.0 then
+         return 0.0;
+      end if;
+      return Players * Single_Chance;
+   end Expected_Winners;
+
+   function Crowd_Group (Players : Long_Float) return Long_Float is
+   begin
+      if not Is_Finite (Players) or else Players <= 0.0 then
+         return 0.0;
+      end if;
+      return Players / Long_Float (Crowd_Count);
+   end Crowd_Group;
+
+   function Crowd_Marked (Index : Positive; Players : Long_Float) return Boolean is
+      Chance : Long_Float;
+      Status : Status_Code;
+   begin
+      if Index < 1 or else Index > Crowd_Count then
+         return False;
+      end if;
+      At_Least_One (Crowd_Group (Players), Single_Chance, Chance, Status);
+      if Status /= Ok then
+         return False;
+      end if;
+      return Unit (20_000 + Index) < Chance;
+   end Crowd_Marked;
+
+   function Throws_Until (Draw : Positive) return Long_Float is
+      Sample : Long_Float := Unit (80_000 + Draw);
+      Span : Long_Float;
+   begin
+      if Sample < 1.0e-12 then
+         Sample := 1.0e-12;
+      end if;
+      Span := Log (Sample) / Log1p (-Single_Chance);
+      if Span < 1.0 then
+         return 1.0;
+      end if;
+      return Long_Float'Ceiling (Span);
+   end Throws_Until;
+
+   function Ladder_Players (Index : Positive) return Long_Float is
+   begin
+      case Index is
+         when 1 => return 1.0;
+         when 2 => return 1.0e3;
+         when 3 => return 1.0e6;
+         when 4 => return 6.0e7;
+         when others => return Player_Max;
+      end case;
+   end Ladder_Players;
+
+   function Word (Chance : Long_Float) return Interfaces.Integer_32 is
+   begin
+      if not Is_Finite (Chance) or else Chance < 0.2 then
+         return 0;
+      elsif Chance < 0.8 then
+         return 1;
+      else
+         return 2;
+      end if;
+   end Word;
+
    procedure At_Least_One
      (Trials : Long_Float;
       Single : Long_Float;
