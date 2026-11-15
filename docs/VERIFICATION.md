@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.24 blinking galaxy
+
+Statistics of Cosmic Civilisations shows how many civilisations are awake. Ada uses N = 10⁹ × min(L / 15 billion years, 1) for Lem's one star in 150. At 6,523 years the count is 434.87. A lifetime of zero gives zero. At or beyond 15 billion years the count stays at one billion. The nearest neighbour is our disc of radius 50,000 light-years. Lem's 1,000, 50 and under-10 light-year figures are pins and are not fitted to that curve. The lifetime sweeps on its own until Calm, a key press on the slider, or Reset. The drawing is labelled our illustration.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/791280b78b380c1492c23c17e937f015024aad6b/dist/index.html
+
+The page showed release `0.1.24`, commit `791280b78b380c1492c23c17e937f015024aad6b`, and `application/wasm`. Calm showed **434.87** awake and a nearest neighbour of **2125 light-years**. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (144407 bytes, SHA-256 `b0fd151d58d3f94a89d69a9c54534a07caeed583de520146c95a34d84f6e4b2f`, `access-control-allow-origin: *`).
+
 ## v0.1.23 technetium schematic
 
 A Metatheory of Miracles has a schematic spectrum, not an observation. Ada places five Fraunhofer marks on both strips and four Tc I marks only on the second. The window is 390–440 nm. The position of a mark is (wavelength − 390) / 50. The Sun strip has no technetium mark.
