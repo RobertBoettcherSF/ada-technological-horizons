@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.27 ten sixes
+
+Human Uniqueness shows Baumsztejn's ten dice and the cod eggs. Ada computes the chance of ten sixes as 6⁻¹⁰, about 1.653817×10⁻⁸, and the chance at least one of a billion players throws them as about 0.9999999343, using −expm1(N·log1p(−p)). The egg tab uses Lem's clutch of about three million and his accepted outcome of one adult fish. The per-egg chance, one in three million, is our reading of those two figures. He does not state it. A lost egg is destroyed; a line that does not become human can still lead to minds. That objection is marked as his. The rolls and the curve are marked as ours. Baumsztejn stays unlinked.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/4f215e2d9dfa0aec9a2ba6e17b08146d871ab932/dist/index.html
+
+The page showed release `0.1.27`, commit `4f215e2d9dfa0aec9a2ba6e17b08146d871ab932`, and `application/wasm`. A billion players showed chance **0.9999999343**, and ten dice were on the card. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (156202 bytes, SHA-256 `9f39585681f402e9fc735b45e14616e2b94be126033e4687b435bbb3d671a174`, `access-control-allow-origin: *`).
+
 ## v0.1.26 equal galaxy dots
 
 Every drawn star uses the quiet-dot radius. An awake star is yellow, with a soft glow that stays inside the gap. Ada places the spiral by rejection sampling with a seeded minimum separation, so the area around the dashed ring does not clump.
