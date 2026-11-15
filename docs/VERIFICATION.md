@@ -1,5 +1,19 @@
 # Verification
 
+## v0.1.23 technetium schematic
+
+A Metatheory of Miracles has a schematic spectrum, not an observation. Ada places five Fraunhofer marks on both strips and four Tc I marks only on the second. The window is 390–440 nm. The position of a mark is (wavelength − 390) / 50. The Sun strip has no technetium mark.
+
+The technetium wavelengths are the NIST persistent Tc I air lines 403.163, 423.819, 426.227 and 429.706 nm (Bozman, Meggers and Corliss, 1967). Merrill identified those lines, to the nearest ångström, in 1952 (Astrophysical Journal, volume 116, page 21). The shared marks are conventional Fraunhofer air wavelengths: Ca II K 393.366 nm, Ca II H 396.847 nm, Hδ 410.174 nm, Ca I 422.673 nm and Hγ 434.047 nm.
+
+R Andromedae, Chi Cygni, Mira (o Ceti) and R Hydrae are later astronomical examples of technetium in long-period giants (Merrill 1952; Peery, Astrophysical Journal, volume 163, page L1, 1971). The ordinary note is the s-process and dredge-up. Przybylski’s Star (HD 101065) is separate: claims of short-lived elements are disputed, and the salted-star idea is labelled as speculation. Lem’s text only mentions some rare stars. His “few thousand years” is unchanged. The collapsed note gives the Nuclear Wallet Cards half-lives: technetium-99 about 211,100 years, technetium-97 about 4,210,000 years, and technetium-98 about 4,200,000 years.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/8d288ac596d5eceab3d78b24f74297bedb09d298/dist/index.html
+
+The page showed release `0.1.23`, commit `8d288ac596d5eceab3d78b24f74297bedb09d298`, and `application/wasm`. The second strip had four technetium marks and the Sun strip had none. In Polish, R Andromedae linked to `https://pl.wikipedia.org/wiki/R_Andromedae` and Chi Cygni fell back to `https://en.wikipedia.org/wiki/Chi_Cygni`. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (127153 bytes, SHA-256 `d7b0d109357877ad84270f50aac6b287624f89171ce27cf908d7a63eb573840e`, `access-control-allow-origin: *`).
+
 ## v0.1.22 scientist credits and Polish
 
 Each chapter ends with the scientists that chapter draws on. The names and line numbers were verified against the Polish text; the line numbers refer to the 1184-line plain-text edition. The book text is not in the repository. The table is `data/scientists.tsv`.
