@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.28 ten sixes, made plain
+
+The dice tab now says how many players get ten sixes. Ada multiplies the number of players by 6⁻¹⁰. One billion players expect about 16.5 winners, and the chance that someone does it stays about 0.9999999343. Five ladder steps lead: 1, 1,000, 1 million, 60 million, and 1 billion. Each bar fills with that chance and a plain word. Forty-eight equal pictures share the players. A gold picture is a group that includes a ten-sixes throw, and adding players only adds gold marks. Roll until ten sixes draws a seeded geometric count, typically tens of millions of throws. Calm shows that count without animation. Baumsztejn stays unlinked. Lem's objection stays in the amber note.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/5edc17248fa665ecc16b5193171691070820f8f7/dist/index.html
+
+The page showed release `0.1.28`, commit `5edc17248fa665ecc16b5193171691070820f8f7`, and `application/wasm`. The sentence read “1 billion players each throw ten dice once. About 16.5 of them will get ten sixes.” The crowd had 48 pictures, 19 of them gold. At 60 million players the step read “about even” and the sentence said about 1.0. The seeded draw until the first ten sixes was 58,414,594 throws. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (158798 bytes, SHA-256 `ce72d46131391440379a5d5744419c81d26be57007e888589eb8227b41466f6b`, `access-control-allow-origin: *`).
+
 ## v0.1.27 ten sixes
 
 Human Uniqueness shows Baumsztejn's ten dice and the cod eggs. Ada computes the chance of ten sixes as 6⁻¹⁰, about 1.653817×10⁻⁸, and the chance at least one of a billion players throws them as about 0.9999999343, using −expm1(N·log1p(−p)). The egg tab uses Lem's clutch of about three million and his accepted outcome of one adult fish. The per-egg chance, one in three million, is our reading of those two figures. He does not state it. A lost egg is destroyed; a line that does not become human can still lead to minds. That objection is marked as his. The rolls and the curve are marked as ours. Baumsztejn stays unlinked.
