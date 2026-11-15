@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.26 equal galaxy dots
+
+Every drawn star uses the quiet-dot radius. An awake star is yellow, with a soft glow that stays inside the gap. Ada places the spiral by rejection sampling with a seeded minimum separation, so the area around the dashed ring does not clump.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/4ed7fffe0b29026a795ed45cabc5e7b95025a400/dist/index.html
+
+The page showed release `0.1.26`, commit `4ed7fffe0b29026a795ed45cabc5e7b95025a400`, and `application/wasm`. At 15 billion years the count was **1000000000**, the lifetime read **15 billion years**, and 144 stars were drawn. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (146278 bytes, SHA-256 `5fff04511d17887fe2ca6f8a39451dd847f8c4f45f6a5239c4e47830387dde57`, `access-control-allow-origin: *`).
+
 ## v0.1.25 galaxy player
 
 The lights follow the logarithmic slider, from none at 100 years to the full sample at 15 billion years. A normal sweep takes 20 seconds. Play, Pause, Restart and Slow/Normal/Fast are on the card. Calm and reduced motion start paused. The F9 report includes a Galaxy section with the lifetime, count, nearest distance, drawn dot count, play state, speed and Calm mode.
