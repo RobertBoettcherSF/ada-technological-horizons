@@ -231,6 +231,14 @@ const RAW = [
 
 export const sections = RAW.map((entry, index) => {
   const withOrder = { ...entry, bookOrder: index + 1 };
+  if (withOrder.id === "cosmic-civilisations/a-metatheory-of-miracles") {
+    return {
+      ...withOrder,
+      type: "explanation",
+      availability: "available",
+      summaryKey: "summary.spectrum",
+    };
+  }
   if (withOrder.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
     return {
       ...withOrder,

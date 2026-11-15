@@ -18,6 +18,7 @@ import {
 } from "./catalogue.js";
 import { t } from "./messages.js";
 import { creditHref, displayName, isUnlinked, parseScientists, scientistsForChapter } from "./scientists.js";
+import { starHref, tcStars } from "./tc-stars.js";
 import { formatCanonical, formatDuration, formatHeadlineYears, formatProbability, formatReadable, formatShortDuration, interpretOperand } from "./numbers.js";
 import {
   clearFilters,
@@ -45,7 +46,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callExplore, callLottery, callResearch, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callLottery, callResearch, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -133,8 +134,21 @@ function applyI18n() {
   }
 }
 
+const LINE_KEYS = [
+  "spectrum.line.caK",
+  "spectrum.line.caH",
+  "spectrum.line.hd",
+  "spectrum.line.caI",
+  "spectrum.line.hg",
+  "spectrum.line.tc",
+  "spectrum.line.tc",
+  "spectrum.line.tc",
+  "spectrum.line.tc",
+];
+
 const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "lottery-card", sectionId: "intellectronics/return-to-earth" },
   { cardId: "research-card", sectionId: "intellectronics/the-megabit-bomb" },
@@ -2460,6 +2474,7 @@ async function boot() {
   updateChoice();
   updateLottery();
   updateResearch();
+  renderSpectrum();
   try {
     const loaded = await loadAdditionModule();
     if (token !== loadToken) {
@@ -2484,6 +2499,7 @@ async function boot() {
   updateChoice();
   updateLottery();
   updateResearch();
+  renderSpectrum();
 }
 
 function simulateFailure() {
@@ -2499,6 +2515,7 @@ function simulateFailure() {
   updateChoice();
   updateLottery();
   updateResearch();
+  renderSpectrum();
 }
 
 function bind() {
@@ -2959,12 +2976,144 @@ function bind() {
   });
 }
 
+function formatNm(value, lang) {
+  const text = Number(value).toFixed(3);
+  return lang === "en-GB" ? text : text.replace(".", ",");
+}
+
+function svgEl(tag, attrs, children = []) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === "text") {
+      node.textContent = value ?? "";
+    } else {
+      node.setAttribute(key, String(value));
+    }
+  }
+  for (const child of children) {
+    if (child) node.append(child);
+  }
+  return node;
+}
+
+function spectrumStrip(lines, label, gradientId) {
+  const width = 640;
+  const height = 78;
+  const left = 28;
+  const span = 584;
+  const marks = lines.map((line) => {
+    const x = left + line.position * span;
+    const technetium = line.kind === 1;
+    return svgEl("g", { class: technetium ? "line tc" : "line" }, [
+      svgEl("line", {
+        x1: x,
+        x2: x,
+        y1: technetium ? 8 : 16,
+        y2: 70,
+        stroke: technetium ? "#f0b429" : "#d7e7ff",
+        "stroke-width": technetium ? 2.4 : 1.4,
+      }),
+    ]);
+  });
+  return svgEl("svg", {
+    viewBox: `0 0 ${width} ${height}`,
+    width,
+    height,
+    role: "img",
+    "aria-label": label,
+  }, [
+    svgEl("defs", {}, [
+      svgEl("linearGradient", { id: gradientId, x1: "0", x2: "1", y1: "0", y2: "0" }, [
+        svgEl("stop", { offset: "0", "stop-color": "#3a2a6a", "stop-opacity": "0.55" }),
+        svgEl("stop", { offset: "1", "stop-color": "#1d4e89", "stop-opacity": "0.35" }),
+      ]),
+    ]),
+    svgEl("rect", { x: 0, y: 8, width, height: height - 8, rx: 6, fill: "#142033" }),
+    svgEl("rect", { x: 0, y: 8, width, height: height - 8, rx: 6, fill: `url(#${gradientId})` }),
+    ...marks,
+  ]);
+}
+
+function renderSpectrum() {
+  const sun = document.getElementById("sun-strip");
+  const star = document.getElementById("tc-strip");
+  const axis = document.getElementById("spectrum-axis");
+  const legend = document.getElementById("spectrum-legend");
+  const lineList = document.getElementById("spectrum-lines");
+  const stars = document.getElementById("tc-stars");
+  const half = document.getElementById("spectrum-halflife");
+  if (!sun || !star || !axis || !legend || !lineList || !stars || !half) return;
+  stars.replaceChildren(...tcStars.map((item) => h("li", {}, [
+    h("a", {
+      href: starHref(item, state.lang),
+      target: "_blank",
+      rel: "noopener",
+      text: item.name,
+    }),
+    h("span", {
+      class: "note",
+      text: t(state.lang, item.note === "disputed" ? "spectrum.notePrzy" : "spectrum.noteAgb"),
+    }),
+  ])));
+  if (!session.exports) {
+    sun.replaceChildren();
+    star.replaceChildren();
+    axis.replaceChildren();
+    legend.replaceChildren();
+    lineList.replaceChildren();
+    half.textContent = "";
+    return;
+  }
+  const spec = callSpectrum(session);
+  const shared = spec.lines.filter((line) => line.kind === 0);
+  sun.replaceChildren(spectrumStrip(shared, t(state.lang, "spectrum.sun"), "spectrum-wash-sun"));
+  star.replaceChildren(spectrumStrip(spec.lines, t(state.lang, "spectrum.star"), "spectrum-wash-star"));
+  const width = 640;
+  const left = 28;
+  const span = 584;
+  axis.replaceChildren(svgEl("svg", {
+    viewBox: `0 0 ${width} 36`,
+    width,
+    height: 36,
+    role: "img",
+    "aria-label": t(state.lang, "spectrum.axis"),
+  }, [
+    ...spec.ticks.map((tick) => {
+      const x = left + tick.position * span;
+      return svgEl("g", {}, [
+        svgEl("line", { x1: x, x2: x, y1: 0, y2: 8, stroke: "#9fb0c3" }),
+        svgEl("text", {
+          x,
+          y: 24,
+          fill: "#d7e2ee",
+          "font-size": 12,
+          "text-anchor": "middle",
+          text: String(Math.round(tick.wavelength)),
+        }),
+      ]);
+    }),
+  ]));
+  legend.replaceChildren(
+    h("li", {}, [h("span", { class: "swatch shared" }), document.createTextNode(t(state.lang, "spectrum.legendShared"))]),
+    h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "spectrum.legendTc"))]),
+  );
+  lineList.replaceChildren(...spec.lines.map((line, index) => h("li", { class: line.kind === 1 ? "tc-label" : "shared-label" }, [
+    h("span", { class: line.kind === 1 ? "swatch tc" : "swatch shared" }),
+    document.createTextNode(`${t(state.lang, LINE_KEYS[index])} ${formatNm(line.wavelength, state.lang)} nm`),
+  ])));
+  half.textContent = t(state.lang, "spectrum.half")
+    .replace("{tc99}", formatReadable(spec.tc99, state.lang, "year"))
+    .replace("{tc97}", formatReadable(spec.tc97, state.lang, "year"))
+    .replace("{tc98}", formatReadable(spec.tc98, state.lang, "year"));
+}
+
 function refresh() {
   applyI18n();
   renderChapterNav();
   renderFilters();
   renderResults();
   renderReading(routeFromHash());
+  renderSpectrum();
   document.getElementById("language").value = state.lang;
   document.getElementById("sort").value = state.sort;
   document.getElementById("search").value = state.query;

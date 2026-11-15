@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 bash "$ROOT/tools/build.sh"
-node --test "$ROOT/tests/catalogue.test.mjs" "$ROOT/tests/i18n.test.mjs" "$ROOT/tests/state.test.mjs" "$ROOT/tests/numbers.test.mjs" "$ROOT/tests/scientists.test.mjs" "$ROOT/tests/wasm-parity.test.mjs"
+node --test "$ROOT/tests/catalogue.test.mjs" "$ROOT/tests/i18n.test.mjs" "$ROOT/tests/state.test.mjs" "$ROOT/tests/numbers.test.mjs" "$ROOT/tests/scientists.test.mjs" "$ROOT/tests/spectrum.test.mjs" "$ROOT/tests/wasm-parity.test.mjs"
 if [[ ! -d "$ROOT/node_modules/playwright" ]]; then
   npm install --no-save playwright
 fi

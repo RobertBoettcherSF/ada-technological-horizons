@@ -1016,3 +1016,65 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
 }
+
+.schematic-flag {
+  display: inline-block;
+  margin: 0.2rem 0 0.8rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #f0b429;
+  border-radius: 999px;
+  color: #f0b429;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.spectrum-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  container-type: inline-size;
+}
+
+.spectrum-board { min-width: 40rem; }
+
+.strip-name {
+  position: sticky;
+  left: 0;
+  width: 100cqi;
+  margin: 0.65rem 0 0.2rem;
+  font-weight: 750;
+}
+
+.spectrum-strip, .spectrum-axis { display: block; }
+
+.spectrum-legend, .spectrum-lines, .tc-stars {
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 0;
+}
+
+.spectrum-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+}
+
+.spectrum-legend li, .spectrum-lines li, .tc-stars li {
+  min-width: 0;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+  vertical-align: -0.1rem;
+}
+
+.swatch.shared { background: #d7e7ff; }
+.swatch.tc { background: #f0b429; }
+
+.tc-stars li { margin: 0.85rem 0; }
+.tc-stars a { font-weight: 750; }
+.tc-stars .note { display: block; margin-top: 0.2rem; }

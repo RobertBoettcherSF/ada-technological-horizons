@@ -70,6 +70,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_throughput_f64 !== "function") {
     throw new Error("Ada module is missing ath_throughput_f64");
   }
+  if (typeof instance.exports.ath_spectrum_map !== "function") {
+    throw new Error("Ada module is missing ath_spectrum_map");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -474,6 +477,40 @@ export function callResearch(session, discoveries0, researchers0, discoveryDoubl
     indexMax: ready ? session.exports.ath_research_index_max() : null,
     ratioMax: ready ? session.exports.ath_research_ratio_max() : null,
     samples,
+  };
+}
+
+export function callSpectrum(session) {
+  if (!session.exports) {
+    throw new Error("Ada module is not loaded");
+  }
+  session.exports.ath_spectrum_map();
+  session.invocations += 1;
+  const lines = [];
+  const count = session.exports.ath_spectrum_line_count();
+  for (let index = 1; index <= count; index += 1) {
+    lines.push({
+      wavelength: session.exports.ath_spectrum_wavelength(index),
+      kind: session.exports.ath_spectrum_kind(index),
+      position: session.exports.ath_spectrum_position(index),
+    });
+  }
+  const ticks = [];
+  const tickCount = session.exports.ath_spectrum_tick_count();
+  for (let index = 1; index <= tickCount; index += 1) {
+    ticks.push({
+      wavelength: session.exports.ath_spectrum_tick_wavelength(index),
+      position: session.exports.ath_spectrum_tick_position(index),
+    });
+  }
+  return {
+    lines,
+    ticks,
+    axisMin: session.exports.ath_spectrum_axis_min(),
+    axisMax: session.exports.ath_spectrum_axis_max(),
+    tc99: session.exports.ath_spectrum_tc99_years(),
+    tc97: session.exports.ath_spectrum_tc97_years(),
+    tc98: session.exports.ath_spectrum_tc98_years(),
   };
 }
 

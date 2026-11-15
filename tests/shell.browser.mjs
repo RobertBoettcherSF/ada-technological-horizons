@@ -167,7 +167,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.22/);
+  assert.match(report, /Release: 0\.1\.23/);
   assert.match(report, /Preset: book/);
   assert.match(report, /Ratio: 0\.25/);
   assert.match(report, /Preset: historical/);
@@ -834,7 +834,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.22");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.23");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1161,6 +1161,19 @@ async function exercise(page, label) {
   assert.match(await page.locator("#chapter-credits").innerText(), /first name not given in the book/i);
   assert.equal(await page.locator("#chapter-credits a", { hasText: "Baumsztejn" }).count(), 0);
   await shotElement(page, label, "credits-iii-desktop.png", "#chapter-credits");
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/a-metatheory-of-miracles"; });
+  await page.waitForFunction(() => {
+    const card = document.querySelector("#spectrum-card");
+    return card && !card.hidden
+      && document.querySelectorAll("#sun-strip .line").length === 5
+      && document.querySelectorAll("#sun-strip .line.tc").length === 0
+      && document.querySelectorAll("#tc-strip .line.tc").length === 4
+      && document.querySelector("#spectrum-halflife")?.textContent?.includes("211100");
+  });
+  assert.match(await page.locator("#spectrum-schematic").innerText(), /not observed data/i);
+  assert.equal(await page.locator("#lifetime-card").isHidden(), true);
+  assert.equal(await page.locator("#tc-stars a[href*='R_Andromedae']").getAttribute("rel"), "noopener");
+  await shotElement(page, label, "spectrum-desktop.png", "#spectrum-card");
   await page.locator("#addition-form").scrollIntoViewIfNeeded();
   await shot(page, label, "desktop-demo.png");
 
@@ -1172,6 +1185,13 @@ async function exercise(page, label) {
   assert.match(await page.locator("#chapter-credits a[href*='Iosif_Szk']").getAttribute("href"), /^https:\/\/pl\.wikipedia\.org\/wiki\//);
   assert.match(await page.locator("#chapter-credits a[href*='W._Ross_Ashby']").getAttribute("href"), /^https:\/\/en\.wikipedia\.org\/wiki\/W\._Ross_Ashby$/);
   assert.ok((await overflow(page)) <= 1, "narrow overflow in Polish");
+  assert.equal(await page.locator("#spectrum-title").textContent(), t("pl", "spectrum.title"));
+  assert.match(await page.locator("#tc-stars a", { hasText: "Chi Cygni" }).getAttribute("href"), /^https:\/\/en\.wikipedia\.org\/wiki\/Chi_Cygni$/);
+  assert.match(await page.locator("#tc-stars a", { hasText: "R Andromedae" }).getAttribute("href"), /^https:\/\/pl\.wikipedia\.org\/wiki\/R_Andromedae$/);
+  assert.match(await page.locator("#spectrum-lines").innerText(), /403,163/);
+  await page.locator("#spectrum-card").scrollIntoViewIfNeeded();
+  await shotElement(page, label, "spectrum-narrow.png", "#spectrum-card");
+  assert.ok((await overflow(page)) <= 1, "narrow spectrum");
   await page.selectOption("#language", "en-GB");
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");

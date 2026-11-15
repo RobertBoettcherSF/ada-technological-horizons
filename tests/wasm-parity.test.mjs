@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callExplore, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -523,6 +523,39 @@ test("research exports keep the book ratio at one quarter", async (t) => {
   assert.equal(callResearch(session, 0, 1, 30, 10, 30).status, 2);
   assert.equal(callResearch(session, 1, 1, 0, 10, 30).status, 4);
   assert.equal(callResearch(session, 0, 1, 30, 10, 30).samples.length, 0);
+});
+
+test("the spectrum map keeps technetium off the shared lines", async () => {
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const spec = callSpectrum(session);
+  assert.equal(spec.lines.length, 9);
+  assert.equal(spec.axisMin, 390);
+  assert.equal(spec.axisMax, 440);
+  assert.equal(spec.tc99, 211100);
+  assert.equal(spec.tc97, 4210000);
+  assert.equal(spec.tc98, 4200000);
+  const technetium = spec.lines.filter((line) => line.kind === 1);
+  const shared = spec.lines.filter((line) => line.kind === 0);
+  assert.equal(technetium.length, 4);
+  assert.equal(shared.length, 5);
+  assert.ok(shared.every((line) => Math.abs(line.wavelength - 403.163) > 1));
+  const placed = (wavelength) => (wavelength - 390) / 50;
+  assert.ok(Math.abs(technetium[0].wavelength - 403.163) < 1e-9);
+  assert.ok(Math.abs(technetium[0].position - placed(403.163)) < 1e-12);
+  assert.ok(Math.abs(technetium[3].position - placed(429.706)) < 1e-12);
+  assert.equal(spec.ticks.length, 6);
+  assert.ok(Math.abs(spec.ticks[1].position - 0.2) < 1e-12);
 });
 
 test("a failed module load does not invent a sum", async () => {

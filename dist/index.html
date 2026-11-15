@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.22">
+  <meta name="ath-release" content="0.1.23">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.22</p>
+        <p class="release-pill" id="header-version">0.1.23</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -141,6 +141,32 @@
         </tbody>
       </table>
       </div>
+    </section>
+
+    <section id="spectrum-card" class="lifetime-card" aria-labelledby="spectrum-title">
+      <p class="kicker" data-i18n="spectrum.path">Cosmic Civilisations · A Metatheory of Miracles</p>
+      <h2 id="spectrum-title" data-i18n="spectrum.title">Could a technetium line be an engineered star?</h2>
+      <p data-i18n="spectrum.lead">In this section Lem reports that Shklovsky, half in jest, named two possible feats of astro-engineering: artificial supernovae, or technetium lines in the spectra of some rare stars. Technetium does not linger. Lem says it fades within a few thousand years, so a visible line might mean someone had sprinkled a few million tonnes into the star. He then turns to Ockham’s razor. The drawing is a schematic, not a measured spectrum. The stars named below are later astronomical examples.</p>
+      <p id="spectrum-schematic" class="schematic-flag" data-i18n="spectrum.schematic">Schematic illustration, not observed data.</p>
+      <div class="spectrum-scroll">
+        <div class="spectrum-board">
+          <p class="strip-name" data-i18n="spectrum.sun">Our Sun</p>
+          <div id="sun-strip" class="spectrum-strip"></div>
+          <p class="strip-name" data-i18n="spectrum.star">A technetium star (S-type red giant)</p>
+          <div id="tc-strip" class="spectrum-strip"></div>
+          <div id="spectrum-axis" class="spectrum-axis"></div>
+        </div>
+      </div>
+      <p class="note" data-i18n="spectrum.scale">Both strips use the same 390–440 nm window. Ada places each mark.</p>
+      <ul id="spectrum-legend" class="spectrum-legend"></ul>
+      <ul id="spectrum-lines" class="spectrum-lines"></ul>
+      <h3 data-i18n="spectrum.candidates">Stars where technetium has been reported</h3>
+      <ul id="tc-stars" class="tc-stars"></ul>
+      <details id="spectrum-sources">
+        <summary data-i18n="spectrum.details">Wavelengths, half-lives and blends</summary>
+        <p class="note" data-i18n="spectrum.sources">Sources</p>
+        <p id="spectrum-halflife" class="note"></p>
+      </details>
     </section>
 
     <section id="growth-card" class="lifetime-card" aria-labelledby="growth-title">
