@@ -1,5 +1,17 @@
 # Verification
 
+## v0.1.25 galaxy player
+
+The lights follow the logarithmic slider, from none at 100 years to the full sample at 15 billion years. A normal sweep takes 20 seconds. Play, Pause, Restart and Slow/Normal/Fast are on the card. Calm and reduced motion start paused. The F9 report includes a Galaxy section with the lifetime, count, nearest distance, drawn dot count, play state, speed and Calm mode.
+
+The 0.1.24 picture stayed the same across most of the slider because each of the 144 dots lit only when a seeded phase fell inside the linear share lifetime / 15 billion years. That share is about 0.0004 at 6,523 years, so the expected number of lit dots was about 0.06. The count changed. The drawing did not, until the lifetime reached roughly 100 million years.
+
+Verified in a browser on 15 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/548e7a5955dcc5716482811f9a50d93850cab57a/dist/index.html
+
+The page showed release `0.1.25`, commit `548e7a5955dcc5716482811f9a50d93850cab57a`, and `application/wasm`. Pause stopped the sweep. The slider at its start drew 0 lit dots and at 15 billion years drew 144. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (144559 bytes, SHA-256 `b8fbe3d3b6cf3f17ff15d672db72b53efd70d80b53b27fa04b5143ee5c257454`, `access-control-allow-origin: *`).
+
 ## v0.1.24 blinking galaxy
 
 Statistics of Cosmic Civilisations shows how many civilisations are awake. Ada uses N = 10⁹ × min(L / 15 billion years, 1) for Lem's one star in 150. At 6,523 years the count is 434.87. A lifetime of zero gives zero. At or beyond 15 billion years the count stays at one billion. The nearest neighbour is our disc of radius 50,000 light-years. Lem's 1,000, 50 and under-10 light-year figures are pins and are not fitted to that curve. The lifetime sweeps on its own until Calm, a key press on the slider, or Reset. The drawing is labelled our illustration.
