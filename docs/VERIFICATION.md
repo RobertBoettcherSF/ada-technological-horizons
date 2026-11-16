@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.34 lottery sliders and a growing picture
+
+Each lottery count has a logarithmic slider from 1 to 1,000,000, or up to the number of tickets for prizes and tickets bought. The box and the slider stay in step. A typed count above the lottery size is brought down, and a short note says so. The chart dot follows the buy slider. The city grows from 3 buildings to 9 as energy rises by powers of ten, with more windows and a wider glow. The Earth ring starts thin and faint and becomes thicker and brighter, and city lights spread over the land. The ring stays outside the globe and smaller than the Sun shell.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/41046ca1273ccab287e62f926b1e6300925e67b8/dist/index.html
+
+The page showed release `0.1.34`, commit `41046ca1273ccab287e62f926b1e6300925e67b8`, and `application/wasm`. The city had 3 buildings at the start and 9 later. The Earth ring width went from about 1.9 to about 7.4, and the lights from 3 to 13. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (166239 bytes, SHA-256 `be7ce597727fd2bf9efb2054f05b32af7644cf9c9858512feb6f25089675704a`, `access-control-allow-origin: *`). The Wasm file is unchanged because the Ada model did not change. The local suite also loaded it as `application/octet-stream`.
+
 ## v0.1.33 energy picture
 
 The energy numbers are unchanged. The picture is a labelled skyline with a glow behind the buildings, then a blue globe with land and a thin ring outside it, then a Sun with a shell and an Earth dot. The ground line is only under the city. The shell and the Earth dot stay inside the frame. A strip under the picture marks City, Earth, or Sun shell.
