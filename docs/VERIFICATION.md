@@ -1,5 +1,17 @@
 # Verification
 
+## v0.1.37 the star on the line, and four sieve steps
+
+A white star sits on the dashed power line. Dragging it and moving the slider set the same distance. Arrow keys move it by tenfold steps. Lem's amber dots at 10 and 1,000 light-years stay fixed, and a drag near one snaps to it. The letter uses the chosen distance: 165 light-years is 165 years out and 165 back, about 13 generations of 25 years. Lem's 1,000 light-years remains a preset button.
+
+The sieve advances one fate on each tap: self-destruction, other causes, faded later, then the escapers, and then it wraps. The matching count is highlighted. With one escaper, step 4 says "1 escaper stays lit" and the chance line says about 1 in 150. The escaper is a large gold dot and stays visible on the other steps.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/1c5ab1f82cfd4623df6862eda4eb18b8d01efbd5/dist/index.html
+
+The page showed release `0.1.37`, commit `1c5ab1f82cfd4623df6862eda4eb18b8d01efbd5`, and `application/wasm`. At 165 light-years the letter said 165 years out, 165 back, and 13 generations. Step 4 said `1 escaper stays lit` and the chance line was `Chance one is alive now: about 1 in 150`. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `application/wasm` (178773 bytes, SHA-256 `2aecc361cbe8a1296df8ac4a1bb4935a56d47d38c183150c9702a833fd8103a1`, `access-control-allow-origin: *`). The local suite also loaded the module as `application/octet-stream`.
+
 ## v0.1.36 three steps, and 1 in N
 
 The sieve fades in three steps. 990 million die young, coloured about 65 to 35. The rest of the ten million fade later, and only the escapers stay lit. For 100,000, 1,000 and 1 escaper, the four counts add up to one billion. With one escaper and a life of 100 million years, the page says the chance one is alive now is about 1 in 150, and the neighbour line says probably none right now. Tapping a dot names its fate and lights the matching count.

@@ -1220,17 +1220,33 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
   min-width: 0;
   cursor: pointer;
 }
-.colony-sieve button.is-self { background: #c45c26; }
-.colony-sieve button.is-other { background: #6e7c8a; }
-.colony-sieve button.is-faded { background: #8d6b4a; }
-.colony-sieve button.is-escaper {
-  background: #f0b429;
-  box-shadow: 0 0 0 2px #f0b429;
+.colony-sieve { cursor: pointer; }
+.colony-sieve:focus { outline: 2px solid #8fd0de; outline-offset: 3px; }
+.colony-sieve span {
+  pointer-events: none;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  min-width: 0;
 }
-.colony-sieve button.is-gone { opacity: 0.42; }
-.colony-sieve button.is-picked { opacity: 1; border-color: #c8f25a; }
-.colony-sieve button.is-quiet { opacity: 0.2; }
-.colony-sieve button:focus { outline: 2px solid #8fd0de; outline-offset: 1px; }
+.colony-sieve span.is-self { background: #ff5a1f; }
+.colony-sieve span.is-other { background: #3aa0ff; }
+.colony-sieve span.is-faded { background: #c86bff; }
+.colony-sieve span.is-escaper {
+  background: #ffd23a;
+  transform: scale(1.85);
+  z-index: 2;
+  box-shadow: 0 0 0 3px #ffd23a;
+  opacity: 1;
+}
+.colony-sieve span.is-quiet { opacity: 0.28; }
+.colony-sieve span.is-lit { opacity: 1; }
+#colony-sieve-legend .swatch.self { background: #ff5a1f; }
+#colony-sieve-legend .swatch.other { background: #3aa0ff; }
+#colony-sieve-legend .swatch.faded { background: #c86bff; }
+#colony-sieve-legend .swatch.tc { background: #ffd23a; }
+.swatch.you { background: #ffffff; border: 1px solid #14210a; }
+#hear-chart { touch-action: none; cursor: grab; }
+#hear-chart:focus { outline: 2px solid #8fd0de; outline-offset: 3px; }
 .colony-counts {
   display: flex;
   flex-wrap: wrap;

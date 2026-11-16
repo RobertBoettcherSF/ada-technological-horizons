@@ -2417,6 +2417,8 @@ function debugReport() {
     `Volume: ${hear.report ? formatCanonical(hear.report.gain) : "(not ready)"}`,
     `Muted: ${hear.report ? hear.report.muted : "(not ready)"}`,
     `Letter: ${hear.report ? hear.report.letter : "(not ready)"}`,
+    `Distance set: ${hear.report ? hear.report.source : "(not ready)"}`,
+    `Letter distance: ${hear.report ? formatCanonical(hear.report.letterDistance) : "(not ready)"}`,
     "",
     "Stubborn thousand",
     `Escapers: ${colony.report ? formatCanonical(colony.report.escapers) : "(not ready)"}`,
@@ -2428,7 +2430,7 @@ function debugReport() {
     `Faded later: ${colony.report ? formatCanonical(colony.report.faded) : "(not ready)"}`,
     `Shown: ${colony.report ? colony.report.shown : "(not ready)"}`,
     `Chance one in: ${colony.report?.oneIn ? formatCanonical(colony.report.oneIn) : "(count)"}`,
-    `Tapped dot: ${colony.report?.tapped == null ? "(none)" : String(colony.report.tapped)}`,
+    `Step: ${colony.report ? String(colony.report.step) : "(not ready)"}`,
     `Highlighted group: ${colony.report?.group ? colony.report.group : "(none)"}`,
     `Play: ${colony.report ? colony.report.play : "(not ready)"}`,
     `Calm: ${colony.report ? colony.report.calm : "(not ready)"}`,
@@ -3163,27 +3165,20 @@ function bind() {
     colony.choice = Number(button.dataset.colonyChoice);
     renderColony();
   });
-  document.getElementById("colony-sieve")?.addEventListener("click", (event) => {
-    const dot = event.target instanceof Element ? event.target.closest("[data-dot]") : null;
-    if (!(dot instanceof HTMLButtonElement)) return;
-    chooseColonyDot(Number(dot.dataset.dot), Number(dot.dataset.role));
+  document.getElementById("colony-sieve")?.addEventListener("click", () => {
+    advanceColonyStep();
   });
   document.getElementById("colony-sieve")?.addEventListener("keydown", (event) => {
-    const dot = event.target instanceof Element ? event.target.closest("[data-dot]") : null;
-    if (!(dot instanceof HTMLButtonElement) || (event.key !== "Enter" && event.key !== " ")) return;
+    if (event.target !== document.getElementById("colony-sieve")) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    chooseColonyDot(Number(dot.dataset.dot), Number(dot.dataset.role));
+    advanceColonyStep();
   });
   document.getElementById("colony-counts")?.addEventListener("click", (event) => {
     const button = event.target instanceof Element ? event.target.closest("[data-colony-fate]") : null;
     if (!(button instanceof HTMLButtonElement)) return;
-    const fate = Number(button.dataset.colonyFate);
-    if (colony.group === fate && colony.tapped == null) {
-      colony.group = null;
-    } else {
-      colony.group = fate;
-      colony.tapped = null;
-    }
+    colony.step = Number(button.dataset.colonyFate) + 1;
+    colony.group = colony.step - 1;
     renderColony();
   });
   document.getElementById("colony-play")?.addEventListener("click", () => {
@@ -3322,19 +3317,45 @@ function bind() {
     renderEnergy();
   });
   document.getElementById("hear-distance")?.addEventListener("input", () => {
-    if (!session.exports) return;
+    if (!session.exports || hear.setting) return;
     const phase = Number(document.getElementById("hear-distance").value) / 1000;
     hear.distance = session.exports.ath_hear_distance_of(phase);
+    hear.source = "slider";
     renderHear();
   });
-  document.getElementById("hear-scene")?.addEventListener("pointerdown", (event) => {
-    const scene = document.getElementById("hear-scene");
-    const slider = document.getElementById("hear-distance");
-    if (!scene || !slider) return;
-    const box = scene.getBoundingClientRect();
-    const share = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width));
-    slider.value = String(Math.round(share * 1000));
-    slider.dispatchEvent(new Event("input", { bubbles: true }));
+  document.getElementById("hear-chart")?.addEventListener("pointerdown", (event) => {
+    if (!session.exports || (event.button != null && event.button !== 0)) return;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    hear.dragging = true;
+    hear.source = "drag";
+    setHearFromPointer(event);
+  });
+  document.getElementById("hear-chart")?.addEventListener("pointermove", (event) => {
+    if (!hear.dragging) return;
+    setHearFromPointer(event);
+  });
+  document.getElementById("hear-chart")?.addEventListener("pointerup", () => {
+    hear.dragging = false;
+  });
+  document.getElementById("hear-chart")?.addEventListener("pointercancel", () => {
+    hear.dragging = false;
+  });
+  document.getElementById("hear-chart")?.addEventListener("keydown", (event) => {
+    if (!session.exports) return;
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    event.preventDefault();
+    const factor = event.key === "ArrowRight" ? 10 : 0.1;
+    const min = session.exports.ath_hear_min();
+    const max = session.exports.ath_hear_max();
+    hear.distance = Math.min(max, Math.max(min, hear.distance * factor));
+    hear.source = "key";
+    renderHear();
+  });
+  document.getElementById("hear-letter-lem")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    hear.distance = session.exports.ath_hear_far();
+    hear.source = "preset";
+    renderHear();
   });
   document.getElementById("hear-sound")?.addEventListener("click", () => {
     toggleHearSound();
@@ -4368,6 +4389,9 @@ function bootEnergy() {
 
 const hear = {
   distance: null,
+  source: "slider",
+  dragging: false,
+  setting: false,
   muted: true,
   calm: false,
   letter: 0,
@@ -4449,6 +4473,28 @@ function toggleHearSound() {
   renderHear();
 }
 
+function snapHearDistance(distance) {
+  if (!session.exports) return distance;
+  const pins = [session.exports.ath_hear_reference(), session.exports.ath_hear_far()];
+  const here = session.exports.ath_hear_slider_of(distance);
+  for (const pin of pins) {
+    if (Math.abs(here - session.exports.ath_hear_slider_of(pin)) < 0.04) return pin;
+  }
+  return distance;
+}
+
+function setHearFromPointer(event) {
+  const svg = document.querySelector("#hear-chart svg");
+  if (!svg || !session.exports) return;
+  const rect = svg.getBoundingClientRect();
+  if (rect.width <= 0) return;
+  const x = ((event.clientX - rect.left) / rect.width) * 640;
+  const phase = Math.min(1, Math.max(0, (x - 58) / 540));
+  hear.distance = snapHearDistance(session.exports.ath_hear_distance_of(phase));
+  hear.source = "drag";
+  renderHear();
+}
+
 function sendLetter() {
   stopLetter();
   if (hear.calm || motionReduced()) {
@@ -4485,7 +4531,19 @@ function renderHear() {
   }
   if (gain) gain.textContent = t(state.lang, "hear.percent").replace("{n}", formatReadable(Math.round(model.gain * 100), state.lang));
   const slider = document.getElementById("hear-distance");
-  if (slider && document.activeElement !== slider) slider.value = String(Math.round(model.slider * 1000));
+  if (slider && document.activeElement !== slider) {
+    hear.setting = true;
+    slider.value = String(Math.round(model.slider * 1000));
+    hear.setting = false;
+  }
+  const lead = document.getElementById("hear-letter-lead");
+  if (lead) {
+    lead.textContent = t(state.lang, "hear.letterLead")
+      .replace("{distance}", formatGalaxyNumber(model.distance, state.lang))
+      .replace("{out}", formatGalaxyNumber(model.oneWay, state.lang))
+      .replace("{back}", formatGalaxyNumber(model.round - model.oneWay, state.lang))
+      .replace("{generations}", formatReadable(Math.round(model.generations), state.lang));
+  }
   const sound = document.getElementById("hear-sound");
   const sounding = !hear.muted && !hear.calm && !motionReduced();
   if (sound) {
@@ -4515,6 +4573,8 @@ function renderHear() {
     gain: model.gain,
     muted: sounding ? "no" : "yes",
     letter: hear.sending ? "playing" : hear.letter >= 1 ? "done" : "idle",
+    source: hear.source,
+    letterDistance: model.distance,
   };
 }
 
@@ -4552,6 +4612,11 @@ function drawHearScene(model) {
   ]));
 }
 
+function hearChartY(power) {
+  const log = Math.log10(Math.max(power, 1e-6));
+  return 16 + (1 - (log + 2) / 6) * 140;
+}
+
 function drawHearChart(model) {
   const host = document.getElementById("hear-chart");
   if (!host) return;
@@ -4559,33 +4624,41 @@ function drawHearChart(model) {
   const top = 16;
   const width = 540;
   const height = 140;
-  const yOf = (power) => {
-    const log = Math.log10(Math.max(power, 1e-6));
-    return top + (1 - (log + 2) / 6) * height;
-  };
-  const curve = model.samples.map((sample) => `${left + sample.x * width},${yOf(sample.power)}`).join(" ");
-  const pins = [model.reference, model.far].map((distance) => svgEl("circle", {
-    cx: left + session.exports.ath_hear_slider_of(distance) * width,
-    cy: yOf(session.exports.ath_hear_power(distance)),
-    r: 5,
-    fill: "#f0b429",
-  }));
-  host.replaceChildren(svgEl("svg", {
-    viewBox: "0 0 640 190",
-    role: "img",
-    "aria-label": t(state.lang, "hear.chart"),
-  }, [
-    svgEl("line", { x1: left, y1: top, x2: left, y2: top + height, stroke: "#9fb0c3" }),
-    svgEl("line", { x1: left, y1: top + height, x2: left + width, y2: top + height, stroke: "#9fb0c3" }),
-    svgEl("polyline", { points: curve, fill: "none", stroke: "#9fb0c3", "stroke-dasharray": "6 4", "stroke-width": 2 }),
-    ...pins,
-    svgEl("text", { x: left, y: 12, fill: "#b7c9dc", "font-size": 12, text: "10,000×" }),
-    svgEl("text", { x: left - 18, y: top + (height * 2) / 3, fill: "#b7c9dc", "font-size": 12, text: "1×" }),
-    svgEl("text", { x: 8, y: top + height, fill: "#b7c9dc", "font-size": 12, text: "0.01×" }),
-    svgEl("text", { x: left, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1 ly" }),
-    svgEl("text", { x: left + width / 3 - 16, y: 184, fill: "#b7c9dc", "font-size": 12, text: "10 ly" }),
-    svgEl("text", { x: left + width - 48, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1,000 ly" }),
-  ]));
+  const youX = left + model.slider * width;
+  const youY = hearChartY(model.power);
+  if (host.dataset.signature !== state.lang) {
+    host.dataset.signature = state.lang;
+    const curve = model.samples.map((sample) => `${left + sample.x * width},${hearChartY(sample.power)}`).join(" ");
+    const pins = [model.reference, model.far].map((distance) => svgEl("circle", {
+      class: "hear-pin",
+      cx: left + session.exports.ath_hear_slider_of(distance) * width,
+      cy: hearChartY(session.exports.ath_hear_power(distance)),
+      r: 6,
+      fill: "#f0b429",
+    }));
+    host.replaceChildren(svgEl("svg", {
+      viewBox: "0 0 640 190",
+      role: "img",
+      "aria-label": t(state.lang, "hear.chart"),
+    }, [
+      svgEl("line", { x1: left, y1: top, x2: left, y2: top + height, stroke: "#9fb0c3" }),
+      svgEl("line", { x1: left, y1: top + height, x2: left + width, y2: top + height, stroke: "#9fb0c3" }),
+      svgEl("polyline", { points: curve, fill: "none", stroke: "#d7e7ff", "stroke-dasharray": "6 4", "stroke-width": 3 }),
+      ...pins,
+      svgEl("circle", { id: "hear-you", cx: youX, cy: youY, r: 8, fill: "#ffffff", stroke: "#14210a", "stroke-width": 2 }),
+      svgEl("text", { x: left, y: 12, fill: "#b7c9dc", "font-size": 12, text: "10,000×" }),
+      svgEl("text", { x: left - 18, y: top + (height * 2) / 3, fill: "#b7c9dc", "font-size": 12, text: "1×" }),
+      svgEl("text", { x: 8, y: top + height, fill: "#b7c9dc", "font-size": 12, text: "0.01×" }),
+      svgEl("text", { x: left, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1 ly" }),
+      svgEl("text", { x: left + width / 3 - 16, y: 184, fill: "#b7c9dc", "font-size": 12, text: "10 ly" }),
+      svgEl("text", { x: left + width - 48, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1,000 ly" }),
+    ]));
+  }
+  const you = host.querySelector("#hear-you");
+  if (you) {
+    you.setAttribute("cx", String(youX));
+    you.setAttribute("cy", String(youY));
+  }
 }
 
 function drawHearGenerations(model) {
@@ -4626,8 +4699,8 @@ const colony = {
   sieve: 0,
   sieveStamp: 0,
   sieveFrame: 0,
-  tapped: null,
-  group: null,
+  step: 1,
+  group: 0,
   generation: 0,
   stamp: 0,
   frame: 0,
@@ -4692,10 +4765,9 @@ function startColonyPlay() {
 
 const COLONY_GROUPS = ["self", "other", "faded", "escaper"];
 
-function chooseColonyDot(index, role) {
-  if (!Number.isInteger(index) || index < 1) return;
-  colony.tapped = index;
-  colony.group = role;
+function advanceColonyStep() {
+  colony.step = colony.step % 4 + 1;
+  colony.group = colony.step - 1;
   renderColony();
 }
 
@@ -4741,35 +4813,31 @@ function bootColony() {
   colony.hopLy = 1000;
   colony.hopYears = 10000;
   colony.origin = 1;
-  colony.sieve = reduce ? 1 : 0;
+  colony.step = 1;
+  colony.group = 0;
+  colony.sieve = 1;
   colony.generation = reduce ? 1_000_000 : 0;
   document.getElementById("colony-calm")?.setAttribute("aria-pressed", colony.calm ? "true" : "false");
   const exact = document.getElementById("colony-time-exact");
   if (exact) exact.value = "10000";
   stopColonyPlay();
   renderColony();
-  if (!reduce) {
-    colony.sievePlaying = true;
-    colony.sieveStamp = performance.now();
-    colony.sieveFrame = requestAnimationFrame(stepSieve);
-  }
 }
 
 function renderColony() {
   const sieve = document.getElementById("colony-sieve");
   if (!sieve || !session.exports || colony.years == null) return;
   const model = callColony(session, colony.choice, colony.years, colony.hopLy, colony.hopYears, colony.origin);
-  if (colony.tapped) colony.group = model.cells[colony.tapped - 1];
-  const phase = colony.calm ? 1 : colony.sieve;
+  colony.group = colony.step - 1;
   const roleClass = ["is-self", "is-other", "is-faded", "is-escaper"];
   const signature = `${state.lang}|${colony.choice}`;
   if (sieve.dataset.signature !== signature) {
     sieve.dataset.signature = signature;
-    sieve.replaceChildren(...model.cells.map((role, index) => h("button", {
-      type: "button",
+    sieve.tabIndex = 0;
+    sieve.setAttribute("role", "button");
+    sieve.replaceChildren(...model.cells.map((role) => h("span", {
       class: roleClass[role] || "is-self",
-      dataset: { dot: String(index + 1), role: String(role) },
-      "aria-label": t(state.lang, `colony.fate.${role}`),
+      dataset: { role: String(role) },
     })));
     sieve.setAttribute("aria-label", t(state.lang, "colony.sieveLabel"));
     document.getElementById("colony-sieve-legend")?.replaceChildren(
@@ -4779,26 +4847,27 @@ function renderColony() {
       h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "colony.legend.survivor"))]),
     );
   }
-  sieve.querySelectorAll("button").forEach((node) => {
+  sieve.querySelectorAll("span").forEach((node) => {
     const role = Number(node.dataset.role);
-    const fastGone = phase >= 0.42 && role < 2;
-    const fadedGone = phase >= 0.82 && role === 2;
-    const picked = colony.group != null && role === colony.group;
-    node.classList.toggle("is-gone", (fastGone || fadedGone) && !picked);
-    node.classList.toggle("is-picked", picked);
-    node.classList.toggle("is-quiet", colony.group != null && !picked);
-    node.setAttribute("aria-pressed", colony.tapped === Number(node.dataset.dot) ? "true" : "false");
+    node.classList.toggle("is-lit", role === colony.group || role === 3);
+    node.classList.toggle("is-quiet", role !== colony.group && role !== 3);
   });
   const caption = document.getElementById("colony-sieve-caption");
   if (caption) {
     caption.textContent = t(state.lang, "colony.sieveCaption")
       .replace("{escapers}", formatReadable(model.escapers, state.lang));
   }
+  const step = document.getElementById("colony-step");
+  if (step) {
+    step.textContent = t(state.lang, "colony.step")
+      .replace("{n}", String(colony.step))
+      .replace("{name}", t(state.lang, `colony.fate.${colony.group}`));
+  }
   const fate = document.getElementById("colony-fate");
   if (fate) {
-    if (colony.tapped) fate.textContent = t(state.lang, `colony.fate.${colony.group}`);
-    else if (colony.group != null) fate.textContent = t(state.lang, `colony.group.${colony.group}`);
-    else fate.textContent = t(state.lang, "colony.fate.none");
+    const count = [model.self, model.other, model.faded, model.escapers][colony.group];
+    fate.textContent = t(state.lang, `colony.stepExplain.${colony.group}`)
+      .replace("{n}", formatReadable(count, state.lang));
   }
   for (const button of document.querySelectorAll("#colony-counts [data-colony-fate]")) {
     const chosen = colony.group === Number(button.dataset.colonyFate);
@@ -4987,8 +5056,8 @@ function renderColony() {
     faded: model.faded,
     shown: model.showsCount ? "count" : "chance",
     oneIn: model.showsCount ? 0 : model.oneIn,
-    tapped: colony.tapped,
-    group: colony.group == null ? "" : COLONY_GROUPS[colony.group],
+    step: colony.step,
+    group: COLONY_GROUPS[colony.group] || "",
     play: colony.playing ? "playing" : "paused",
     calm: colony.calm ? "on" : "off",
     hopLy: colony.hopLy,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.36">
+  <meta name="ath-release" content="0.1.37">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.36</p>
+        <p class="release-pill" id="header-version">0.1.37</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -209,17 +209,21 @@
         <p><span data-i18n="hear.powerOut">Power needed</span> <output id="hear-power"></output></p>
         <p><span data-i18n="hear.gainOut">Beacon loudness</span> <output id="hear-gain"></output></p>
       </div>
-      <div id="hear-chart" class="galaxy-chart"></div>
+      <div id="hear-story">
+      <div id="hear-chart" class="galaxy-chart" tabindex="0"></div>
       <ul class="spectrum-legend">
         <li><span class="swatch shared"></span> <span data-i18n="hear.legend.curve">Power our inverse-square asks for</span></li>
-        <li><span class="swatch tc"></span> <span data-i18n="hear.legend.pin">A distance Lem names</span></li>
+        <li><span class="swatch tc"></span> <span data-i18n="hear.legend.pin">Lem's distances (fixed)</span></li>
+        <li><span class="swatch you"></span> <span data-i18n="hear.legend.you">Your star (drag me)</span></li>
       </ul>
       <h3 data-i18n="hear.letterTitle">Letter to the stars</h3>
-      <p class="note" data-i18n="hear.letterLead">Send a question to a star 1,000 light-years away. The question takes 1,000 years. The reply takes another 1,000. On Earth, about 80 generations pass.</p>
+      <p id="hear-letter-lead" class="note">Send a question to the star you chose.</p>
       <p id="hear-letter-note" class="note"></p>
       <div id="hear-generations" class="hear-generations"></div>
       <div class="button-row">
         <button type="button" id="hear-send" data-i18n="hear.send">Send the question</button>
+        <button type="button" id="hear-letter-lem" class="secondary" data-i18n="hear.letterLem">Lem's 1,000 light-years</button>
+      </div>
       </div>
       <div class="button-row">
         <button type="button" id="hear-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
@@ -281,7 +285,8 @@
       <p id="colony-lem" class="lem-note" data-i18n="colony.lem">Lem paraphrases von Hörner.</p>
       <div id="colony-field">
       <p id="colony-sieve-caption" class="galaxy-caption"></p>
-      <div id="colony-sieve" class="colony-sieve" role="group"></div>
+      <div id="colony-sieve" class="colony-sieve" tabindex="0" role="button"></div>
+      <p id="colony-step" class="galaxy-caption"></p>
       <ul id="colony-sieve-legend" class="spectrum-legend"></ul>
       <p id="colony-fate" class="note"></p>
       <div class="button-row" role="radiogroup" id="colony-choices" aria-labelledby="colony-choice-label">
