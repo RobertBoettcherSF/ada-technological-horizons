@@ -101,7 +101,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.35`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.37`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 
@@ -178,6 +178,14 @@ https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/aa55ce5c
 Verified v0.1.18 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b92d72bb5fa653c3a4d2499105a9a0c57233d1a8/dist/index.html
+
+Verified v0.1.37 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/1c5ab1f82cfd4623df6862eda4eb18b8d01efbd5/dist/index.html
+
+Verified v0.1.36 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/a3b8d9475dd5e6aac8a6cf7df32cca37ee4cb1df/dist/index.html
 
 Verified v0.1.35 snapshot:
 
