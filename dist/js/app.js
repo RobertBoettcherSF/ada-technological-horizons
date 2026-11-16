@@ -45,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callHear, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callHear, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -147,6 +147,7 @@ const LINE_KEYS = [
 
 const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "energy-card", sectionId: "cosmic-civilisations/formulating-the-method" },
   { cardId: "hear-card", sectionId: "cosmic-civilisations/formulating-the-method" },
   { cardId: "galaxy-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
@@ -2332,6 +2333,16 @@ function debugReport() {
     "Expectation:",
     comment.trim() === "" ? "(none)" : comment,
     "",
+    "Energy",
+    `Years: ${energy.report ? formatCanonical(energy.report.years) : "(not ready)"}`,
+    `Stated factor: ${energy.report ? formatCanonical(energy.report.stated) : "(not ready)"}`,
+    `Third factor: ${energy.report ? formatCanonical(energy.report.third) : "(not ready)"}`,
+    `Rate: ${energy.report ? formatCanonical(energy.report.rate) : "(not ready)"}`,
+    `Energy erg/s: ${energy.report ? formatCanonical(energy.report.energy) : "(not ready)"}`,
+    `Sun share: ${energy.report ? formatCanonical(energy.report.share) : "(not ready)"}`,
+    `Play: ${energy.report ? energy.report.play : "(not ready)"}`,
+    `Calm: ${energy.report ? energy.report.calm : "(not ready)"}`,
+    "",
     "Hear them",
     `Distance ly: ${hear.report ? formatCanonical(hear.report.distance) : "(not ready)"}`,
     `Power factor: ${hear.report ? formatCanonical(hear.report.power) : "(not ready)"}`,
@@ -2535,6 +2546,7 @@ async function boot() {
   updateResearch();
   renderSpectrum();
   bootGalaxy();
+  bootEnergy();
   bootHear();
   bootSixes();
 }
@@ -3099,6 +3111,23 @@ function bind() {
       if (sixes.playing) startSixesPlay();
       else renderSixes();
     }
+  });
+  document.getElementById("energy-years")?.addEventListener("input", () => {
+    if (!session.exports) return;
+    stopEnergyPlay();
+    energy.years = Number(document.getElementById("energy-years").value);
+    renderEnergy();
+  });
+  document.getElementById("energy-play")?.addEventListener("click", () => {
+    if (energy.playing) stopEnergyPlay();
+    else startEnergyPlay();
+    renderEnergy();
+  });
+  document.getElementById("energy-calm")?.addEventListener("click", () => {
+    energy.calm = !energy.calm;
+    document.getElementById("energy-calm")?.setAttribute("aria-pressed", energy.calm ? "true" : "false");
+    if (energy.calm) stopEnergyPlay();
+    renderEnergy();
   });
   document.getElementById("hear-distance")?.addEventListener("input", () => {
     if (!session.exports) return;
@@ -3815,6 +3844,221 @@ function bootSixes() {
   startSixesPlay();
 }
 
+const energy = {
+  years: 0,
+  playing: false,
+  calm: false,
+  frame: 0,
+  stamp: 0,
+  report: null,
+};
+
+function stopEnergyPlay() {
+  energy.playing = false;
+  if (energy.frame) cancelAnimationFrame(energy.frame);
+  energy.frame = 0;
+}
+
+function stepEnergy(now) {
+  if (!energy.playing) return;
+  const span = ((now - energy.stamp) / 20000) * 2500;
+  energy.years = span >= 2500 ? 0 : span;
+  if (span >= 2500) energy.stamp = now;
+  renderEnergy();
+  energy.frame = requestAnimationFrame(stepEnergy);
+}
+
+function startEnergyPlay() {
+  if (!session.exports) return;
+  energy.playing = true;
+  energy.calm = false;
+  document.getElementById("energy-calm")?.setAttribute("aria-pressed", "false");
+  energy.stamp = performance.now() - (energy.years / 2500) * 20000;
+  energy.frame = requestAnimationFrame(stepEnergy);
+}
+
+function formatSci(value, lang) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  let exp = Math.floor(Math.log10(value) + 1e-12);
+  let mantissa = value / 10 ** exp;
+  if (mantissa >= 9.995) {
+    mantissa /= 10;
+    exp += 1;
+  }
+  const text = `${mantissa.toFixed(1)}×10^${exp}`;
+  return lang === "en-GB" ? text : text.replace(".", ",");
+}
+
+function formatTimes(value, lang) {
+  if (Math.abs(value - 1e10) / 1e10 < 1e-6) return t(lang, "energy.tenBillion");
+  if (value >= 1000) return formatSci(value, lang);
+  const text = Math.abs(value - Math.round(value)) < 0.05 ? String(Math.round(value)) : value.toFixed(1);
+  return lang === "en-GB" ? text : text.replace(".", ",");
+}
+
+function renderEnergy() {
+  const scene = document.getElementById("energy-scene");
+  if (!scene || !session.exports) return;
+  const model = callEnergy(session, energy.years);
+  const years = document.getElementById("energy-year-count");
+  const times = document.getElementById("energy-times");
+  const third = document.getElementById("energy-third");
+  const share = document.getElementById("energy-share");
+  if (years) years.textContent = formatReadable(Math.round(model.years), state.lang);
+  if (times) times.textContent = formatTimes(model.statedFactor, state.lang);
+  if (third) third.textContent = formatTimes(model.thirdFactor, state.lang);
+  if (share) share.textContent = formatSci(model.sunShare, state.lang);
+  const slider = document.getElementById("energy-years");
+  if (slider && document.activeElement !== slider) slider.value = String(Math.round(model.years));
+  const play = document.getElementById("energy-play");
+  if (play) {
+    play.dataset.state = energy.playing ? "playing" : "paused";
+    play.textContent = t(state.lang, energy.playing ? "galaxy.pause" : "galaxy.play");
+    play.setAttribute("aria-pressed", energy.playing ? "true" : "false");
+  }
+  drawEnergyScene(model);
+  drawEnergyBar(model);
+  drawEnergyChart(model);
+  drawEnergyStairs(model);
+  const stage = document.getElementById("energy-stage");
+  if (stage) {
+    const portion = model.years / model.horizon;
+    const key = portion < 0.34 ? "energy.stageCity" : portion < 0.67 ? "energy.stageEarth" : "energy.stageSun";
+    stage.textContent = t(state.lang, key);
+  }
+  const tech = document.getElementById("energy-tech");
+  if (tech) {
+    tech.textContent = t(state.lang, "energy.tech")
+      .replace("{third}", formatTimes(model.samples.at(-1).third / model.today, state.lang))
+      .replace("{rate}", (model.rate * 100).toFixed(3).replace(".", state.lang === "en-GB" ? "." : ","))
+      .replace("{sun}", formatSci(model.sun, state.lang))
+      .replace("{modern}", formatSci(model.modernSun, state.lang));
+  }
+  energy.report = {
+    years: model.years,
+    stated: model.statedFactor,
+    third: model.thirdFactor,
+    rate: model.rate,
+    energy: model.energy,
+    share: model.sunShare,
+    play: energy.playing ? "playing" : "paused",
+    calm: energy.calm ? "on" : "off",
+  };
+}
+
+function drawEnergyScene(model) {
+  const host = document.getElementById("energy-scene");
+  if (!host) return;
+  const portion = model.years / model.horizon;
+  const parts = [
+    svgEl("line", { x1: 40, y1: 170, x2: 600, y2: 170, stroke: "#314863", "stroke-width": 2 }),
+  ];
+  if (portion < 0.34) {
+    const blob = 18 + portion / 0.34 * 28;
+    parts.push(
+      svgEl("rect", { x: 250, y: 130, width: 28, height: 40, fill: "#8fb4d4" }),
+      svgEl("rect", { x: 286, y: 108, width: 36, height: 62, fill: "#d7e7ff" }),
+      svgEl("rect", { x: 330, y: 120, width: 24, height: 50, fill: "#8fb4d4" }),
+      svgEl("circle", { cx: 310, cy: 118, r: blob, fill: "#c8f25a", opacity: 0.55 }),
+    );
+  } else if (portion < 0.67) {
+    const blob = 36 + (portion - 0.34) / 0.33 * 24;
+    parts.push(
+      svgEl("circle", { cx: 320, cy: 108, r: 48, fill: "#3c6e8f" }),
+      svgEl("circle", { cx: 304, cy: 96, r: 14, fill: "#6dbf7b" }),
+      svgEl("circle", { cx: 320, cy: 108, r: blob, fill: "#c8f25a", opacity: 0.4 }),
+    );
+  } else {
+    const close = (portion - 0.67) / 0.33;
+    parts.push(
+      svgEl("circle", { cx: 320, cy: 100, r: 28, fill: "#f0b429" }),
+      svgEl("circle", {
+        cx: 320,
+        cy: 100,
+        r: 78,
+        fill: "none",
+        stroke: "#c8f25a",
+        "stroke-width": 8,
+        "stroke-dasharray": `${close * 490} 490`,
+        opacity: 0.9,
+      }),
+      svgEl("circle", { cx: 398, cy: 100, r: 6, fill: "#8fd0de" }),
+    );
+  }
+  host.replaceChildren(svgEl("svg", {
+    viewBox: "0 0 640 190",
+    role: "img",
+    "aria-label": t(state.lang, "energy.scene"),
+  }, parts));
+}
+
+function drawEnergyBar(model) {
+  const host = document.getElementById("energy-bar");
+  if (!host) return;
+  const start = Math.log10(model.today);
+  const end = Math.log10(model.sun);
+  const width = Math.max(2, Math.min(100, (Math.log10(model.energy) - start) / (end - start) * 100));
+  host.replaceChildren(h("span", { style: `width:${width}%` }));
+  host.setAttribute("aria-label", t(state.lang, "energy.bar"));
+}
+
+function drawEnergyChart(model) {
+  const host = document.getElementById("energy-chart");
+  if (!host) return;
+  const left = 64;
+  const top = 16;
+  const width = 540;
+  const height = 150;
+  const yMin = 19;
+  const yMax = 34;
+  const yOf = (value) => top + (1 - (Math.log10(value) - yMin) / (yMax - yMin)) * height;
+  const xOf = (years) => left + (years / model.horizon) * width;
+  const line = (key) => model.samples.map((sample) => `${xOf(sample.years)},${yOf(sample[key])}`).join(" ");
+  host.replaceChildren(svgEl("svg", {
+    viewBox: "0 0 640 200",
+    role: "img",
+    "aria-label": t(state.lang, "energy.chart"),
+  }, [
+    svgEl("line", { x1: left, y1: top, x2: left, y2: top + height, stroke: "#9fb0c3" }),
+    svgEl("line", { x1: left, y1: top + height, x2: left + width, y2: top + height, stroke: "#9fb0c3" }),
+    svgEl("line", { x1: left, y1: yOf(model.sun), x2: left + width, y2: yOf(model.sun), stroke: "#f0b429", "stroke-width": 2 }),
+    svgEl("polyline", { points: line("third"), fill: "none", stroke: "#9fb0c3", "stroke-dasharray": "6 4", "stroke-width": 2 }),
+    svgEl("polyline", { points: line("stated"), fill: "none", stroke: "#d7e7ff", "stroke-width": 2 }),
+    svgEl("circle", { cx: xOf(model.horizon), cy: yOf(model.today * 1e10), r: 5, fill: "#f0b429" }),
+    svgEl("text", { x: 8, y: yOf(model.sun) + 4, fill: "#f0b429", "font-size": 11, text: "10^33" }),
+    svgEl("text", { x: 8, y: top + height, fill: "#b7c9dc", "font-size": 11, text: "10^19" }),
+    svgEl("text", { x: left, y: 194, fill: "#b7c9dc", "font-size": 12, text: "0" }),
+    svgEl("text", { x: left + width - 36, y: 194, fill: "#b7c9dc", "font-size": 12, text: "2500" }),
+    svgEl("text", { x: left + width / 2 - 18, y: 12, fill: "#b7c9dc", "font-size": 12, text: "erg/s" }),
+  ]));
+}
+
+function drawEnergyStairs(model) {
+  const host = document.getElementById("energy-stairs");
+  if (!host) return;
+  const names = ["energy.step1", "energy.step2", "energy.step3"];
+  const here = model.energy < model.steps[1] ? 0 : model.energy < model.steps[2] ? 1 : 2;
+  host.replaceChildren(...model.steps.map((step, index) => h("li", { class: index === here ? "is-here" : "" }, [
+    h("strong", { text: t(state.lang, names[index]) }),
+    document.createTextNode(` ${formatSci(step, state.lang)} erg/s`),
+    index === 2 ? document.createTextNode(` · ${formatSci(model.stars, state.lang)} ${t(state.lang, "energy.stars")}`) : null,
+  ])));
+}
+
+function bootEnergy() {
+  if (!session.exports) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  energy.calm = reduce;
+  energy.years = 0;
+  document.getElementById("energy-calm")?.setAttribute("aria-pressed", reduce ? "true" : "false");
+  if (reduce) {
+    stopEnergyPlay();
+    renderEnergy();
+    return;
+  }
+  startEnergyPlay();
+}
+
 const hear = {
   distance: null,
   muted: true,
@@ -4071,6 +4315,7 @@ function refresh() {
   renderReading(routeFromHash());
   renderSpectrum();
   renderGalaxy();
+  renderEnergy();
   renderHear();
   renderSixes();
   document.getElementById("language").value = state.lang;

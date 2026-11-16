@@ -82,6 +82,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_hear_power !== "function") {
     throw new Error("Ada module is missing ath_hear_power");
   }
+  if (typeof instance.exports.ath_energy_stated !== "function") {
+    throw new Error("Ada module is missing ath_energy_stated");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -677,6 +680,37 @@ export function callEggs(session, eggs) {
     single: session.exports.ath_sixes_egg_single(),
     slider: session.exports.ath_sixes_egg_slider(eggs),
     samples: ready ? sixesSamples(session, "eggs") : [],
+  };
+}
+
+export function callEnergy(session, years) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  session.invocations += 1;
+  const count = session.exports.ath_energy_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    const sampleYears = session.exports.ath_energy_sample_years(index);
+    samples.push({
+      years: sampleYears,
+      stated: session.exports.ath_energy_on_path(sampleYears),
+      third: session.exports.ath_energy_on_third(sampleYears),
+    });
+  }
+  return {
+    years,
+    rate: session.exports.ath_energy_rate(),
+    thirdFactor: session.exports.ath_energy_third(years),
+    statedFactor: session.exports.ath_energy_stated(years),
+    today: session.exports.ath_energy_today(),
+    energy: session.exports.ath_energy_on_path(years),
+    thirdEnergy: session.exports.ath_energy_on_third(years),
+    sunShare: session.exports.ath_energy_sun_share(years),
+    sun: session.exports.ath_energy_sun(),
+    modernSun: session.exports.ath_energy_modern_sun(),
+    steps: [1, 2, 3].map((index) => session.exports.ath_energy_kardashev(index)),
+    stars: session.exports.ath_energy_stars(),
+    horizon: session.exports.ath_energy_horizon(),
+    samples,
   };
 }
 

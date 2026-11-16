@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callHear, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callGrowth, callHear, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -652,6 +652,28 @@ test("a radio dish needs ten thousand times the power at a hundred times the dis
   assert.ok(Math.abs(near.round - 2000) < 1e-6);
   assert.ok(Math.abs(near.generations - 80) < 1e-6);
   assert.equal(near.dishLem, 27);
+});
+
+test("energy growth keeps the third-percent factor and the ten-billion rate apart", async () => {
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const end = callEnergy(session, 2500);
+  assert.ok(Math.abs(end.thirdFactor - 4103.0063155) < 0.01);
+  assert.ok(Math.abs(end.rate - 9.252886076685e-3) < 1e-12);
+  assert.ok(Math.abs(end.statedFactor - 1e10) / 1e10 < 1e-9);
+  assert.ok(Math.abs(end.sunShare - 1e-4) / 1e-4 < 1e-9);
+  assert.equal(end.steps[1], end.sun);
+  assert.equal(end.stars, 1e21);
 });
 
 test("a failed module load does not invent a sum", async () => {

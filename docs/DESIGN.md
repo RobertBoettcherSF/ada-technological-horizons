@@ -121,10 +121,10 @@ Little quantitative content. It is mostly forecasting history.
 
 **III-02 · Sformułowanie metody · l. 157–158 · LEM-Q (qualitative) · planned (with III-06)**
 - Shklovsky's "cosmic miracles". *„Prosty rachunek dowodzi”* (a simple calculation shows) that anything visible from tens or hundreds of light years needs star-like power.
-- Interactive: part of the energy ladder. The child drags a "miracle" farther away, and the required power bar climbs to "a star".
+- Interactive: part of the energy ladder. The child drags a "miracle" farther away, and the required power bar climbs to "a star". 0.1.32 builds the energy staircase this ladder belongs to. The separate distance picture is still ahead.
 - The **inverse-square power law is OURS** (a standard reconstruction). Lem gives no numbers.
 
-**III-03 · Sformułowanie metody · l. 159 · LEM-Q · planned (0.1.32)**
+**III-03 · Sformułowanie metody · l. 159 · LEM-Q · BUILT (0.1.32)**
 - *„energetyka ziemska będzie wzrastała rocznie o 1/3 procentu … za 2500 lat … dziesięć miliardów razy”*. With modest growth, energy production in 2,500 years would be 10¹⁰ times today's, one ten-thousandth of the Sun's output by AD 4500.
 - Dyson sphere at 1 AU catching "4 * 10³³ ergów na sekundę". Shklovsky on steering solar nuclear burning.
 - Scientists: Shklovsky, Dyson (also Sagan, von Hoerner and Bracewell named at l. 159).
@@ -205,15 +205,15 @@ Little quantitative content. It is mostly forecasting history.
 - Averages hide tails, but they have limits too: *„przeciętnej długości życia, wynoszącej około 60 lat, ale żaden człowiek nie może żyć 200 lub 300 lat”*. Similarly, a few-thousand-year average does not exclude million-year civilisations.
 - Interactive: a histogram toggle in III-08 ("people" versus "civilisations").
 
-**III-15 · Perspektywy · l. 243 · LEM-Q (quotes Shklovsky, Byurakan 1964) · planned (0.1.32)**
+**III-15 · Perspektywy · l. 243 · LEM-Q (quotes Shklovsky, Byurakan 1964) · BUILT in part (0.1.32)**
 - *„spośród 10²¹ gwiazd … ani jedna nie ma wokół siebie rozwiniętej dostatecznie cywilizacji”*: about 10¹⁰ galaxies × 10¹⁰–10¹¹ stars, and not one shows a civilisation.
-- Interactive ⭐ "Power-of-ten zoom": from Sun to galaxy to observable universe, with a star counter.
+- Interactive ⭐ "Power-of-ten zoom": from Sun to galaxy to observable universe, with a star counter. 0.1.32 places the 10²¹ stars on the top Kardashev step; the zoom itself is still ahead.
 - MODERN: current estimates of stars in the observable universe are higher (about 10²²–10²⁴). Sourced note.
 
-**III-16 · Perspektywy · l. 244 · LEM-Q · planned (0.1.32)**
+**III-16 · Perspektywy · l. 244 · LEM-Q · BUILT (0.1.32)**
 - *„Kardaszew … dzielił … cywilizacje na trzy typy”*. Kardashev's three types use about 4×10¹⁹, 4×10³³ and 4×10⁴⁴ erg. Type I needs a few billion years, I→II a few thousand years, II→III a few tens of millions of years.
 - Interactive ⭐ "Kardashev staircase": three giant steps (planet, star, galaxy) with a climbing figure. A slider for energy-growth rate shows how many years each step takes. Lem's "few thousand years" for I→II is an amber mark.
-- MODERN / units: Kardashev's figures are power (erg **per second**), while the transcription says "roczne" (per year). The note gives watts (about 4×10¹² W, 4×10²⁶ W, 4×10³⁷ W) after checking the source.
+- MODERN / units: Kardashev's figures are power (erg **per second**), while the print says "roczne" (per year). 0.1.32 shows erg/s and says Lem wrote per year. The note gives watts (about 4×10¹² W, 4×10²⁶ W, 4×10³⁷ W) after checking the source.
 
 **III-17 · Perspektywy · l. 248 · LEM-Q (cites von Hoerner) · planned (late)**
 - Intergalactic flight within a human lifetime would need annihilating matter *„niemal rzędu masy naszego Księżyca”* (nearly a Moon's mass).

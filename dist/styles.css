@@ -1098,7 +1098,47 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 .explain-box p { margin: 0.4rem 0 0; }
 .explain-box p:first-child { margin-top: 0; }
 
-.hear-scene svg { width: 100%; height: auto; display: block; }
+.energy-scene svg, .hear-scene svg { width: 100%; height: auto; display: block; }
+.energy-bar {
+  position: relative;
+  height: 1.4rem;
+  margin: 0.6rem 0 0.8rem;
+  border-radius: 999px;
+  background: #10192b;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.energy-bar span {
+  display: block;
+  height: 100%;
+  background: rgba(200, 242, 90, 0.7);
+}
+.energy-stairs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  align-items: end;
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0.6rem;
+}
+.energy-stairs li {
+  margin: 0;
+  padding: 0.55rem 0.45rem;
+  border-radius: 0.5rem;
+  background: #22314d;
+  border: 1px solid var(--line);
+}
+.energy-stairs li.is-here { border-color: var(--lime); }
+.energy-stairs li:nth-child(1) { min-height: 4.5rem; }
+.energy-stairs li:nth-child(2) { min-height: 7rem; }
+.energy-stairs li:nth-child(3) { min-height: 9.5rem; }
+.swatch.dashed {
+  background: transparent;
+  border-top: 3px dashed #9fb0c3;
+  height: 0;
+  vertical-align: 0.2rem;
+}
 .hear-generations {
   display: grid;
   grid-template-columns: repeat(20, minmax(0, 1fr));
