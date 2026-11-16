@@ -1084,6 +1084,20 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
   font-weight: 650;
 }
 
+.explain-box {
+  margin: 0.2rem 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--cyan);
+  border-radius: 0.6rem;
+  background: rgba(143, 208, 222, 0.1);
+  font-size: 1.28rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.explain-box p { margin: 0.4rem 0 0; }
+.explain-box p:first-child { margin-top: 0; }
+
 .galaxy-readout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));

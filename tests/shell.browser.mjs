@@ -200,7 +200,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.28/);
+  assert.match(report, /Release: 0\.1\.29/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
   assert.match(report, /Galaxy\nLifetime years:/);
@@ -874,7 +874,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.28");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.29");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1272,6 +1272,22 @@ async function exercise(page, label) {
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/human-uniqueness"; });
   await page.waitForFunction(() => !document.querySelector("#sixes-card").hidden && document.querySelector("#sixes-chance")?.textContent === "0.9999999343" && document.querySelector("#sixes-winner-count")?.textContent === "16.5" && document.querySelectorAll("#sixes-crowd span").length === 48);
   assert.equal(await page.locator("#sixes-faces .die").count(), 10);
+  assert.equal(await page.locator("#sixes-title").textContent(), "When does a rare throw become likely?");
+  const lemNote = await page.locator("#sixes-lem").textContent();
+  assert.match(lemNote, /^Lem paraphrases Baumsztejn's argument/);
+  assert.match(lemNote, /far greater/);
+  assert.doesNotMatch(lemNote, /almost sure|almost certain|reports Baumsztejn/i);
+  assert.match(await page.locator("#sixes-ours").textContent(), /Our calculation/);
+  assert.match(await page.locator("#sixes-ours").textContent(), /0\.9999999343/);
+  const explainBox = page.locator("#sixes-explain");
+  assert.match(await explainBox.textContent(), /One throw almost never gives ten sixes/);
+  assert.match(await explainBox.textContent(), /Gold means someone in that group got ten sixes/);
+  const explainStyle = await explainBox.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { size: parseFloat(style.fontSize), border: parseFloat(style.borderTopWidth) };
+  });
+  assert.ok(explainStyle.size >= 18, "the explanation is larger than the body text");
+  assert.ok(explainStyle.border >= 2, "the explanation has an accent border");
   assert.match(await page.locator("#sixes-winners").textContent(), /1 billion/);
   assert.match(await page.locator("#sixes-winners").textContent(), /16\.5/);
   const bars = await page.locator("#sixes-ladder .bar").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().width));
@@ -1305,6 +1321,9 @@ async function exercise(page, label) {
   await page.waitForFunction(() => Number(document.querySelector("#sixes-until-note")?.dataset.until) >= 1);
   await page.click("#sixes-tab-eggs");
   await page.waitForFunction(() => document.querySelector("#sixes-egg-count")?.textContent === "3000000");
+  assert.match(await page.locator("#sixes-egg-explain").textContent(), /The chance on the readout is our calculation/);
+  assert.match(await page.locator("#sixes-eggs-lem").textContent(), /certainty/);
+  assert.match(await page.locator("#sixes-eggs-lem").textContent(), /does not give the chance for a single egg/);
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");

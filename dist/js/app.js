@@ -3690,9 +3690,8 @@ function showUntil(target, animate) {
 }
 
 function renderSixes() {
-  const caption = document.getElementById("sixes-caption");
   const faces = document.getElementById("sixes-faces");
-  if (!caption || !faces || !session.exports || sixes.players == null) return;
+  if (!faces || !session.exports || sixes.players == null) return;
   const playButton = document.getElementById("sixes-play");
   if (playButton) {
     playButton.dataset.state = sixes.playing ? "playing" : "paused";
@@ -3720,7 +3719,6 @@ function renderSixes() {
     const slider = document.getElementById("sixes-players");
     if (slider && document.activeElement !== slider) slider.value = String(Math.round(dice.slider * 1000));
     if (sixes.tab === "dice") {
-      caption.textContent = t(state.lang, "sixes.point");
       document.getElementById("sixes-winners").textContent = t(state.lang, "sixes.winnersLine")
         .replace("{players}", formatPeople(sixes.players, state.lang))
         .replace("{winners}", formatWinners(dice.expected, state.lang));
@@ -3741,7 +3739,6 @@ function renderSixes() {
     const slider = document.getElementById("sixes-egg-slider");
     if (slider && document.activeElement !== slider) slider.value = String(Math.round(eggs.slider * 1000));
     if (sixes.tab === "eggs") {
-      caption.textContent = t(state.lang, `sixes.caption.${eggs.caption}`);
       drawChanceChart(
         document.getElementById("sixes-egg-chart"),
         eggs.samples,

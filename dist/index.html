@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.28">
+  <meta name="ath-release" content="0.1.29">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.28</p>
+        <p class="release-pill" id="header-version">0.1.29</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -212,15 +212,18 @@
 
     <section id="sixes-card" class="lifetime-card" aria-labelledby="sixes-title">
       <p class="kicker" data-i18n="sixes.path">Cosmic Civilisations · Human Uniqueness</p>
-      <h2 id="sixes-title" data-i18n="sixes.title">When does a rare throw become almost sure?</h2>
-      <p class="lem-note" data-i18n="sixes.lem">Lem reports Baumsztejn: one player almost never throws ten sixes, but a billion players at once make it almost sure. About three million cod eggs in one spawning yield one adult fish, and he calls the chance of at least one or two fish a certainty. Baumsztejn has no Wikipedia link here: the spelling was not checked in print.</p>
-      <p class="ours-note" data-i18n="sixes.ours">The rolls, the curve and the per-egg chance are our illustration, not Lem's model.</p>
-      <p id="sixes-caption" class="galaxy-caption" aria-live="polite"></p>
+      <h2 id="sixes-title" data-i18n="sixes.title">When does a rare throw become likely?</h2>
+      <p id="sixes-lem" class="lem-note" data-i18n="sixes.lem">Lem paraphrases Baumsztejn's argument. He does not quote the calculations. One player throwing ten sixes is extremely unlikely. A billion players at once make that chance far greater. About three million cod eggs in one spawning yield one adult fish, and he calls the chance of at least one or two fish a certainty. Baumsztejn has no Wikipedia link here: the spelling was not checked in print.</p>
+      <p id="sixes-ours" class="ours-note" data-i18n="sixes.ours">Our calculation: a billion players give a chance of about 0.9999999343, which in this picture is almost certain. The rolls, the curve, the crowd and the per-egg chance are our illustration, not Lem's model. One egg in three million is our reading of one fish from three million eggs. That reading is not the certainty he names for one or two fish.</p>
       <div class="button-row" role="tablist">
         <button type="button" id="sixes-tab-dice" role="tab" aria-selected="true" data-i18n="sixes.tab.dice">Ten dice</button>
         <button type="button" id="sixes-tab-eggs" role="tab" aria-selected="false" data-i18n="sixes.tab.eggs">Three million eggs</button>
       </div>
       <div id="sixes-dice">
+        <div id="sixes-explain" class="explain-box">
+          <p data-i18n="sixes.point">One throw almost never gives ten sixes. But with enough players, someone almost surely does.</p>
+          <p data-i18n="sixes.pick">Pick how many people throw. Gold means someone in that group got ten sixes.</p>
+        </div>
         <div id="sixes-ladder" class="ladder"></div>
         <p id="sixes-winners" class="galaxy-caption"></p>
         <div class="galaxy-readout">
@@ -250,7 +253,11 @@
         </ul>
       </div>
       <div id="sixes-eggs" hidden>
-        <p class="lem-note" data-i18n="sixes.eggsLem">Lem's clutch is about three million eggs, and he accepts that one adult fish comes from it. He does not give the chance for a single egg.</p>
+        <div id="sixes-egg-explain" class="explain-box">
+          <p data-i18n="sixes.eggPoint">One egg almost never becomes a fish. Pick how many eggs.</p>
+          <p data-i18n="sixes.eggPick">The chance on the readout is our calculation, not the certainty Lem names.</p>
+        </div>
+        <p id="sixes-eggs-lem" class="lem-note" data-i18n="sixes.eggsLem">Lem's clutch is about three million eggs, and he accepts that one adult fish comes from it. He calls the chance of at least one or two fish a certainty. He does not give the chance for a single egg.</p>
         <label for="sixes-egg-slider" data-i18n="sixes.eggsLabel">How many eggs?</label>
         <input id="sixes-egg-slider" type="range" min="0" max="1000" step="1" value="0">
         <div class="galaxy-readout">
