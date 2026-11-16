@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.33 energy picture
+
+The energy numbers are unchanged. The picture is a labelled skyline with a glow behind the buildings, then a blue globe with land and a thin ring outside it, then a Sun with a shell and an Earth dot. The ground line is only under the city. The shell and the Earth dot stay inside the frame. A strip under the picture marks City, Earth, or Sun shell.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/167ca2ce3a430713e769b27151c2f8227825c28c/dist/index.html
+
+The page showed release `0.1.33`, commit `167ca2ce3a430713e769b27151c2f8227825c28c`, and `application/wasm`. At 2,500 years the readout was still **10 billion times**. The shell and the Earth dot sat inside the picture at desktop width and at 320px. At 320px, `scrollWidth - clientWidth` was 0 for each stage. `curl` received `text/html` and `application/wasm` (166239 bytes, SHA-256 `be7ce597727fd2bf9efb2054f05b32af7644cf9c9858512feb6f25089675704a`, `access-control-allow-origin: *`). The Wasm file is the same as 0.1.32 because the Ada model did not change.
+
 ## v0.1.32 energy staircase
 
 Formulating the Method shows energy growing for 2,500 years. The picture goes from a city, to the Earth, to a shell around the Sun at the Earth's distance. Ada follows the path that reaches ten billion times today's energy, which is one ten-thousandth of the Sun. One third of a percent a year, the rate Lem names, reaches about 4,100 times, not ten billion. The rate that does reach ten billion times is about 0.925 percent a year. Kardashev's steps are 4×10^19, 4×10^33 and 4×10^44 erg a second, with a note that Lem wrote per year. The top step carries Shklovsky's 10^21 stars. Lem's Sun stays 4×10^33 erg/s. The modern note gives 3.8×10^26 W, which is 3.8×10^33 erg/s.
