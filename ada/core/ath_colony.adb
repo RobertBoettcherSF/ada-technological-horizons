@@ -77,6 +77,32 @@ package body Ath_Colony is
       end case;
    end Escapers;
 
+   function Faded_Later (Choice : Positive) return Long_Float is
+   begin
+      return Left_After - Escapers (Choice);
+   end Faded_Later;
+
+   function Shows_Count (Alive : Long_Float) return Boolean is
+   begin
+      return Is_Finite (Alive) and then Alive >= 1.0;
+   end Shows_Count;
+
+   function One_In (Alive : Long_Float) return Long_Float is
+   begin
+      if not Is_Finite (Alive) or else Alive <= 0.0 or else Alive >= 1.0 then
+         return 0.0;
+      end if;
+      return Long_Float'Rounding (1.0 / Alive);
+   end One_In;
+
+   function Distance_Fits (Alive, Distance : Long_Float) return Boolean is
+   begin
+      return Shows_Count (Alive)
+        and then Is_Finite (Distance)
+        and then Distance > 0.0
+        and then Distance <= Ath_Galaxy.Disc_Radius_Ly * 2.0;
+   end Distance_Fits;
+
    procedure Survivors
      (Choice   : Positive;
       Years    : Long_Float;
@@ -124,14 +150,16 @@ package body Ath_Colony is
       return Log (Years / Life_Min) / Log (Life_Max / Life_Min);
    end Slider_Of;
 
-   function Shown_Survivors (Choice : Positive) return Natural is
+   function Shown_Escapers (Choice : Positive) return Natural is
    begin
       case Choice is
-         when 1 => return 8;
+         when 1 => return 6;
          when 2 => return 3;
          when others => return 1;
       end case;
-   end Shown_Survivors;
+   end Shown_Escapers;
+
+   Shown_Faded : constant Natural := 16;
 
    function Rank (Index : Positive; Choice : Positive) return Natural is
       Mine  : constant Long_Float := Unit (40_000 + Choice * 100 + Index);
@@ -148,16 +176,21 @@ package body Ath_Colony is
    end Rank;
 
    function Cell_Role (Index : Positive; Choice : Positive) return Interfaces.Integer_32 is
-      Died : Natural;
+      Place : Natural;
+      Fast  : Natural;
    begin
       if Index > Cell_Count then
          return 0;
       end if;
-      if Rank (Index, Choice) < Shown_Survivors (Choice) then
+      Place := Rank (Index, Choice);
+      if Place < Shown_Escapers (Choice) then
+         return 3;
+      end if;
+      if Place < Shown_Escapers (Choice) + Shown_Faded then
          return 2;
       end if;
-      Died := Cell_Count - Shown_Survivors (Choice);
-      if Rank (Index, Choice) - Shown_Survivors (Choice) < Natural (Long_Float (Died) * 0.65) then
+      Fast := Cell_Count - Shown_Escapers (Choice) - Shown_Faded;
+      if Place - Shown_Escapers (Choice) - Shown_Faded < Natural (Long_Float (Fast) * 0.65) then
          return 0;
       end if;
       return 1;

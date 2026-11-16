@@ -40,6 +40,21 @@ package Ath_Colony is
    function Other_Deaths return Long_Float;
    function Escapers (Choice : Positive) return Long_Float;
 
+   --  Of the ten million that outlast the young deaths, all but the escapers
+   --  still fade. Self + other + faded + escapers is the galactic billion.
+   function Faded_Later (Choice : Positive) return Long_Float;
+
+   --  True when the expected number alive now is at least one.
+   function Shows_Count (Alive : Long_Float) return Boolean;
+
+   --  When the expected number is below one, about 1 in this many.
+   --  Zero when the count itself should be shown.
+   function One_In (Alive : Long_Float) return Long_Float;
+
+   --  A distance is shown only for at least one alive neighbour, and only
+   --  when it is no larger than the galaxy (twice the disc radius).
+   function Distance_Fits (Alive, Distance : Long_Float) return Boolean;
+
    procedure Survivors
      (Choice   : Positive;
       Years    : Long_Float;

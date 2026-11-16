@@ -13,6 +13,20 @@ package Ath_Colony_Exports is
    function Ath_Colony_Escapers (Choice : Interfaces.Integer_32) return Long_Float
    with Export, Convention => C, External_Name => "ath_colony_escapers";
 
+   function Ath_Colony_Faded (Choice : Interfaces.Integer_32) return Long_Float
+   with Export, Convention => C, External_Name => "ath_colony_faded";
+
+   function Ath_Colony_One_In (Alive : Long_Float) return Long_Float
+   with Export, Convention => C, External_Name => "ath_colony_one_in";
+
+   function Ath_Colony_Shows_Count (Alive : Long_Float) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_colony_shows_count";
+
+   function Ath_Colony_Distance_Fits
+     (Alive    : Long_Float;
+      Distance : Long_Float) return Interfaces.Integer_32
+   with Export, Convention => C, External_Name => "ath_colony_distance_fits";
+
    function Ath_Colony_Survivors
      (Choice : Interfaces.Integer_32;
       Years  : Long_Float) return Interfaces.Integer_32

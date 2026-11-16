@@ -41,6 +41,34 @@ package body Ath_Colony_Exports is
       return Ath_Colony.Escapers (Choice_Of (Choice));
    end Ath_Colony_Escapers;
 
+   function Ath_Colony_Faded (Choice : Interfaces.Integer_32) return Long_Float is
+   begin
+      return Ath_Colony.Faded_Later (Choice_Of (Choice));
+   end Ath_Colony_Faded;
+
+   function Ath_Colony_One_In (Alive : Long_Float) return Long_Float is
+   begin
+      return Ath_Colony.One_In (Alive);
+   end Ath_Colony_One_In;
+
+   function Ath_Colony_Shows_Count (Alive : Long_Float) return Interfaces.Integer_32 is
+   begin
+      if Ath_Colony.Shows_Count (Alive) then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Colony_Shows_Count;
+
+   function Ath_Colony_Distance_Fits
+     (Alive    : Long_Float;
+      Distance : Long_Float) return Interfaces.Integer_32 is
+   begin
+      if Ath_Colony.Distance_Fits (Alive, Distance) then
+         return 1;
+      end if;
+      return 0;
+   end Ath_Colony_Distance_Fits;
+
    function Ath_Colony_Survivors
      (Choice : Interfaces.Integer_32;
       Years  : Long_Float) return Interfaces.Integer_32 is
