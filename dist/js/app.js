@@ -2116,15 +2116,78 @@ function renderLottery(outcome) {
   placeTicks(document.getElementById("lottery-chance-y-ticks"), [1, 0], (value) => 100 - value * 100);
 }
 
+const LOTTERY_SLIDER_CAP = 1_000_000;
+
+function lotteryInteger(text) {
+  if (!/^\d+$/.test(String(text).trim())) return null;
+  const value = Number(text);
+  return Number.isSafeInteger(value) ? value : null;
+}
+
+function lotterySliderMax(field) {
+  if (field === "tickets") return LOTTERY_SLIDER_CAP;
+  const tickets = lotteryInteger(state.lottery.tickets);
+  return Math.max(1, Math.min(LOTTERY_SLIDER_CAP, tickets ?? 1));
+}
+
+function logSliderPosition(value, max) {
+  const cap = Math.max(1, max);
+  const count = Number(value);
+  if (!Number.isFinite(count) || count <= 1 || cap <= 1) return 0;
+  if (count >= cap) return 1000;
+  return Math.round((1000 * Math.log10(count)) / Math.log10(cap));
+}
+
+function valueFromLogSlider(position, max) {
+  const cap = Math.max(1, max);
+  if (cap <= 1) return 1;
+  const phase = Math.min(1, Math.max(0, Number(position) / 1000));
+  return Math.max(1, Math.min(cap, Math.round(10 ** (phase * Math.log10(cap)))));
+}
+
+let lotteryCapped = false;
+
+function enforceLotteryLimits() {
+  const tickets = lotteryInteger(state.lottery.tickets);
+  if (tickets == null) {
+    lotteryCapped = false;
+    return;
+  }
+  let capped = false;
+  for (const field of ["prizes", "bought"]) {
+    const value = lotteryInteger(state.lottery[field]);
+    if (value != null && value > tickets) {
+      state = setLotteryInput(state, field, String(tickets));
+      capped = true;
+    }
+  }
+  lotteryCapped = capped;
+}
+
 function syncLotteryForm() {
-  document.getElementById("lottery-m").value = state.lottery.tickets;
-  document.getElementById("lottery-w").value = state.lottery.prizes;
-  document.getElementById("lottery-k").value = state.lottery.bought;
+  const fields = [
+    ["tickets", "lottery-m", "lottery-m-slider"],
+    ["prizes", "lottery-w", "lottery-w-slider"],
+    ["bought", "lottery-k", "lottery-k-slider"],
+  ];
+  for (const [field, textId, sliderId] of fields) {
+    const text = document.getElementById(textId);
+    const slider = document.getElementById(sliderId);
+    if (text && text.value !== state.lottery[field]) text.value = state.lottery[field];
+    if (slider) {
+      slider.value = String(logSliderPosition(state.lottery[field], lotterySliderMax(field)));
+      slider.setAttribute("aria-valuetext", state.lottery[field]);
+    }
+  }
 }
 
 function updateLottery() {
   const statusNode = document.getElementById("lottery-status");
   if (!statusNode) return;
+  enforceLotteryLimits();
+  syncLotteryForm();
+  const capNote = document.getElementById("lottery-cap-note");
+  if (capNote) capNote.textContent = lotteryCapped ? t(state.lang, "lottery.capNote") : "";
   clearLotteryView();
   let code = "loading";
   if (session.phase === "loading") {
@@ -2435,6 +2498,9 @@ function debugReport() {
     `Tickets: ${valueOf("lottery-m")}`,
     `Prizes: ${valueOf("lottery-w")}`,
     `Bought: ${valueOf("lottery-k")}`,
+    `Tickets slider: ${valueOf("lottery-m-slider")}`,
+    `Prizes slider: ${valueOf("lottery-w-slider")}`,
+    `Bought slider: ${valueOf("lottery-k-slider")}`,
     `Preset: ${state.lottery.preset}`,
     `Expected prizes: ${textOf("lottery-expected")}`,
     `Chance of nothing: ${textOf("lottery-none")}`,
@@ -2854,7 +2920,16 @@ function bind() {
   });
   document.getElementById("lottery-form").addEventListener("input", (event) => {
     const field = event.target;
-    if (!(field instanceof HTMLElement) || !field.dataset.lottery) return;
+    if (!(field instanceof HTMLElement)) return;
+    if (field.dataset.lotterySlider) {
+      const which = field.dataset.lotterySlider;
+      const value = valueFromLogSlider(field.value, lotterySliderMax(which));
+      state = setLotteryInput(state, which, String(value));
+      state = setLotteryInput(state, "preset", "custom");
+      updateLottery();
+      return;
+    }
+    if (!field.dataset.lottery) return;
     state = setLotteryInput(state, field.dataset.lottery, field.value);
     state = setLotteryInput(state, "preset", "custom");
     updateLottery();
@@ -3982,57 +4057,81 @@ function drawEnergyScene(model) {
       ]),
     ]),
   ];
+  const decades = Math.log10(Math.max(model.statedFactor, 1));
+  const decadePerYear = Math.log10(1 + model.rate);
+  const cityDecades = 0.34 * model.horizon * decadePerYear;
+  const earthDecades = 0.67 * model.horizon * decadePerYear;
   if (stage === "city") {
-    const glow = 0.28 + (portion / 0.34) * 0.4;
-    const blocks = [
-      { x: 210, w: 36, h: 52, cols: 2, rows: 3 },
-      { x: 252, w: 48, h: 84, cols: 3, rows: 5 },
-      { x: 306, w: 40, h: 66, cols: 2, rows: 4 },
-      { x: 352, w: 32, h: 46, cols: 2, rows: 2 },
-      { x: 390, w: 44, h: 74, cols: 3, rows: 4 },
-    ];
+    const growth = cityDecades <= 0 ? 0 : Math.min(1, decades / cityDecades);
+    const count = 3 + Math.round(growth * 6);
+    const ground = 186;
+    const width = 26 + growth * 10;
+    const gap = 6;
+    let x = 320 - (count * width + (count - 1) * gap) / 2;
     parts.push(svgEl("ellipse", {
       cx: 320,
-      cy: 150,
-      rx: 120,
-      ry: 34,
+      cy: 156,
+      rx: 48 + growth * 130,
+      ry: 14 + growth * 28,
       fill: "#c8f25a",
-      opacity: glow,
+      opacity: 0.18 + growth * 0.55,
       filter: "url(#energy-glow)",
     }));
-    parts.push(svgEl("line", { x1: 180, y1: 186, x2: 470, y2: 186, stroke: "#314863", "stroke-width": 2 }));
-    for (const block of blocks) {
-      const top = 186 - block.h;
-      parts.push(svgEl("rect", { x: block.x, y: top, width: block.w, height: block.h, fill: "#d7e7ff" }));
-      for (let row = 0; row < block.rows; row += 1) {
-        for (let col = 0; col < block.cols; col += 1) {
-          parts.push(svgEl("rect", {
-            x: block.x + 6 + col * 12,
-            y: top + 8 + row * 14,
-            width: 4,
-            height: 4,
-            fill: "#f0b429",
-          }));
+    parts.push(svgEl("line", { x1: 150, y1: ground, x2: 490, y2: ground, stroke: "#314863", "stroke-width": 2 }));
+    for (let index = 0; index < count; index += 1) {
+      const height = (26 + (index % 4) * 12) * (0.5 + growth);
+      const top = ground - height;
+      parts.push(svgEl("rect", { class: "building", x, y: top, width, height, fill: "#d7e7ff" }));
+      const cols = 1 + Math.round(growth * 2);
+      const rows = 1 + Math.round(growth * 4);
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          const wx = x + 5 + col * 10;
+          const wy = top + 6 + row * 12;
+          if (wx + 4 < x + width && wy + 4 < ground) {
+            parts.push(svgEl("rect", { class: "window", x: wx, y: wy, width: 4, height: 4, fill: "#f0b429" }));
+          }
         }
       }
+      x += width + gap;
     }
     parts.push(energyLabel(t(state.lang, "energy.strip.city")));
   } else if (stage === "earth") {
-    const along = (portion - 0.34) / 0.33;
+    const along = earthDecades <= cityDecades ? 1 : Math.min(1, Math.max(0, (decades - cityDecades) / (earthDecades - cityDecades)));
+    const globeR = 46;
+    const stroke = 1.5 + along * 6.5;
+    const ringR = globeR + 4 + stroke / 2;
+    const lights = [
+      [300, 90], [308, 94], [314, 88], [302, 96],
+      [328, 110], [336, 112], [344, 114], [332, 108], [348, 110],
+      [308, 118], [314, 116], [312, 122], [318, 118], [306, 114],
+    ];
+    const lit = 2 + Math.round(along * (lights.length - 2));
     parts.push(
-      svgEl("circle", { class: "globe", cx: 320, cy: 104, r: 46, fill: "#3c6e8f" }),
+      svgEl("circle", { class: "globe", cx: 320, cy: 104, r: globeR, fill: "#3c6e8f" }),
       svgEl("ellipse", { cx: 306, cy: 92, rx: 16, ry: 10, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
       svgEl("ellipse", { cx: 338, cy: 112, rx: 18, ry: 8, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
       svgEl("ellipse", { cx: 312, cy: 118, rx: 8, ry: 6, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
+    );
+    for (let index = 0; index < lit; index += 1) {
+      parts.push(svgEl("circle", {
+        class: "city-light",
+        cx: lights[index][0],
+        cy: lights[index][1],
+        r: 1.6,
+        fill: "#f0b429",
+      }));
+    }
+    parts.push(
       svgEl("circle", {
         class: "glow",
         cx: 320,
         cy: 104,
-        r: 58,
+        r: ringR,
         fill: "none",
         stroke: "#c8f25a",
-        "stroke-width": 3,
-        opacity: 0.3 + along * 0.65,
+        "stroke-width": stroke,
+        opacity: 0.22 + along * 0.73,
       }),
       energyLabel(t(state.lang, "energy.strip.earth")),
     );
