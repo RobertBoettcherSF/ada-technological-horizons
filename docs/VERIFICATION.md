@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.30 ten sixes without Calm
+
+The Ten sixes card no longer has a Calm button, and the amber note no longer says that Baumsztejn has no Wikipedia link. He stays unlinked. Play and Pause remain. Other cards still have Calm. With reduced motion the card starts paused, and Roll until ten sixes shows the finished count at once.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/8f28ba7d59985c021684c461ba6eea56dc3569af/dist/index.html
+
+The page showed release `0.1.30`, commit `8f28ba7d59985c021684c461ba6eea56dc3569af`, and `application/wasm`. The amber note ended at the fish certainty. `#sixes-calm` was absent and `#galaxy-calm` was still present. Play was on the card. A billion players still showed chance **0.9999999343**. With reduced motion the card started paused, and the roll-until note read the finished count **58414594** at once. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (158798 bytes, SHA-256 `ce72d46131391440379a5d5744419c81d26be57007e888589eb8227b41466f6b`, `access-control-allow-origin: *`).
+
 ## v0.1.29 ten-sixes wording
 
 The explanation sits in a highlighted box at the top of the Ten dice tab, and the egg tab has the same kind of box. The amber note says Lem paraphrases Baumsztejn's argument and that a billion players make the chance far greater. He does not say almost sure. He does call at least one or two fish from about three million eggs a certainty, and he does not give a per-egg chance. The figure 0.9999999343 is in the dashed note and is labelled our calculation.
