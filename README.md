@@ -10,7 +10,7 @@ The interactive plan is [docs/DESIGN.md](docs/DESIGN.md). Line locators in that 
 
 ## This release
 
-Version **0.1.32** grows earthly energy for 2,500 years and sets Lem's ten-billion-times end beside the 4,100-times result of one third of a percent a year. Version **0.1.31** lets you drag a star away from a radio dish, hear a quiet beacon, and send a letter that takes two thousand years. Version **0.1.30** removes the Calm button from the ten-sixes card only. Reduced motion still starts that card paused. Version **0.1.29** puts the ten-sixes explanation in a highlighted box and keeps Lem's wording: a billion players make the chance far greater. Version **0.1.28** shows how many of the players get ten sixes, with ladder steps and a crowd of equal pictures. Version **0.1.27** adds ten dice and three million cod eggs under Human Uniqueness. One player’s chance of ten sixes is about 1.6538×10⁻⁸. A billion players make it about 0.9999999343. Version **0.1.26** draws every galaxy dot at the same size and spaces them so the yellow ones do not crowd. Version **0.1.25** slows the blinking galaxy, adds Play, Pause, Restart and a speed choice, and makes the slider change the lights. The lifetime runs from 100 years to 15 billion years. Version **0.1.24** adds the blinking galaxy to Statistics of Cosmic Civilisations. Ada counts how many civilisations are awake and places them on a declared disc. Lem's 10, 50 and 1,000 light-year figures stay as pins. Version **0.1.23** adds a schematic technetium spectrum to A Metatheory of Miracles. The marks and the wavelength scale come from Ada. Version **0.1.22** names the scientists each chapter draws on, in the language you chose, and adds Polish. A missing article in that language uses the English Wikipedia page. Oleg K. Tikhomirov and Leonid S. Marochnik stay on their Russian pages. Three names stay unlinked because the book gives no first name.
+Version **0.1.33** redraws the energy picture: a labelled skyline, a globe with a glow outside it, and a Sun shell that stays inside the frame. Version **0.1.32** grows earthly energy for 2,500 years and sets Lem's ten-billion-times end beside the 4,100-times result of one third of a percent a year. Version **0.1.31** lets you drag a star away from a radio dish, hear a quiet beacon, and send a letter that takes two thousand years. Version **0.1.30** removes the Calm button from the ten-sixes card only. Reduced motion still starts that card paused. Version **0.1.29** puts the ten-sixes explanation in a highlighted box and keeps Lem's wording: a billion players make the chance far greater. Version **0.1.28** shows how many of the players get ten sixes, with ladder steps and a crowd of equal pictures. Version **0.1.27** adds ten dice and three million cod eggs under Human Uniqueness. One player’s chance of ten sixes is about 1.6538×10⁻⁸. A billion players make it about 0.9999999343. Version **0.1.26** draws every galaxy dot at the same size and spaces them so the yellow ones do not crowd. Version **0.1.25** slows the blinking galaxy, adds Play, Pause, Restart and a speed choice, and makes the slider change the lights. The lifetime runs from 100 years to 15 billion years. Version **0.1.24** adds the blinking galaxy to Statistics of Cosmic Civilisations. Ada counts how many civilisations are awake and places them on a declared disc. Lem's 10, 50 and 1,000 light-year figures stay as pins. Version **0.1.23** adds a schematic technetium spectrum to A Metatheory of Miracles. The marks and the wavelength scale come from Ada. Version **0.1.22** names the scientists each chapter draws on, in the language you chose, and adds Polish. A missing article in that language uses the English Wikipedia page. Oleg K. Tikhomirov and Leonid S. Marochnik stay on their Russian pages. Three names stay unlinked because the book gives no first name.
 
 Version **0.1.21** compares two doubling indices in The Megabit Bomb. Discoveries double every 30 years and the researcher index every 10. Both start at 1, which is our scale. After 30 years the indices are 2 and 8, so discoveries per researcher index are 0.25. A same-pace button sets both doublings to 30 years. The ratio is not a forecast that hiring a person creates a discovery.
 
@@ -101,7 +101,7 @@ The static tree in `dist/` is what a raw.githack URL should serve. Use an immuta
 
 `https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/<commit>/dist/index.html`
 
-The page shows release `0.1.32`. On that host it shows the commit from the URL as the published identity.
+The page shows release `0.1.33`. On that host it shows the commit from the URL as the published identity.
 
 The v0.1.0 snapshot remains at:
 
@@ -178,6 +178,10 @@ https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/aa55ce5c
 Verified v0.1.18 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b92d72bb5fa653c3a4d2499105a9a0c57233d1a8/dist/index.html
+
+Verified v0.1.33 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/167ca2ce3a430713e769b27151c2f8227825c28c/dist/index.html
 
 Verified v0.1.32 snapshot:
 

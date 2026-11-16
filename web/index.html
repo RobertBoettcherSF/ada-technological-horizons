@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.32">
+  <meta name="ath-release" content="0.1.33">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.32</p>
+        <p class="release-pill" id="header-version">0.1.33</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -152,7 +152,10 @@
       </div>
       <p id="energy-lem" class="lem-note" data-i18n="energy.lem">Lem writes that earthly energy would grow by one third of a percent a year, and that in 2,500 years it would be ten billion times larger, one ten-thousandth of the Sun's output by the year 4500. He gives the Sun as 4×10^33 erg a second, caught by a shell at the Earth's distance.</p>
       <p id="energy-ours" class="ours-note" data-i18n="energy.ours">One third of a percent a year for 2,500 years multiplies energy by about 4,100, not ten billion. The rate that does reach ten billion times in 2,500 years is about 0.925 percent a year. The picture follows that ten-billion-times path. Lem's sentences stay as he wrote them.</p>
-      <div id="energy-scene" class="energy-scene"></div>
+      <div id="energy-picture">
+        <div id="energy-scene" class="energy-scene"></div>
+        <div id="energy-stages" class="energy-stages"></div>
+      </div>
       <p id="energy-stage" class="note"></p>
       <label for="energy-years" data-i18n="energy.yearsLabel">How many years ahead?</label>
       <input id="energy-years" type="range" min="0" max="2500" step="1" value="0">

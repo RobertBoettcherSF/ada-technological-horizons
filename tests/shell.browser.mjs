@@ -200,8 +200,9 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.32/);
+  assert.match(report, /Release: 0\.1\.33/);
   assert.match(report, /Energy\nYears:/);
+  assert.match(report, /Stage: (city|earth|sun)/);
   assert.match(report, /Hear them\nDistance ly:/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
@@ -877,7 +878,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.32");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.33");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1350,16 +1351,73 @@ async function exercise(page, label) {
   await page.setViewportSize({ width: 1280, height: 900 });
   const energyPlay = page.locator("#energy-play");
   if (await energyPlay.getAttribute("data-state") === "playing") await energyPlay.click();
-  await page.locator("#energy-years").evaluate((el) => {
-    el.value = "2500";
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-  });
+  async function showEnergyYear(year, stageName) {
+    await page.locator("#energy-years").evaluate((el, value) => {
+      el.value = String(value);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    }, year);
+    await page.waitForFunction((name) => document.querySelector("#energy-stages [aria-current='true']")?.textContent === name, stageName);
+  }
+  async function sceneFit() {
+    return page.locator("#energy-scene svg").evaluate((svg) => {
+      const box = svg.viewBox.baseVal;
+      const measure = (node) => {
+        if (!node) return null;
+        const radius = Number(node.getAttribute("r"));
+        const stroke = Number(node.getAttribute("stroke-width") || 0);
+        const cx = Number(node.getAttribute("cx"));
+        const cy = Number(node.getAttribute("cy"));
+        const outer = radius + stroke / 2;
+        return {
+          radius,
+          outer,
+          inside: cx - outer >= 8 && cy - outer >= 8 && cx + outer <= box.width - 8 && cy + outer <= box.height - 8,
+        };
+      };
+      const shell = measure(svg.querySelector("circle.shell"));
+      const earth = measure(svg.querySelector("circle.earth-dot"));
+      const globe = measure(svg.querySelector("circle.globe"));
+      const glow = measure(svg.querySelector("circle.glow"));
+      const shellBox = svg.querySelector("circle.shell")?.getBoundingClientRect();
+      const svgBox = svg.getBoundingClientRect();
+      const paintedInside = !shellBox || (
+        shellBox.left >= svgBox.left - 1
+        && shellBox.right <= svgBox.right + 1
+        && shellBox.top >= svgBox.top - 1
+        && shellBox.bottom <= svgBox.bottom + 1
+      );
+      return { shell, earth, globe, glow, paintedInside };
+    });
+  }
+  await showEnergyYear(0, "City");
+  assert.equal(await page.locator("#energy-scene circle.shell").count(), 0);
+  await shotElement(page, label, "energy-city-desktop.png", "#energy-picture");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow energy city");
+  await shotElement(page, label, "energy-city-narrow.png", "#energy-picture");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await showEnergyYear(1000, "Earth");
+  const earthFit = await sceneFit();
+  assert.ok(earthFit.glow.radius > earthFit.globe.radius, "the glow ring is outside the globe");
+  await shotElement(page, label, "energy-earth-desktop.png", "#energy-picture");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow energy earth");
+  await shotElement(page, label, "energy-earth-narrow.png", "#energy-picture");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await showEnergyYear(2500, "Sun shell");
   await page.waitForFunction(() => document.querySelector("#energy-times")?.textContent === "10 billion times" && document.querySelector("#energy-third")?.textContent === "4.1×10^3" && document.querySelector("#energy-share")?.textContent === "1.0×10^-4");
+  const sunFit = await sceneFit();
+  assert.equal(sunFit.shell.inside, true);
+  assert.equal(sunFit.earth.inside, true);
   assert.equal(await page.locator("#energy-calm").count(), 1);
   assert.match(await page.locator("#energy-card .explain-box").textContent(), /2,500 years/);
+  await shotElement(page, label, "energy-sun-desktop.png", "#energy-picture");
   await shotElement(page, label, "energy-desktop.png", "#energy-card");
   await page.setViewportSize({ width: 320, height: 800 });
+  const narrowSun = await sceneFit();
+  assert.equal(narrowSun.paintedInside, true);
   assert.ok((await overflow(page)) <= 1, "narrow energy");
+  await shotElement(page, label, "energy-sun-narrow.png", "#energy-picture");
   await shotElement(page, label, "energy-narrow.png", "#energy-card");
   await page.click("#hear-send");
   await page.waitForFunction(() => document.querySelector("#hear-letter-note")?.textContent?.includes("on its way"));

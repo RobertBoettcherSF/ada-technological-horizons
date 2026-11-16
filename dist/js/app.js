@@ -2342,6 +2342,7 @@ function debugReport() {
     `Sun share: ${energy.report ? formatCanonical(energy.report.share) : "(not ready)"}`,
     `Play: ${energy.report ? energy.report.play : "(not ready)"}`,
     `Calm: ${energy.report ? energy.report.calm : "(not ready)"}`,
+    `Stage: ${energy.report ? energy.report.stage : "(not ready)"}`,
     "",
     "Hear them",
     `Distance ly: ${hear.report ? formatCanonical(hear.report.distance) : "(not ready)"}`,
@@ -3917,6 +3918,7 @@ function renderEnergy() {
     play.setAttribute("aria-pressed", energy.playing ? "true" : "false");
   }
   drawEnergyScene(model);
+  drawEnergyStrip(energyStage(model));
   drawEnergyBar(model);
   drawEnergyChart(model);
   drawEnergyStairs(model);
@@ -3943,53 +3945,143 @@ function renderEnergy() {
     share: model.sunShare,
     play: energy.playing ? "playing" : "paused",
     calm: energy.calm ? "on" : "off",
+    stage: energyStage(model),
   };
+}
+
+function energyStage(model) {
+  const portion = model.years / model.horizon;
+  if (portion < 0.34) return "city";
+  if (portion < 0.67) return "earth";
+  return "sun";
+}
+
+function energyLabel(text) {
+  return svgEl("text", {
+    x: 320,
+    y: 236,
+    "text-anchor": "middle",
+    fill: "#e8eef7",
+    "font-size": 20,
+    text,
+  });
 }
 
 function drawEnergyScene(model) {
   const host = document.getElementById("energy-scene");
   if (!host) return;
+  const stage = energyStage(model);
   const portion = model.years / model.horizon;
   const parts = [
-    svgEl("line", { x1: 40, y1: 170, x2: 600, y2: 170, stroke: "#314863", "stroke-width": 2 }),
+    svgEl("defs", {}, [
+      svgEl("filter", { id: "energy-glow", x: "-40%", y: "-40%", width: "180%", height: "180%" }, [
+        svgEl("feGaussianBlur", { stdDeviation: "8" }),
+      ]),
+      svgEl("clipPath", { id: "earth-clip" }, [
+        svgEl("circle", { cx: 320, cy: 104, r: 46 }),
+      ]),
+    ]),
   ];
-  if (portion < 0.34) {
-    const blob = 18 + portion / 0.34 * 28;
+  if (stage === "city") {
+    const glow = 0.28 + (portion / 0.34) * 0.4;
+    const blocks = [
+      { x: 210, w: 36, h: 52, cols: 2, rows: 3 },
+      { x: 252, w: 48, h: 84, cols: 3, rows: 5 },
+      { x: 306, w: 40, h: 66, cols: 2, rows: 4 },
+      { x: 352, w: 32, h: 46, cols: 2, rows: 2 },
+      { x: 390, w: 44, h: 74, cols: 3, rows: 4 },
+    ];
+    parts.push(svgEl("ellipse", {
+      cx: 320,
+      cy: 150,
+      rx: 120,
+      ry: 34,
+      fill: "#c8f25a",
+      opacity: glow,
+      filter: "url(#energy-glow)",
+    }));
+    parts.push(svgEl("line", { x1: 180, y1: 186, x2: 470, y2: 186, stroke: "#314863", "stroke-width": 2 }));
+    for (const block of blocks) {
+      const top = 186 - block.h;
+      parts.push(svgEl("rect", { x: block.x, y: top, width: block.w, height: block.h, fill: "#d7e7ff" }));
+      for (let row = 0; row < block.rows; row += 1) {
+        for (let col = 0; col < block.cols; col += 1) {
+          parts.push(svgEl("rect", {
+            x: block.x + 6 + col * 12,
+            y: top + 8 + row * 14,
+            width: 4,
+            height: 4,
+            fill: "#f0b429",
+          }));
+        }
+      }
+    }
+    parts.push(energyLabel(t(state.lang, "energy.strip.city")));
+  } else if (stage === "earth") {
+    const along = (portion - 0.34) / 0.33;
     parts.push(
-      svgEl("rect", { x: 250, y: 130, width: 28, height: 40, fill: "#8fb4d4" }),
-      svgEl("rect", { x: 286, y: 108, width: 36, height: 62, fill: "#d7e7ff" }),
-      svgEl("rect", { x: 330, y: 120, width: 24, height: 50, fill: "#8fb4d4" }),
-      svgEl("circle", { cx: 310, cy: 118, r: blob, fill: "#c8f25a", opacity: 0.55 }),
-    );
-  } else if (portion < 0.67) {
-    const blob = 36 + (portion - 0.34) / 0.33 * 24;
-    parts.push(
-      svgEl("circle", { cx: 320, cy: 108, r: 48, fill: "#3c6e8f" }),
-      svgEl("circle", { cx: 304, cy: 96, r: 14, fill: "#6dbf7b" }),
-      svgEl("circle", { cx: 320, cy: 108, r: blob, fill: "#c8f25a", opacity: 0.4 }),
-    );
-  } else {
-    const close = (portion - 0.67) / 0.33;
-    parts.push(
-      svgEl("circle", { cx: 320, cy: 100, r: 28, fill: "#f0b429" }),
+      svgEl("circle", { class: "globe", cx: 320, cy: 104, r: 46, fill: "#3c6e8f" }),
+      svgEl("ellipse", { cx: 306, cy: 92, rx: 16, ry: 10, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
+      svgEl("ellipse", { cx: 338, cy: 112, rx: 18, ry: 8, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
+      svgEl("ellipse", { cx: 312, cy: 118, rx: 8, ry: 6, fill: "#7dcea0", "clip-path": "url(#earth-clip)" }),
       svgEl("circle", {
+        class: "glow",
         cx: 320,
-        cy: 100,
-        r: 78,
+        cy: 104,
+        r: 58,
         fill: "none",
         stroke: "#c8f25a",
-        "stroke-width": 8,
-        "stroke-dasharray": `${close * 490} 490`,
-        opacity: 0.9,
+        "stroke-width": 3,
+        opacity: 0.3 + along * 0.65,
       }),
-      svgEl("circle", { cx: 398, cy: 100, r: 6, fill: "#8fd0de" }),
+      energyLabel(t(state.lang, "energy.strip.earth")),
+    );
+  } else {
+    const close = Math.min(1, (portion - 0.67) / 0.33);
+    const shellR = 70;
+    const turn = 2 * Math.PI * shellR;
+    const earthX = 320 + shellR * Math.cos(-0.45);
+    const earthY = 104 + shellR * Math.sin(-0.45);
+    parts.push(
+      svgEl("circle", { cx: 320, cy: 104, r: 20, fill: "#f0b429" }),
+      svgEl("circle", {
+        class: "shell",
+        cx: 320,
+        cy: 104,
+        r: shellR,
+        fill: "none",
+        stroke: "#c8f25a",
+        "stroke-width": 5,
+        "stroke-dasharray": `${close * turn} ${turn}`,
+        opacity: 0.95,
+      }),
+      svgEl("circle", { class: "earth-dot", cx: earthX, cy: earthY, r: 5, fill: "#8fd0de" }),
+      energyLabel(t(state.lang, "energy.strip.sun")),
     );
   }
   host.replaceChildren(svgEl("svg", {
-    viewBox: "0 0 640 190",
+    viewBox: "0 0 640 250",
     role: "img",
     "aria-label": t(state.lang, "energy.scene"),
   }, parts));
+}
+
+function drawEnergyStrip(stage) {
+  const host = document.getElementById("energy-stages");
+  if (!host) return;
+  const items = [
+    ["city", "energy.strip.city"],
+    ["earth", "energy.strip.earth"],
+    ["sun", "energy.strip.sun"],
+  ];
+  host.replaceChildren(...items.map(([id, key]) => {
+    const node = h("span", { text: t(state.lang, key) });
+    if (id === stage) {
+      node.classList.add("is-current");
+      node.setAttribute("aria-current", "true");
+    }
+    return node;
+  }));
 }
 
 function drawEnergyBar(model) {
