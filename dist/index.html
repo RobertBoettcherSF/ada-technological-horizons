@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.30">
+  <meta name="ath-release" content="0.1.31">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.30</p>
+        <p class="release-pill" id="header-version">0.1.31</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -141,6 +141,49 @@
         </tbody>
       </table>
       </div>
+    </section>
+
+    <section id="hear-card" class="lifetime-card" aria-labelledby="hear-title">
+      <p class="kicker" data-i18n="hear.path">Cosmic Civilisations · Formulating the Method</p>
+      <h2 id="hear-title" data-i18n="hear.title">Can we hear them?</h2>
+      <div class="explain-box">
+        <p data-i18n="hear.point">A dish like Earth's can hear an Earth-like transmitter out to about ten light-years. Drag the star farther and the rings fade. To be heard a hundred times farther, the signal must be ten thousand times stronger.</p>
+        <p data-i18n="hear.pick">Tap the speaker to hear a soft ping. The ping stays quieter more gently than the rings, so it does not vanish at once. That loudness is ours.</p>
+      </div>
+      <p id="hear-lem" class="lem-note" data-i18n="hear.lem">Lem says Drake's 1960 receiver, following Cocconi and Morrison, could take signals from about ten light-years, and from a hundred times farther if the signal were strong enough. He describes the antenna as 27 metres.</p>
+      <p id="hear-ours" class="ours-note" data-i18n="hear.ours">The inverse-square law is our physics, not a formula Lem writes down. Power grows with the square of distance. A hundred times farther needs ten thousand times the power. The beacon's loudness uses a decibel curve with a floor, so a far star stays a quiet ping.</p>
+      <div id="hear-scene" class="hear-scene"></div>
+      <label for="hear-distance" data-i18n="hear.distanceLabel">How far is the star?</label>
+      <input id="hear-distance" type="range" min="0" max="1000" step="1" value="333">
+      <div class="button-row">
+        <button type="button" id="hear-sound" aria-pressed="false" data-i18n="hear.soundOn">Hear the beacon</button>
+      </div>
+      <p id="hear-sound-note" class="note"></p>
+      <div class="galaxy-readout">
+        <p><span data-i18n="hear.distanceOut">Distance</span> <output id="hear-distance-count"></output></p>
+        <p><span data-i18n="hear.powerOut">Power needed</span> <output id="hear-power"></output></p>
+        <p><span data-i18n="hear.gainOut">Beacon loudness</span> <output id="hear-gain"></output></p>
+      </div>
+      <div id="hear-chart" class="galaxy-chart"></div>
+      <ul class="spectrum-legend">
+        <li><span class="swatch shared"></span> <span data-i18n="hear.legend.curve">Power our inverse-square asks for</span></li>
+        <li><span class="swatch tc"></span> <span data-i18n="hear.legend.pin">A distance Lem names</span></li>
+      </ul>
+      <h3 data-i18n="hear.letterTitle">Letter to the stars</h3>
+      <p class="note" data-i18n="hear.letterLead">Send a question to a star 1,000 light-years away. The question takes 1,000 years. The reply takes another 1,000. On Earth, about 80 generations pass.</p>
+      <p id="hear-letter-note" class="note"></p>
+      <div id="hear-generations" class="hear-generations"></div>
+      <div class="button-row">
+        <button type="button" id="hear-send" data-i18n="hear.send">Send the question</button>
+      </div>
+      <div class="button-row">
+        <button type="button" id="hear-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
+      </div>
+      <details id="hear-sources">
+        <summary data-i18n="hear.details">Technical details</summary>
+        <p id="hear-tech" class="note"></p>
+        <p class="note" data-i18n="hear.modern">Project Ozma used an 85-foot dish, about 26 metres. Lem's 27 metres stays as he wrote it.</p>
+      </details>
     </section>
 
     <section id="galaxy-card" class="lifetime-card" aria-labelledby="galaxy-title">

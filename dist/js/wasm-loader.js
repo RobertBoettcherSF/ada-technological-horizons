@@ -79,6 +79,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_sixes_chance !== "function") {
     throw new Error("Ada module is missing ath_sixes_chance");
   }
+  if (typeof instance.exports.ath_hear_power !== "function") {
+    throw new Error("Ada module is missing ath_hear_power");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -674,6 +677,37 @@ export function callEggs(session, eggs) {
     single: session.exports.ath_sixes_egg_single(),
     slider: session.exports.ath_sixes_egg_slider(eggs),
     samples: ready ? sixesSamples(session, "eggs") : [],
+  };
+}
+
+export function callHear(session, distance) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  session.invocations += 1;
+  const count = session.exports.ath_hear_sample_count();
+  const samples = [];
+  for (let index = 1; index <= count; index += 1) {
+    samples.push({
+      distance: session.exports.ath_hear_sample_distance(index),
+      power: session.exports.ath_hear_sample_power(index),
+      x: session.exports.ath_hear_sample_x(index),
+    });
+  }
+  return {
+    distance,
+    power: session.exports.ath_hear_power(distance),
+    intensity: session.exports.ath_hear_intensity(distance),
+    gain: session.exports.ath_hear_gain(distance),
+    slider: session.exports.ath_hear_slider_of(distance),
+    reference: session.exports.ath_hear_reference(),
+    far: session.exports.ath_hear_far(),
+    oneWay: session.exports.ath_hear_letter_years(),
+    round: session.exports.ath_hear_letter_round(),
+    generations: session.exports.ath_hear_generations(),
+    generationYears: session.exports.ath_hear_generation_years(),
+    dishLem: session.exports.ath_hear_dish_lem(),
+    ozmaFeet: session.exports.ath_hear_ozma_feet(),
+    ozmaMetres: session.exports.ath_hear_ozma_metres(),
+    samples,
   };
 }
 

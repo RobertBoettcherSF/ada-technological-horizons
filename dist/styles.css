@@ -1098,6 +1098,22 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 .explain-box p { margin: 0.4rem 0 0; }
 .explain-box p:first-child { margin-top: 0; }
 
+.hear-scene svg { width: 100%; height: auto; display: block; }
+.hear-generations {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0.4rem 0 0.7rem;
+}
+.hear-generations span {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: #35506a;
+}
+.hear-generations span.is-passed { background: #f0b429; }
+
 .galaxy-readout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
