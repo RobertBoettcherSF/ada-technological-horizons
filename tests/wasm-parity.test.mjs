@@ -648,9 +648,17 @@ test("a radio dish needs ten thousand times the power at a hundred times the dis
   assert.ok(Math.abs(near.power - 1) < 1e-12);
   assert.ok(Math.abs(far.power - 10000) < 1e-6);
   assert.ok(far.gain > 0.01 && far.gain < near.gain);
-  assert.ok(Math.abs(near.oneWay - 1000) < 1e-6);
-  assert.ok(Math.abs(near.round - 2000) < 1e-6);
-  assert.ok(Math.abs(near.generations - 80) < 1e-6);
+  assert.ok(Math.abs(near.oneWay - 10) < 1e-6);
+  assert.ok(Math.abs(near.round - 20) < 1e-6);
+  assert.ok(Math.abs(near.generations - 0.8) < 1e-6);
+  assert.ok(Math.abs(far.oneWay - 1000) < 1e-6);
+  assert.ok(Math.abs(far.generations - 80) < 1e-6);
+  const mid = callHear(session, 165);
+  assert.ok(Math.abs(mid.oneWay - 165) < 1e-6);
+  assert.ok(Math.abs(mid.generations - 13.2) < 1e-6);
+  const hundred = callHear(session, 100);
+  assert.ok(Math.abs(hundred.generations - 8) < 1e-6);
+  assert.ok(Math.abs(callHear(session, 165).power - session.exports.ath_hear_power(165)) < 1e-9);
   assert.equal(near.dishLem, 27);
 });
 

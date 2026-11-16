@@ -200,7 +200,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.36/);
+  assert.match(report, /Release: 0\.1\.37/);
   assert.match(report, /Energy\nYears:/);
   assert.match(report, /Stage: (city|earth|sun)/);
   assert.match(report, /Hear them\nDistance ly:/);
@@ -883,7 +883,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.36");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.37");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1338,15 +1338,36 @@ async function exercise(page, label) {
   assert.match(await page.locator("#sixes-eggs-lem").textContent(), /does not give the chance for a single egg/);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.evaluate(() => { location.hash = "#cosmic-civilisations/formulating-the-method"; });
-  await page.waitForFunction(() => !document.querySelector("#hear-card").hidden && document.querySelector("#hear-power")?.textContent === "1 times" && document.querySelectorAll("#hear-generations span").length === 80);
+  await page.waitForFunction(() => !document.querySelector("#hear-card").hidden && document.querySelector("#hear-power")?.textContent === "1 times" && document.querySelectorAll("#hear-generations span").length === 1 && document.querySelector("#hear-letter-lead")?.textContent?.includes("10 light-years"));
   assert.equal(await page.locator("#hear-sound").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#hear-calm").count(), 1);
   assert.match(await page.locator("#hear-card .explain-box").textContent(), /ten light-years/);
+  await page.locator("#hear-chart").focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForFunction(() => document.querySelector("#hear-distance-count")?.textContent?.includes("100 light-years") && document.querySelectorAll("#hear-generations span").length === 8 && document.querySelector("#hear-letter-lead")?.textContent?.includes("takes 100 years"));
   await page.locator("#hear-distance").evaluate((el) => {
     el.value = "1000";
     el.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.waitForFunction(() => document.querySelector("#hear-power")?.textContent === "10000 times");
+  await page.waitForFunction(() => document.querySelector("#hear-power")?.textContent === "10000 times" && document.querySelectorAll("#hear-generations span").length === 80 && document.querySelector("#hear-letter-lead")?.textContent?.includes("1000 light-years"));
+  await page.locator("#hear-distance").evaluate((el) => {
+    const phase = Math.round((Math.log10(165) / Math.log10(1000)) * 1000);
+    el.value = String(phase);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelector("#hear-letter-lead")?.textContent?.includes("165 light-years") && document.querySelector("#hear-letter-lead")?.textContent?.includes("takes 165 years") && document.querySelectorAll("#hear-generations span").length === 13);
+  const sliderPower = await page.locator("#hear-power").textContent();
+  const chartBox = await page.locator("#hear-chart svg").boundingBox();
+  const phase165 = Math.log10(165) / Math.log10(1000);
+  await page.mouse.move(chartBox.x + ((58 + phase165 * 540) / 640) * chartBox.width, chartBox.y + chartBox.height * 0.45);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForFunction((power) => document.querySelector("#hear-power")?.textContent === power && document.querySelector("#hear-letter-lead")?.textContent?.includes("165 light-years"), sliderPower);
+  await shotElement(page, label, "hear-165-desktop.png", "#hear-story");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow hear 165");
+  await shotElement(page, label, "hear-165-narrow.png", "#hear-story");
+  await page.setViewportSize({ width: 1280, height: 900 });
   await shotElement(page, label, "hear-desktop.png", "#hear-card");
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow hear");
@@ -1467,7 +1488,8 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#colony-other").textContent(), "346500000");
   assert.equal(await colonySum(), 1_000_000_000);
   assert.equal(await page.locator("#colony-hops").textContent(), "50");
-  assert.equal(await page.locator("#colony-sieve button.is-escaper").count(), 6);
+  assert.equal(await page.locator("#colony-sieve span.is-escaper").count(), 6);
+  assert.match(await page.locator("#colony-step").textContent(), /Step 1 of 4: Self-destruction/);
   assert.match(await page.locator("#colony-card .lem-note").first().textContent(), /paraphrases/);
   assert.match(await page.locator("#colony-card .explain-box").textContent(), /fill the sky/);
   assert.match(await page.locator("#colony-chart").textContent(), /Lifetime \(years\)/);
@@ -1489,21 +1511,33 @@ async function exercise(page, label) {
   await page.locator('[data-colony-choice="3"]').click();
   await page.waitForFunction(() => document.querySelector("#colony-alive")?.textContent === "Chance one is alive now: about 1 in 150" && document.querySelector("#colony-distance")?.textContent === "probably none right now" && document.querySelector("#colony-stay")?.textContent === "1" && document.querySelector("#colony-faded")?.textContent === "9999999");
   assert.equal(await colonySum(), 1_000_000_000);
-  assert.equal(await page.locator("#colony-sieve button.is-escaper").count(), 1);
+  assert.equal(await page.locator("#colony-sieve span.is-escaper").count(), 1);
   assert.doesNotMatch(await page.locator("#colony-distance").textContent(), /light-year/);
-  await page.click("#colony-calm");
-  await page.locator("#colony-sieve button.is-escaper").focus();
+  const stepped = [];
+  for (let i = 0; i < 4; i += 1) {
+    await page.click("#colony-sieve");
+    stepped.push(await page.locator("#colony-counts .is-current").getAttribute("data-colony-fate"));
+    if (i === 0) {
+      await page.waitForFunction(() => document.querySelector("#colony-step")?.textContent === "Step 2 of 4: Other causes");
+      await shotElement(page, label, "colony-step2-desktop.png", "#colony-field");
+      await page.setViewportSize({ width: 320, height: 800 });
+      assert.ok((await overflow(page)) <= 1, "narrow sieve step 2");
+      await shotElement(page, label, "colony-step2-narrow.png", "#colony-field");
+      await page.setViewportSize({ width: 1280, height: 900 });
+    }
+    if (i === 2) {
+      await page.waitForFunction(() => document.querySelector("#colony-step")?.textContent === "Step 4 of 4: Escaper that stays" && document.querySelector("#colony-fate")?.textContent === "1 escaper stays lit.");
+      await shotElement(page, label, "colony-step4-desktop.png", "#colony-field");
+      await page.setViewportSize({ width: 320, height: 800 });
+      assert.ok((await overflow(page)) <= 1, "narrow sieve step 4");
+      await shotElement(page, label, "colony-step4-narrow.png", "#colony-field");
+      await page.setViewportSize({ width: 1280, height: 900 });
+    }
+  }
+  assert.deepEqual(stepped, ["1", "2", "3", "0"]);
+  await page.locator("#colony-sieve").focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("#colony-fate")?.textContent === "Escaper that stays" && document.querySelector('[data-colony-fate="3"]')?.getAttribute("aria-pressed") === "true");
-  await shotElement(page, label, "colony-one-desktop.png", "#colony-field");
-  await page.locator("#colony-sieve button.is-faded").first().click();
-  await page.waitForFunction(() => document.querySelector("#colony-fate")?.textContent === "Faded later" && document.querySelectorAll("#colony-sieve button.is-picked").length > 1);
-  await shotElement(page, label, "colony-tapped-desktop.png", "#colony-field");
-  await page.setViewportSize({ width: 320, height: 800 });
-  assert.ok((await overflow(page)) <= 1, "narrow colony");
-  await shotElement(page, label, "colony-tapped-narrow.png", "#colony-field");
-  await page.locator("#colony-sieve button.is-escaper").click();
-  await shotElement(page, label, "colony-one-narrow.png", "#colony-field");
+  await page.waitForFunction(() => document.querySelector("#colony-step")?.textContent === "Step 2 of 4: Other causes");
   await page.locator("#debug-toggle").click();
   await page.waitForFunction(() => document.querySelector("#debug-dialog")?.open);
   const [colonyReport] = await Promise.all([
@@ -1511,8 +1545,10 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const colonyText = fs.readFileSync(await colonyReport.path(), "utf8");
-  assert.match(colonyText, /Tapped dot: \d+/);
-  assert.match(colonyText, /Highlighted group: escaper/);
+  assert.match(colonyText, /Step: 2/);
+  assert.match(colonyText, /Highlighted group: other/);
+  assert.match(colonyText, /Distance set: (slider|drag|key|preset)/);
+  assert.match(colonyText, /Letter distance: /);
   await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.setViewportSize({ width: 1280, height: 900 });

@@ -47,13 +47,13 @@ package body Ath_Hear_Exports is
       return Ath_Hear.Distance_Max;
    end Ath_Hear_Max;
 
-   function Letter_Field (Which : Positive) return Long_Float is
+   function Letter_Field (Distance : Long_Float; Which : Positive) return Long_Float is
       One_Way : Long_Float;
       Round_Years : Long_Float;
       Generations : Long_Float;
       Status : Ath_Hear.Status_Code;
    begin
-      Ath_Hear.Letter (One_Way, Round_Years, Generations, Status);
+      Ath_Hear.Letter (Distance, One_Way, Round_Years, Generations, Status);
       if Status /= Ath_Hear.Ok then
          return 0.0;
       end if;
@@ -66,19 +66,19 @@ package body Ath_Hear_Exports is
       end if;
    end Letter_Field;
 
-   function Ath_Hear_Letter_Years return Long_Float is
+   function Ath_Hear_Letter_Years (Distance : Long_Float) return Long_Float is
    begin
-      return Letter_Field (1);
+      return Letter_Field (Distance, 1);
    end Ath_Hear_Letter_Years;
 
-   function Ath_Hear_Letter_Round return Long_Float is
+   function Ath_Hear_Letter_Round (Distance : Long_Float) return Long_Float is
    begin
-      return Letter_Field (2);
+      return Letter_Field (Distance, 2);
    end Ath_Hear_Letter_Round;
 
-   function Ath_Hear_Generations return Long_Float is
+   function Ath_Hear_Generations (Distance : Long_Float) return Long_Float is
    begin
-      return Letter_Field (3);
+      return Letter_Field (Distance, 3);
    end Ath_Hear_Generations;
 
    function Ath_Hear_Generation_Years return Long_Float is

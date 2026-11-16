@@ -42,13 +42,28 @@ begin
       Fail ("gain-falls");
    end if;
 
-   Ath_Hear.Letter (One_Way, Round_Years, Generations, Status);
+   Ath_Hear.Letter (Ath_Hear.Letter_Ly, One_Way, Round_Years, Generations, Status);
    if Status /= Ath_Hear.Ok
      or else abs (One_Way - 1_000.0) > 1.0e-6
      or else abs (Round_Years - 2_000.0) > 1.0e-6
      or else abs (Generations - 80.0) > 1.0e-6
    then
       Fail ("letter");
+   end if;
+   Ath_Hear.Letter (165.0, One_Way, Round_Years, Generations, Status);
+   if Status /= Ath_Hear.Ok
+     or else abs (One_Way - 165.0) > 1.0e-6
+     or else abs (Round_Years - 330.0) > 1.0e-6
+     or else abs (Generations - 13.2) > 1.0e-6
+   then
+      Fail ("letter-165");
+   end if;
+   Ath_Hear.Letter (100.0, One_Way, Round_Years, Generations, Status);
+   if Status /= Ath_Hear.Ok
+     or else abs (One_Way - 100.0) > 1.0e-6
+     or else abs (Generations - 8.0) > 1.0e-6
+   then
+      Fail ("letter-100");
    end if;
    if abs (Ath_Hear.Ozma_Metres - 25.908) > 1.0e-9 then
       Fail ("ozma");

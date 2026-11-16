@@ -12,9 +12,10 @@ with Interfaces;
 --  as the square of distance. The beacon uses a gentler decibel curve, also
 --  ours, so a far star stays a quiet ping instead of falling silent.
 --
---  The letter's years come from the light-time core: one light-year takes
---  one Julian year. A generation of 25 years is our choice, so the 2,000-year
---  round trip is 80 generations.
+   --  The letter's years come from the light-time core: one light-year takes
+   --  one Julian year. The distance is the one the visitor chose. Lem's
+   --  1,000 light-years stays as that preset: 1,000 years out, 1,000 back,
+   --  80 generations of 25 years. A generation of 25 years is our choice.
 package Ath_Hear is
    pragma Compile_Time_Error
      (Long_Float'Size /= 64,
@@ -48,7 +49,8 @@ package Ath_Hear is
    function Ozma_Metres return Long_Float;
 
    procedure Letter
-     (One_Way_Years : out Long_Float;
+     (Distance      : Long_Float;
+      One_Way_Years : out Long_Float;
       Round_Years   : out Long_Float;
       Generations   : out Long_Float;
       Status        : out Status_Code);

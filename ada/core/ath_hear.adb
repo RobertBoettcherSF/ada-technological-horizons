@@ -89,7 +89,8 @@ package body Ath_Hear is
    end Ozma_Metres;
 
    procedure Letter
-     (One_Way_Years : out Long_Float;
+     (Distance      : Long_Float;
+      One_Way_Years : out Long_Float;
       Round_Years   : out Long_Float;
       Generations   : out Long_Float;
       Status        : out Status_Code)
@@ -101,8 +102,16 @@ package body Ath_Hear is
       One_Way_Years := 0.0;
       Round_Years := 0.0;
       Generations := 0.0;
+      if not Is_Finite (Distance) then
+         Status := Non_Finite;
+         return;
+      end if;
+      if Distance <= 0.0 then
+         Status := Not_Positive;
+         return;
+      end if;
       Ath_Delay.Propagate
-        (Letter_Ly, Ath_Delay.Unit_Light_Years, Seconds, Round_Seconds, Delay_Status);
+        (Distance, Ath_Delay.Unit_Light_Years, Seconds, Round_Seconds, Delay_Status);
       if Delay_Status /= Ath_Delay.Ok then
          Status := Non_Finite;
          return;

@@ -28,13 +28,13 @@ package Ath_Hear_Exports is
    function Ath_Hear_Max return Long_Float
    with Export, Convention => C, External_Name => "ath_hear_max";
 
-   function Ath_Hear_Letter_Years return Long_Float
+   function Ath_Hear_Letter_Years (Distance : Long_Float) return Long_Float
    with Export, Convention => C, External_Name => "ath_hear_letter_years";
 
-   function Ath_Hear_Letter_Round return Long_Float
+   function Ath_Hear_Letter_Round (Distance : Long_Float) return Long_Float
    with Export, Convention => C, External_Name => "ath_hear_letter_round";
 
-   function Ath_Hear_Generations return Long_Float
+   function Ath_Hear_Generations (Distance : Long_Float) return Long_Float
    with Export, Convention => C, External_Name => "ath_hear_generations";
 
    function Ath_Hear_Generation_Years return Long_Float
