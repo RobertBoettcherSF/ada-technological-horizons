@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.35">
+  <meta name="ath-release" content="0.1.36">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.35</p>
+        <p class="release-pill" id="header-version">0.1.36</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -281,21 +281,38 @@
       <p id="colony-lem" class="lem-note" data-i18n="colony.lem">Lem paraphrases von Hörner.</p>
       <div id="colony-field">
       <p id="colony-sieve-caption" class="galaxy-caption"></p>
-      <div id="colony-sieve" class="colony-sieve" role="img"></div>
+      <div id="colony-sieve" class="colony-sieve" role="group"></div>
       <ul id="colony-sieve-legend" class="spectrum-legend"></ul>
-      </div>
+      <p id="colony-fate" class="note"></p>
       <div class="button-row" role="radiogroup" id="colony-choices" aria-labelledby="colony-choice-label">
         <span id="colony-choice-label" data-i18n="colony.escapers">How many escape?</span>
         <button type="button" data-colony-choice="1" aria-pressed="true">100,000</button>
         <button type="button" data-colony-choice="2" aria-pressed="false">1,000</button>
         <button type="button" data-colony-choice="3" aria-pressed="false">1</button>
       </div>
+      <div id="colony-counts" class="colony-counts">
+        <button type="button" class="colony-count" data-colony-fate="0" aria-pressed="false">
+          <span data-i18n="colony.self">Self-destruction</span>
+          <output id="colony-self"></output>
+        </button>
+        <button type="button" class="colony-count" data-colony-fate="1" aria-pressed="false">
+          <span data-i18n="colony.other">Other causes</span>
+          <output id="colony-other"></output>
+        </button>
+        <button type="button" class="colony-count" data-colony-fate="2" aria-pressed="false">
+          <span data-i18n="colony.faded">Faded later</span>
+          <output id="colony-faded"></output>
+        </button>
+        <button type="button" class="colony-count" data-colony-fate="3" aria-pressed="false">
+          <span data-i18n="colony.stay">Escaper that stays</span>
+          <output id="colony-stay"></output>
+        </button>
+      </div>
+      <p id="colony-sum" class="note"></p>
       <div class="galaxy-readout">
-        <p><span data-i18n="colony.left">Left after the short lives</span> <output id="colony-left"></output></p>
-        <p><span data-i18n="colony.self">Self-liquidation</span> <output id="colony-self"></output></p>
-        <p><span data-i18n="colony.other">Other causes</span> <output id="colony-other"></output></p>
         <p><span data-i18n="colony.alive">Alive right now</span> <output id="colony-alive"></output></p>
         <p><span data-i18n="colony.nearest">Nearest neighbour</span> <output id="colony-distance"></output></p>
+      </div>
       </div>
       <p class="ours-note" data-i18n="colony.ours">Our picture of who is alive now.</p>
       <div class="galaxy-control">

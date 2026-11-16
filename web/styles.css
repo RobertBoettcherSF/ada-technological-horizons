@@ -1212,18 +1212,44 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
   max-width: 28rem;
   margin: 0.4rem 0 0.6rem;
 }
-.colony-sieve span {
+.colony-sieve button {
   aspect-ratio: 1;
   border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
   min-width: 0;
+  cursor: pointer;
 }
-.colony-sieve span.is-self { background: #c45c26; }
-.colony-sieve span.is-other { background: #6e7c8a; }
-.colony-sieve span.is-survivor {
+.colony-sieve button.is-self { background: #c45c26; }
+.colony-sieve button.is-other { background: #6e7c8a; }
+.colony-sieve button.is-faded { background: #8d6b4a; }
+.colony-sieve button.is-escaper {
   background: #f0b429;
   box-shadow: 0 0 0 2px #f0b429;
 }
-.colony-sieve span.is-gone { opacity: 0.55; }
+.colony-sieve button.is-gone { opacity: 0.42; }
+.colony-sieve button.is-picked { opacity: 1; border-color: #c8f25a; }
+.colony-sieve button.is-quiet { opacity: 0.2; }
+.colony-sieve button:focus { outline: 2px solid #8fd0de; outline-offset: 1px; }
+.colony-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.4rem 0;
+}
+.colony-count {
+  flex: 1 1 11rem;
+  min-width: 0;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.6rem;
+}
+.colony-count output { display: block; font-weight: 750; }
+.colony-count.is-current { outline: 2px solid #c8f25a; }
+.swatch.faded { background: #8d6b4a; }
 .colony-sky { max-width: 22rem; margin: 0.4rem auto; }
 .colony-sky svg { width: 100%; height: auto; display: block; }
 .colony-sky [role="button"] { cursor: pointer; }

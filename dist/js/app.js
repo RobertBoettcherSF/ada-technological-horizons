@@ -2422,9 +2422,14 @@ function debugReport() {
     `Escapers: ${colony.report ? formatCanonical(colony.report.escapers) : "(not ready)"}`,
     `Lifetime years: ${colony.report ? formatCanonical(colony.report.years) : "(not ready)"}`,
     `Alive now: ${colony.report ? formatCanonical(colony.report.alive) : "(not ready)"}`,
-    `Nearest ly: ${colony.report ? formatCanonical(colony.report.distance) : "(not ready)"}`,
+    `Nearest ly: ${colony.report?.distance == null ? "(none)" : formatCanonical(colony.report.distance)}`,
     `Self deaths: ${colony.report ? formatCanonical(colony.report.self) : "(not ready)"}`,
     `Other deaths: ${colony.report ? formatCanonical(colony.report.other) : "(not ready)"}`,
+    `Faded later: ${colony.report ? formatCanonical(colony.report.faded) : "(not ready)"}`,
+    `Shown: ${colony.report ? colony.report.shown : "(not ready)"}`,
+    `Chance one in: ${colony.report?.oneIn ? formatCanonical(colony.report.oneIn) : "(count)"}`,
+    `Tapped dot: ${colony.report?.tapped == null ? "(none)" : String(colony.report.tapped)}`,
+    `Highlighted group: ${colony.report?.group ? colony.report.group : "(none)"}`,
     `Play: ${colony.report ? colony.report.play : "(not ready)"}`,
     `Calm: ${colony.report ? colony.report.calm : "(not ready)"}`,
     "",
@@ -3156,6 +3161,29 @@ function bind() {
     const button = event.target instanceof Element ? event.target.closest("[data-colony-choice]") : null;
     if (!(button instanceof HTMLButtonElement)) return;
     colony.choice = Number(button.dataset.colonyChoice);
+    renderColony();
+  });
+  document.getElementById("colony-sieve")?.addEventListener("click", (event) => {
+    const dot = event.target instanceof Element ? event.target.closest("[data-dot]") : null;
+    if (!(dot instanceof HTMLButtonElement)) return;
+    chooseColonyDot(Number(dot.dataset.dot), Number(dot.dataset.role));
+  });
+  document.getElementById("colony-sieve")?.addEventListener("keydown", (event) => {
+    const dot = event.target instanceof Element ? event.target.closest("[data-dot]") : null;
+    if (!(dot instanceof HTMLButtonElement) || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    chooseColonyDot(Number(dot.dataset.dot), Number(dot.dataset.role));
+  });
+  document.getElementById("colony-counts")?.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-colony-fate]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    const fate = Number(button.dataset.colonyFate);
+    if (colony.group === fate && colony.tapped == null) {
+      colony.group = null;
+    } else {
+      colony.group = fate;
+      colony.tapped = null;
+    }
     renderColony();
   });
   document.getElementById("colony-play")?.addEventListener("click", () => {
@@ -4598,6 +4626,8 @@ const colony = {
   sieve: 0,
   sieveStamp: 0,
   sieveFrame: 0,
+  tapped: null,
+  group: null,
   generation: 0,
   stamp: 0,
   frame: 0,
@@ -4618,7 +4648,7 @@ function stopColonyPlay() {
 function stepSieve(now) {
   if (!colony.sievePlaying) return;
   if (!colony.sieveStamp) colony.sieveStamp = now;
-  colony.sieve = Math.min(1, (now - colony.sieveStamp) / 1600);
+  colony.sieve = Math.min(1, (now - colony.sieveStamp) / 2800);
   renderColony();
   if (colony.sieve >= 1) {
     colony.sievePlaying = false;
@@ -4660,6 +4690,15 @@ function startColonyPlay() {
   renderColony();
 }
 
+const COLONY_GROUPS = ["self", "other", "faded", "escaper"];
+
+function chooseColonyDot(index, role) {
+  if (!Number.isInteger(index) || index < 1) return;
+  colony.tapped = index;
+  colony.group = role;
+  renderColony();
+}
+
 function chooseColonyStar(index) {
   if (!Number.isInteger(index) || index < 1) return;
   colony.origin = index;
@@ -4671,6 +4710,15 @@ function chooseColonyStar(index) {
     return;
   }
   startColonyPlay();
+}
+
+function colonyAxisCount(value, lang) {
+  if (!session.exports) return formatGalaxyCount(value, lang);
+  const oneIn = session.exports.ath_colony_one_in(value);
+  if (session.exports.ath_colony_shows_count(value) === 0 && oneIn > 0) {
+    return t(lang, "colony.chanceShort").replace("{n}", formatReadable(oneIn, lang));
+  }
+  return formatGalaxyCount(value, lang);
 }
 
 function formatColonyTimes(value, lang) {
@@ -4711,37 +4759,70 @@ function renderColony() {
   const sieve = document.getElementById("colony-sieve");
   if (!sieve || !session.exports || colony.years == null) return;
   const model = callColony(session, colony.choice, colony.years, colony.hopLy, colony.hopYears, colony.origin);
-  const gone = colony.sieve >= 1 || colony.calm;
+  if (colony.tapped) colony.group = model.cells[colony.tapped - 1];
+  const phase = colony.calm ? 1 : colony.sieve;
+  const roleClass = ["is-self", "is-other", "is-faded", "is-escaper"];
   const signature = `${state.lang}|${colony.choice}`;
   if (sieve.dataset.signature !== signature) {
     sieve.dataset.signature = signature;
-    sieve.replaceChildren(...model.cells.map((role) => h("span", {
-      class: role === 2 ? "is-survivor" : role === 1 ? "is-other" : "is-self",
+    sieve.replaceChildren(...model.cells.map((role, index) => h("button", {
+      type: "button",
+      class: roleClass[role] || "is-self",
+      dataset: { dot: String(index + 1), role: String(role) },
+      "aria-label": t(state.lang, `colony.fate.${role}`),
     })));
     sieve.setAttribute("aria-label", t(state.lang, "colony.sieveLabel"));
     document.getElementById("colony-sieve-legend")?.replaceChildren(
       h("li", {}, [h("span", { class: "swatch self" }), document.createTextNode(t(state.lang, "colony.legend.self"))]),
       h("li", {}, [h("span", { class: "swatch other" }), document.createTextNode(t(state.lang, "colony.legend.other"))]),
+      h("li", {}, [h("span", { class: "swatch faded" }), document.createTextNode(t(state.lang, "colony.legend.faded"))]),
       h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "colony.legend.survivor"))]),
     );
   }
-  sieve.querySelectorAll("span").forEach((node) => {
-    node.classList.toggle("is-gone", gone && !node.classList.contains("is-survivor"));
+  sieve.querySelectorAll("button").forEach((node) => {
+    const role = Number(node.dataset.role);
+    const fastGone = phase >= 0.42 && role < 2;
+    const fadedGone = phase >= 0.82 && role === 2;
+    const picked = colony.group != null && role === colony.group;
+    node.classList.toggle("is-gone", (fastGone || fadedGone) && !picked);
+    node.classList.toggle("is-picked", picked);
+    node.classList.toggle("is-quiet", colony.group != null && !picked);
+    node.setAttribute("aria-pressed", colony.tapped === Number(node.dataset.dot) ? "true" : "false");
   });
   const caption = document.getElementById("colony-sieve-caption");
   if (caption) {
     caption.textContent = t(state.lang, "colony.sieveCaption")
       .replace("{escapers}", formatReadable(model.escapers, state.lang));
   }
+  const fate = document.getElementById("colony-fate");
+  if (fate) {
+    if (colony.tapped) fate.textContent = t(state.lang, `colony.fate.${colony.group}`);
+    else if (colony.group != null) fate.textContent = t(state.lang, `colony.group.${colony.group}`);
+    else fate.textContent = t(state.lang, "colony.fate.none");
+  }
+  for (const button of document.querySelectorAll("#colony-counts [data-colony-fate]")) {
+    const chosen = colony.group === Number(button.dataset.colonyFate);
+    button.classList.toggle("is-current", chosen);
+    button.setAttribute("aria-pressed", chosen ? "true" : "false");
+  }
   const setText = (id, text) => {
     const node = document.getElementById(id);
     if (node) node.textContent = text;
   };
-  setText("colony-left", formatReadable(model.left, state.lang));
   setText("colony-self", formatReadable(model.self, state.lang));
   setText("colony-other", formatReadable(model.other, state.lang));
-  setText("colony-alive", formatGalaxyCount(model.alive, state.lang));
-  setText("colony-distance", formatGalaxyDistance(model.distance, state.lang));
+  setText("colony-faded", formatReadable(model.faded, state.lang));
+  setText("colony-stay", formatReadable(model.escapers, state.lang));
+  const sum = document.getElementById("colony-sum");
+  if (sum) {
+    sum.textContent = t(state.lang, "colony.sum").replace("{n}", formatReadable(model.self + model.other + model.faded + model.escapers, state.lang));
+  }
+  setText("colony-alive", model.showsCount
+    ? formatGalaxyCount(model.alive, state.lang)
+    : t(state.lang, "colony.chance").replace("{n}", formatReadable(model.oneIn, state.lang)));
+  setText("colony-distance", model.distanceOk
+    ? formatGalaxyDistance(model.distance, state.lang)
+    : t(state.lang, "colony.noneNow"));
   setText("colony-life-readout", formatGalaxySpan(colony.years, state.lang));
   setText("colony-hop-readout", formatGalaxyDistance(colony.hopLy, state.lang));
   for (const button of document.querySelectorAll("[data-colony-choice]")) {
@@ -4861,8 +4942,8 @@ function renderColony() {
       svgEl("text", { x: left, y: 186, fill: "#d7e2ee", "font-size": 12, text: formatGalaxySpan(low, state.lang) }),
       svgEl("text", { x: left + width, y: 186, fill: "#d7e2ee", "font-size": 12, "text-anchor": "end", text: formatGalaxySpan(high, state.lang) }),
       svgEl("text", { x: 320, y: 204, fill: "#9fb0c3", "font-size": 12, "text-anchor": "middle", text: t(state.lang, "colony.axis.x") }),
-      svgEl("text", { x: 8, y: top + 8, fill: "#d7e2ee", "font-size": 11, text: formatGalaxyCount(yHigh, state.lang) }),
-      svgEl("text", { x: 8, y: top + height, fill: "#d7e2ee", "font-size": 11, text: formatGalaxyCount(yLow, state.lang) }),
+      svgEl("text", { x: 8, y: top + 8, fill: "#d7e2ee", "font-size": 11, text: colonyAxisCount(yHigh, state.lang) }),
+      svgEl("text", { x: 8, y: top + height, fill: "#d7e2ee", "font-size": 11, text: colonyAxisCount(yLow, state.lang) }),
     ]));
     document.getElementById("colony-chart-legend")?.replaceChildren(
       h("li", {}, [h("span", { class: "swatch shared" }), document.createTextNode(t(state.lang, "colony.legend.curve"))]),
@@ -4900,9 +4981,14 @@ function renderColony() {
     escapers: model.escapers,
     years: colony.years,
     alive: model.alive,
-    distance: model.distance,
+    distance: model.distanceOk ? model.distance : null,
     self: model.self,
     other: model.other,
+    faded: model.faded,
+    shown: model.showsCount ? "count" : "chance",
+    oneIn: model.showsCount ? 0 : model.oneIn,
+    tapped: colony.tapped,
+    group: colony.group == null ? "" : COLONY_GROUPS[colony.group],
     play: colony.playing ? "playing" : "paused",
     calm: colony.calm ? "on" : "off",
     hopLy: colony.hopLy,

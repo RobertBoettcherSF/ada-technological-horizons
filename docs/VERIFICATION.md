@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.36 three steps, and 1 in N
+
+The sieve fades in three steps. 990 million die young, coloured about 65 to 35. The rest of the ten million fade later, and only the escapers stay lit. For 100,000, 1,000 and 1 escaper, the four counts add up to one billion. With one escaper and a life of 100 million years, the page says the chance one is alive now is about 1 in 150, and the neighbour line says probably none right now. Tapping a dot names its fate and lights the matching count.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/a3b8d9475dd5e6aac8a6cf7df32cca37ee4cb1df/dist/index.html
+
+The page showed release `0.1.36`, commit `a3b8d9475dd5e6aac8a6cf7df32cca37ee4cb1df`, and `application/wasm`. With one escaper the alive line was `Chance one is alive now: about 1 in 150`, the neighbour line was `probably none right now`, faded later was `9999999`, and the four counts added to `1000000000`. Tapping the gold dot said `Escaper that stays`. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (178484 bytes, SHA-256 `7d674167a5537a0bf8bc1b188f18659b90f01e607218bc613f5c6052bef525d1`, `access-control-allow-origin: *`). The local suite also loaded the module as `application/octet-stream`.
+
 ## v0.1.35 the stubborn thousand and the spreading colony
 
 A billion planets leave 10 million after 990 million die young. Self-liquidation is 643,500,000 and the other causes are 346,500,000. With 100,000 escapers and a life of 100 million years, about 666.67 are alive now on the same disc as the blinking galaxy. Crossing that disc in hops of 1,000 light-years and 10,000 years takes 50 hops and 500,000 years, so one such life could fill the galaxy 200 times over. A hop time of zero is refused with a plain sentence. The sieve is 100 dots for the billion, coloured about 65 to 35, and the gold dots stay. The colony picture is seeded: tapping a star lights its neighbours.

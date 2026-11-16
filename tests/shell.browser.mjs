@@ -200,7 +200,7 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.35/);
+  assert.match(report, /Release: 0\.1\.36/);
   assert.match(report, /Energy\nYears:/);
   assert.match(report, /Stage: (city|earth|sun)/);
   assert.match(report, /Hear them\nDistance ly:/);
@@ -883,7 +883,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.35");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.36");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1461,11 +1461,13 @@ async function exercise(page, label) {
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && !document.querySelector("#colony-card").hidden);
   await page.locator("#colony-card").scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelector("#colony-alive")?.textContent === "666.67" && document.querySelector("#colony-left")?.textContent === "10000000" && document.querySelector("#colony-fill")?.textContent === "500000 years" && document.querySelector("#colony-status")?.dataset.status === "0");
+  const colonySum = async () => page.evaluate(() => ["#colony-self", "#colony-other", "#colony-faded", "#colony-stay"].reduce((sum, id) => sum + Number(document.querySelector(id).textContent), 0));
+  await page.waitForFunction(() => document.querySelector("#colony-alive")?.textContent === "666.67" && document.querySelector("#colony-faded")?.textContent === "9900000" && document.querySelector("#colony-stay")?.textContent === "100000" && document.querySelector("#colony-fill")?.textContent === "500000 years" && document.querySelector("#colony-status")?.dataset.status === "0");
   assert.equal(await page.locator("#colony-self").textContent(), "643500000");
   assert.equal(await page.locator("#colony-other").textContent(), "346500000");
+  assert.equal(await colonySum(), 1_000_000_000);
   assert.equal(await page.locator("#colony-hops").textContent(), "50");
-  assert.equal(await page.locator("#colony-sieve span.is-survivor").count(), 8);
+  assert.equal(await page.locator("#colony-sieve button.is-escaper").count(), 6);
   assert.match(await page.locator("#colony-card .lem-note").first().textContent(), /paraphrases/);
   assert.match(await page.locator("#colony-card .explain-box").textContent(), /fill the sky/);
   assert.match(await page.locator("#colony-chart").textContent(), /Lifetime \(years\)/);
@@ -1481,12 +1483,38 @@ async function exercise(page, label) {
   await page.waitForFunction(() => document.querySelector("#colony-fill")?.textContent === "500000 years" && document.querySelector("#colony-status")?.dataset.status === "0");
   await page.locator("#colony-play").click();
   await page.waitForFunction(() => document.querySelectorAll("#colony-sky circle.star[fill='#f0b429']").length > 3);
-  await shotElement(page, label, "colony-sieve-desktop.png", "#colony-field");
-  await shotElement(page, label, "colony-spread-desktop.png", "#colony-sky");
+  await page.locator('[data-colony-choice="2"]').click();
+  await page.waitForFunction(() => document.querySelector("#colony-stay")?.textContent === "1000" && document.querySelector("#colony-faded")?.textContent === "9999000");
+  assert.equal(await colonySum(), 1_000_000_000);
+  await page.locator('[data-colony-choice="3"]').click();
+  await page.waitForFunction(() => document.querySelector("#colony-alive")?.textContent === "Chance one is alive now: about 1 in 150" && document.querySelector("#colony-distance")?.textContent === "probably none right now" && document.querySelector("#colony-stay")?.textContent === "1" && document.querySelector("#colony-faded")?.textContent === "9999999");
+  assert.equal(await colonySum(), 1_000_000_000);
+  assert.equal(await page.locator("#colony-sieve button.is-escaper").count(), 1);
+  assert.doesNotMatch(await page.locator("#colony-distance").textContent(), /light-year/);
+  await page.click("#colony-calm");
+  await page.locator("#colony-sieve button.is-escaper").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#colony-fate")?.textContent === "Escaper that stays" && document.querySelector('[data-colony-fate="3"]')?.getAttribute("aria-pressed") === "true");
+  await shotElement(page, label, "colony-one-desktop.png", "#colony-field");
+  await page.locator("#colony-sieve button.is-faded").first().click();
+  await page.waitForFunction(() => document.querySelector("#colony-fate")?.textContent === "Faded later" && document.querySelectorAll("#colony-sieve button.is-picked").length > 1);
+  await shotElement(page, label, "colony-tapped-desktop.png", "#colony-field");
   await page.setViewportSize({ width: 320, height: 800 });
   assert.ok((await overflow(page)) <= 1, "narrow colony");
-  await shotElement(page, label, "colony-sieve-narrow.png", "#colony-field");
-  await shotElement(page, label, "colony-spread-narrow.png", "#colony-sky");
+  await shotElement(page, label, "colony-tapped-narrow.png", "#colony-field");
+  await page.locator("#colony-sieve button.is-escaper").click();
+  await shotElement(page, label, "colony-one-narrow.png", "#colony-field");
+  await page.locator("#debug-toggle").click();
+  await page.waitForFunction(() => document.querySelector("#debug-dialog")?.open);
+  const [colonyReport] = await Promise.all([
+    page.waitForEvent("download"),
+    page.click("#debug-save"),
+  ]);
+  const colonyText = fs.readFileSync(await colonyReport.path(), "utf8");
+  assert.match(colonyText, /Tapped dot: \d+/);
+  assert.match(colonyText, /Highlighted group: escaper/);
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.click("#hear-send");
   await page.waitForFunction(() => document.querySelector("#hear-letter-note")?.textContent?.includes("on its way"));

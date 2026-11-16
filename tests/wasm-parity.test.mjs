@@ -715,6 +715,17 @@ test("colony survivors and fill time match Ada", async (t) => {
   assert.equal(model.fillYears, 500_000);
   assert.equal(model.times, 200);
   assert.ok(Math.abs(model.alive - 100_000 / 150) < 1e-6);
+  assert.equal(model.showsCount, true);
+  assert.equal(model.distanceOk, true);
+  for (const choice of [1, 2, 3]) {
+    const step = callColony(session, choice, 1e8, 1000, 10000, 1);
+    assert.equal(step.self + step.other + step.faded + step.escapers, 1_000_000_000, `choice ${choice}`);
+  }
+  const lone = callColony(session, 3, 1e8, 1000, 10000, 1);
+  assert.equal(lone.showsCount, false);
+  assert.equal(lone.oneIn, 150);
+  assert.equal(lone.distanceOk, false);
+  assert.equal(lone.faded, 9_999_999);
   const refused = callColony(session, 1, 1e8, 1000, 0, 1);
   assert.equal(refused.fillStatus, 2);
   assert.equal(refused.fillYears, 0);
