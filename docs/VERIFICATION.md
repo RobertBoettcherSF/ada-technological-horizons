@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.32 energy staircase
+
+Formulating the Method shows energy growing for 2,500 years. The picture goes from a city, to the Earth, to a shell around the Sun at the Earth's distance. Ada follows the path that reaches ten billion times today's energy, which is one ten-thousandth of the Sun. One third of a percent a year, the rate Lem names, reaches about 4,100 times, not ten billion. The rate that does reach ten billion times is about 0.925 percent a year. Kardashev's steps are 4×10^19, 4×10^33 and 4×10^44 erg a second, with a note that Lem wrote per year. The top step carries Shklovsky's 10^21 stars. Lem's Sun stays 4×10^33 erg/s. The modern note gives 3.8×10^26 W, which is 3.8×10^33 erg/s.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/02be9785890150e0f3ff1f88f169d13c0c76d14b/dist/index.html
+
+The page showed release `0.1.32`, commit `02be9785890150e0f3ff1f88f169d13c0c76d14b`, and `application/wasm`. At 2,500 years the readouts were **10 billion times**, **4.1×10^3** at one third of a percent, and a solar share of **1.0×10^-4**. Calm is on this card. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (166239 bytes, SHA-256 `be7ce597727fd2bf9efb2054f05b32af7644cf9c9858512feb6f25089675704a`, `access-control-allow-origin: *`).
+
 ## v0.1.31 can we hear them
 
 Formulating the Method shows a radio dish and a star. Ada computes the power an Earth-like transmitter needs as the square of the distance over ten light-years. At ten light-years that factor is 1. At a thousand light-years, a hundred times farther, it is 10,000. The rings follow that inverse-square fade. The beacon uses a gentler decibel curve, also computed in Ada, and stays a quiet ping: at a thousand light-years the loudness is about 6 percent of the reference. It is muted until the visitor taps the speaker. Calm and reduced motion keep it muted. The letter reuses the light-time core: 1,000 years out, 2,000 years there and back, and 80 generations of 25 years. Lem's antenna stays 27 metres. The Ozma dish is 85 feet, which Ada converts to 25.908 metres.

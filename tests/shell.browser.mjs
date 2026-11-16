@@ -200,7 +200,8 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.31/);
+  assert.match(report, /Release: 0\.1\.32/);
+  assert.match(report, /Energy\nYears:/);
   assert.match(report, /Hear them\nDistance ly:/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
@@ -876,7 +877,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.31");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.32");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -933,7 +934,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "10");
+  assert.equal(await page.locator("#working-count").textContent(), "11");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -950,7 +951,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "10");
+  assert.equal(await page.locator("#working-count").textContent(), "11");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -1346,6 +1347,20 @@ async function exercise(page, label) {
   await shotElement(page, label, "hear-narrow.png", "#hear-card");
   await page.click("#hear-sound");
   await page.waitForFunction(() => document.querySelector("#hear-sound")?.getAttribute("aria-pressed") === "true");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const energyPlay = page.locator("#energy-play");
+  if (await energyPlay.getAttribute("data-state") === "playing") await energyPlay.click();
+  await page.locator("#energy-years").evaluate((el) => {
+    el.value = "2500";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelector("#energy-times")?.textContent === "10 billion times" && document.querySelector("#energy-third")?.textContent === "4.1×10^3" && document.querySelector("#energy-share")?.textContent === "1.0×10^-4");
+  assert.equal(await page.locator("#energy-calm").count(), 1);
+  assert.match(await page.locator("#energy-card .explain-box").textContent(), /2,500 years/);
+  await shotElement(page, label, "energy-desktop.png", "#energy-card");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow energy");
+  await shotElement(page, label, "energy-narrow.png", "#energy-card");
   await page.click("#hear-send");
   await page.waitForFunction(() => document.querySelector("#hear-letter-note")?.textContent?.includes("on its way"));
   await page.click("#show-all");
