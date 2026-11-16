@@ -45,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callHear, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -147,6 +147,7 @@ const LINE_KEYS = [
 
 const CALCULATOR_CARDS = [
   { cardId: "lifetime-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "hear-card", sectionId: "cosmic-civilisations/formulating-the-method" },
   { cardId: "galaxy-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
   { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
   { cardId: "sixes-card", sectionId: "cosmic-civilisations/human-uniqueness" },
@@ -2331,6 +2332,13 @@ function debugReport() {
     "Expectation:",
     comment.trim() === "" ? "(none)" : comment,
     "",
+    "Hear them",
+    `Distance ly: ${hear.report ? formatCanonical(hear.report.distance) : "(not ready)"}`,
+    `Power factor: ${hear.report ? formatCanonical(hear.report.power) : "(not ready)"}`,
+    `Volume: ${hear.report ? formatCanonical(hear.report.gain) : "(not ready)"}`,
+    `Muted: ${hear.report ? hear.report.muted : "(not ready)"}`,
+    `Letter: ${hear.report ? hear.report.letter : "(not ready)"}`,
+    "",
     "Galaxy",
     `Lifetime years: ${galaxy.report ? formatCanonical(galaxy.report.years) : "(not ready)"}`,
     `Count: ${galaxy.report ? formatCanonical(galaxy.report.count) : "(not ready)"}`,
@@ -2527,6 +2535,7 @@ async function boot() {
   updateResearch();
   renderSpectrum();
   bootGalaxy();
+  bootHear();
   bootSixes();
 }
 
@@ -3090,6 +3099,38 @@ function bind() {
       if (sixes.playing) startSixesPlay();
       else renderSixes();
     }
+  });
+  document.getElementById("hear-distance")?.addEventListener("input", () => {
+    if (!session.exports) return;
+    const phase = Number(document.getElementById("hear-distance").value) / 1000;
+    hear.distance = session.exports.ath_hear_distance_of(phase);
+    renderHear();
+  });
+  document.getElementById("hear-scene")?.addEventListener("pointerdown", (event) => {
+    const scene = document.getElementById("hear-scene");
+    const slider = document.getElementById("hear-distance");
+    if (!scene || !slider) return;
+    const box = scene.getBoundingClientRect();
+    const share = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width));
+    slider.value = String(Math.round(share * 1000));
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  document.getElementById("hear-sound")?.addEventListener("click", () => {
+    toggleHearSound();
+  });
+  document.getElementById("hear-send")?.addEventListener("click", () => {
+    sendLetter();
+  });
+  document.getElementById("hear-calm")?.addEventListener("click", () => {
+    hear.calm = !hear.calm;
+    document.getElementById("hear-calm")?.setAttribute("aria-pressed", hear.calm ? "true" : "false");
+    if (hear.calm) {
+      hear.muted = true;
+      stopHearSound();
+      stopLetter();
+      if (hear.letter > 0) hear.letter = 1;
+    }
+    renderHear();
   });
   document.getElementById("chapter-list").addEventListener("click", (event) => {
     if (!(event.target instanceof Element) || !event.target.closest("#show-all")) return;
@@ -3774,6 +3815,254 @@ function bootSixes() {
   startSixesPlay();
 }
 
+const hear = {
+  distance: null,
+  muted: true,
+  calm: false,
+  letter: 0,
+  letterFrame: 0,
+  sending: false,
+  ping: 0,
+  context: null,
+  report: null,
+};
+
+function motionReduced() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function stopHearSound() {
+  if (hear.ping) clearInterval(hear.ping);
+  hear.ping = 0;
+}
+
+function stopLetter() {
+  if (hear.letterFrame) cancelAnimationFrame(hear.letterFrame);
+  hear.letterFrame = 0;
+  hear.sending = false;
+}
+
+function hearPing(gain) {
+  const ctx = hear.context;
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const amp = ctx.createGain();
+  const level = Math.max(0.0008, Math.min(0.2, 0.08 * gain));
+  const now = ctx.currentTime;
+  osc.type = "sine";
+  osc.frequency.value = 660;
+  amp.gain.setValueAtTime(0.0001, now);
+  amp.gain.exponentialRampToValueAtTime(level, now + 0.02);
+  amp.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+  osc.connect(amp);
+  amp.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.3);
+}
+
+function syncHearSound() {
+  const blocked = hear.muted || hear.calm || motionReduced();
+  if (blocked || !hear.context) {
+    stopHearSound();
+    return;
+  }
+  if (hear.ping) return;
+  const ping = () => {
+    if (!session.exports || hear.distance == null) return;
+    hearPing(session.exports.ath_hear_gain(hear.distance));
+  };
+  ping();
+  hear.ping = setInterval(ping, 1000);
+}
+
+function toggleHearSound() {
+  if (hear.calm || motionReduced()) {
+    hear.muted = true;
+    stopHearSound();
+    renderHear();
+    return;
+  }
+  hear.muted = !hear.muted;
+  if (!hear.muted && !hear.context) {
+    try {
+      const Context = window.AudioContext || window.webkitAudioContext;
+      if (Context) {
+        hear.context = new Context();
+        if (hear.context.state === "suspended") hear.context.resume();
+      }
+    } catch {
+      hear.context = null;
+    }
+  }
+  syncHearSound();
+  renderHear();
+}
+
+function sendLetter() {
+  stopLetter();
+  if (hear.calm || motionReduced()) {
+    hear.letter = 1;
+    renderHear();
+    return;
+  }
+  const started = performance.now();
+  hear.sending = true;
+  const frame = (now) => {
+    hear.letter = Math.min(1, (now - started) / 8000);
+    renderHear();
+    if (hear.letter < 1) hear.letterFrame = requestAnimationFrame(frame);
+    else hear.sending = false;
+  };
+  hear.letterFrame = requestAnimationFrame(frame);
+}
+
+function renderHear() {
+  const scene = document.getElementById("hear-scene");
+  if (!scene || !session.exports || hear.distance == null) return;
+  const model = callHear(session, hear.distance);
+  const distance = document.getElementById("hear-distance-count");
+  const power = document.getElementById("hear-power");
+  const gain = document.getElementById("hear-gain");
+  if (distance) distance.textContent = t(state.lang, "hear.ly").replace("{n}", formatGalaxyNumber(model.distance, state.lang));
+  if (power) {
+    const shown = model.power < 1
+      ? model.power.toFixed(2).replace(".", state.lang === "en-GB" ? "." : ",")
+      : model.power >= 100
+        ? formatReadable(Math.round(model.power), state.lang)
+        : formatGalaxyNumber(model.power, state.lang);
+    power.textContent = t(state.lang, "hear.times").replace("{n}", shown);
+  }
+  if (gain) gain.textContent = t(state.lang, "hear.percent").replace("{n}", formatReadable(Math.round(model.gain * 100), state.lang));
+  const slider = document.getElementById("hear-distance");
+  if (slider && document.activeElement !== slider) slider.value = String(Math.round(model.slider * 1000));
+  const sound = document.getElementById("hear-sound");
+  const sounding = !hear.muted && !hear.calm && !motionReduced();
+  if (sound) {
+    const label = t(state.lang, sounding ? "hear.soundOff" : "hear.soundOn");
+    sound.textContent = label;
+    sound.setAttribute("aria-label", label);
+    sound.setAttribute("aria-pressed", sounding ? "true" : "false");
+  }
+  const soundNote = document.getElementById("hear-sound-note");
+  if (soundNote) {
+    soundNote.textContent = t(state.lang, sounding ? "hear.sounding" : "hear.silent");
+  }
+  drawHearScene(model);
+  drawHearChart(model);
+  drawHearGenerations(model);
+  const tech = document.getElementById("hear-tech");
+  if (tech) {
+    tech.textContent = t(state.lang, "hear.tech")
+      .replace("{lem}", formatReadable(model.dishLem, state.lang))
+      .replace("{feet}", formatReadable(model.ozmaFeet, state.lang))
+      .replace("{metres}", model.ozmaMetres.toFixed(3).replace(".", state.lang === "en-GB" ? "." : ","))
+      .replace("{years}", formatReadable(model.generationYears, state.lang));
+  }
+  hear.report = {
+    distance: model.distance,
+    power: model.power,
+    gain: model.gain,
+    muted: sounding ? "no" : "yes",
+    letter: hear.sending ? "playing" : hear.letter >= 1 ? "done" : "idle",
+  };
+}
+
+function drawHearScene(model) {
+  const host = document.getElementById("hear-scene");
+  if (!host) return;
+  const starX = 130 + model.slider * 460;
+  const rings = [26, 46, 70, 98].map((radius, index) => svgEl("circle", {
+    cx: 78,
+    cy: 96,
+    r: radius,
+    fill: "none",
+    stroke: "#8fd0de",
+    "stroke-width": 2,
+    opacity: Math.max(0.04, Math.min(0.9, model.intensity * (1 - index * 0.12))),
+  }));
+  const waves = [14, 22, 30].map((radius) => svgEl("path", {
+    d: `M 108 ${96 - radius} A ${radius} ${radius} 0 0 1 108 ${96 + radius}`,
+    fill: "none",
+    stroke: "#c8f25a",
+    "stroke-width": 2,
+    opacity: Math.max(0.08, model.gain),
+  }));
+  host.replaceChildren(svgEl("svg", {
+    viewBox: "0 0 640 180",
+    role: "img",
+    "aria-label": t(state.lang, "hear.scene"),
+  }, [
+    svgEl("line", { x1: 40, y1: 150, x2: 610, y2: 150, stroke: "#314863", "stroke-width": 2 }),
+    ...rings,
+    svgEl("path", { d: "M 58 132 L 98 132 L 88 78 L 68 78 Z", fill: "#d7e7ff" }),
+    svgEl("rect", { x: 74, y: 70, width: 8, height: 28, fill: "#8fd0de" }),
+    ...waves,
+    svgEl("circle", { cx: starX, cy: 78, r: 12, fill: "#f0b429" }),
+  ]));
+}
+
+function drawHearChart(model) {
+  const host = document.getElementById("hear-chart");
+  if (!host) return;
+  const left = 58;
+  const top = 16;
+  const width = 540;
+  const height = 140;
+  const yOf = (power) => {
+    const log = Math.log10(Math.max(power, 1e-6));
+    return top + (1 - (log + 2) / 6) * height;
+  };
+  const curve = model.samples.map((sample) => `${left + sample.x * width},${yOf(sample.power)}`).join(" ");
+  const pins = [model.reference, model.far].map((distance) => svgEl("circle", {
+    cx: left + session.exports.ath_hear_slider_of(distance) * width,
+    cy: yOf(session.exports.ath_hear_power(distance)),
+    r: 5,
+    fill: "#f0b429",
+  }));
+  host.replaceChildren(svgEl("svg", {
+    viewBox: "0 0 640 190",
+    role: "img",
+    "aria-label": t(state.lang, "hear.chart"),
+  }, [
+    svgEl("line", { x1: left, y1: top, x2: left, y2: top + height, stroke: "#9fb0c3" }),
+    svgEl("line", { x1: left, y1: top + height, x2: left + width, y2: top + height, stroke: "#9fb0c3" }),
+    svgEl("polyline", { points: curve, fill: "none", stroke: "#9fb0c3", "stroke-dasharray": "6 4", "stroke-width": 2 }),
+    ...pins,
+    svgEl("text", { x: left, y: 12, fill: "#b7c9dc", "font-size": 12, text: "10,000×" }),
+    svgEl("text", { x: left - 18, y: top + (height * 2) / 3, fill: "#b7c9dc", "font-size": 12, text: "1×" }),
+    svgEl("text", { x: 8, y: top + height, fill: "#b7c9dc", "font-size": 12, text: "0.01×" }),
+    svgEl("text", { x: left, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1 ly" }),
+    svgEl("text", { x: left + width / 3 - 16, y: 184, fill: "#b7c9dc", "font-size": 12, text: "10 ly" }),
+    svgEl("text", { x: left + width - 48, y: 184, fill: "#b7c9dc", "font-size": 12, text: "1,000 ly" }),
+  ]));
+}
+
+function drawHearGenerations(model) {
+  const host = document.getElementById("hear-generations");
+  const note = document.getElementById("hear-letter-note");
+  if (!host) return;
+  const count = Math.round(model.generations);
+  const passed = Math.round(count * hear.letter);
+  host.replaceChildren(...Array.from({ length: count }, (_, index) => h("span", {
+    class: index < passed ? "is-passed" : "",
+  })));
+  if (!note) return;
+  const key = hear.letter <= 0 ? "hear.letterIdle" : hear.letter < 0.5 ? "hear.letterOut" : hear.letter < 1 ? "hear.letterBack" : "hear.letterDone";
+  note.textContent = t(state.lang, key)
+    .replace("{generations}", formatReadable(count, state.lang))
+    .replace("{years}", formatReadable(model.generationYears, state.lang));
+}
+
+function bootHear() {
+  if (!session.exports) return;
+  hear.calm = motionReduced();
+  hear.muted = true;
+  hear.distance = session.exports.ath_hear_reference();
+  document.getElementById("hear-calm")?.setAttribute("aria-pressed", hear.calm ? "true" : "false");
+  stopHearSound();
+  renderHear();
+}
+
 function refresh() {
   applyI18n();
   renderChapterNav();
@@ -3782,6 +4071,7 @@ function refresh() {
   renderReading(routeFromHash());
   renderSpectrum();
   renderGalaxy();
+  renderHear();
   renderSixes();
   document.getElementById("language").value = state.lang;
   document.getElementById("sort").value = state.sort;

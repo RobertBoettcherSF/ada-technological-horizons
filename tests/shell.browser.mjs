@@ -200,7 +200,8 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.30/);
+  assert.match(report, /Release: 0\.1\.31/);
+  assert.match(report, /Hear them\nDistance ly:/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
   assert.doesNotMatch(report.split("Ten sixes")[1].split("Lifetime")[0], /Calm:/);
@@ -875,7 +876,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.30");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.31");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -932,7 +933,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "9");
+  assert.equal(await page.locator("#working-count").textContent(), "10");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -949,7 +950,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "9");
+  assert.equal(await page.locator("#working-count").textContent(), "10");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -1328,6 +1329,25 @@ async function exercise(page, label) {
   assert.match(await page.locator("#sixes-egg-explain").textContent(), /The chance on the readout is our calculation/);
   assert.match(await page.locator("#sixes-eggs-lem").textContent(), /certainty/);
   assert.match(await page.locator("#sixes-eggs-lem").textContent(), /does not give the chance for a single egg/);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => { location.hash = "#cosmic-civilisations/formulating-the-method"; });
+  await page.waitForFunction(() => !document.querySelector("#hear-card").hidden && document.querySelector("#hear-power")?.textContent === "1 times" && document.querySelectorAll("#hear-generations span").length === 80);
+  assert.equal(await page.locator("#hear-sound").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator("#hear-calm").count(), 1);
+  assert.match(await page.locator("#hear-card .explain-box").textContent(), /ten light-years/);
+  await page.locator("#hear-distance").evaluate((el) => {
+    el.value = "1000";
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.querySelector("#hear-power")?.textContent === "10000 times");
+  await shotElement(page, label, "hear-desktop.png", "#hear-card");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow hear");
+  await shotElement(page, label, "hear-narrow.png", "#hear-card");
+  await page.click("#hear-sound");
+  await page.waitForFunction(() => document.querySelector("#hear-sound")?.getAttribute("aria-pressed") === "true");
+  await page.click("#hear-send");
+  await page.waitForFunction(() => document.querySelector("#hear-letter-note")?.textContent?.includes("on its way"));
   await page.click("#show-all");
   await page.waitForFunction(() => location.hash === "" && document.querySelector("#chapters-label")?.textContent === "Chapters");
   await page.click("#lottery-preset-small");

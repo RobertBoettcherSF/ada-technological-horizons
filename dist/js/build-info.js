@@ -1,7 +1,7 @@
 export const buildInfo = {
-  version: "0.1.30",
-  builtFrom: "6f2141db8da8068cdfe5b69785ddf95145b88c54",
-  wasmSha256: "ce72d46131391440379a5d5744419c81d26be57007e888589eb8227b41466f6b",
+  version: "0.1.31",
+  builtFrom: "593f32e5c02f35b618c745c4fe53d2c4ff540b43",
+  wasmSha256: "c2c376528bf2127af56b78c7e6d5f5ee1dcd128f8e979baf2d2ae4604a16fa4d",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
   nativeCompiler: "GNATMAKE 13.3.0",
 };

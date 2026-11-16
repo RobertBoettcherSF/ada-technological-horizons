@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callDelay, callEggs, callExplore, callGalaxy, callGrowth, callHear, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -628,6 +628,30 @@ test("ten sixes uses a stable chance and a repeatable roll", async () => {
   const eggs = callEggs(session, 3e6);
   assert.equal(eggs.expected, 1);
   assert.ok(Math.abs(eggs.chance - 0.6321206201418064) < 1e-9);
+});
+
+test("a radio dish needs ten thousand times the power at a hundred times the distance", async () => {
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const near = callHear(session, 10);
+  const far = callHear(session, 1000);
+  assert.ok(Math.abs(near.power - 1) < 1e-12);
+  assert.ok(Math.abs(far.power - 10000) < 1e-6);
+  assert.ok(far.gain > 0.01 && far.gain < near.gain);
+  assert.ok(Math.abs(near.oneWay - 1000) < 1e-6);
+  assert.ok(Math.abs(near.round - 2000) < 1e-6);
+  assert.ok(Math.abs(near.generations - 80) < 1e-6);
+  assert.equal(near.dishLem, 27);
 });
 
 test("a failed module load does not invent a sum", async () => {

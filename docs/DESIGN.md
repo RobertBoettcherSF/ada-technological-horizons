@@ -132,11 +132,11 @@ Little quantitative content. It is mostly forecasting history.
 - Ada computes (1+r)^t. It shows **Lem's stated result (10¹⁰) and the arithmetic for 1/3 % (about 4,100×) side by side**, plus the rate that would give 10¹⁰ (about 0.93 %/yr). Text is never altered (see §4).
 - MODERN: the Sun's luminosity is 3.8×10²⁶ W = 3.8×10³³ erg/s, which matches Lem's 4×10³³.
 
-**III-04 · Sformułowanie metody · l. 163–164 · LEM-Q · planned (0.1.31)**
+**III-04 · Sformułowanie metody · l. 163–164 · LEM-Q · BUILT (0.1.31)**
 - *„Aparatura ta mogła odebrać sygnały … z dystansu dziesiątka lat świetlnych.”* From 1960, Drake's Green Bank receiver could hear Earth-strength transmitters out to about 10 ly. It could hear "sto razy większej" (100× farther) if the signal were strong enough. The antenna is described as 27 m.
 - Scientists: Drake; the idea came from Cocconi and Morrison.
-- Interactive ⭐ "Can we hear them?": drag a star away from the dish and watch the received "loudness" fade with inverse-square rings. Dragging to 100× farther shows the transmitter must be 10,000× stronger. A speaker icon gets quieter (visual only, no audio needed).
-- The **inverse-square law is OURS** (standard physics). The 10 ly and 100× figures are Lem's.
+- Interactive ⭐ "Can we hear them?": drag a star away from the dish and watch the received loudness fade with inverse-square rings. Dragging to 100× farther shows the transmitter must be 10,000× stronger. A speaker icon gets quieter. A soft ping, muted until the visitor taps the speaker, follows a gentler decibel curve (OURS) so it does not go silent at once. Calm and reduced motion keep it muted.
+- The **inverse-square law is OURS** (standard physics). The 10 ly, the 100× farther reach, and the 27 m antenna are Lem's.
 - MODERN: Project Ozma used an 85-ft (about 26 m) dish. Lem's figure is not altered.
 
 **III-05 · Sformułowanie metody / Statystyka · l. 163, 169–172 · LEM-Q · planned (0.1.24)**
@@ -155,7 +155,7 @@ Little quantitative content. It is mostly forecasting history.
 - Already built: the weighted mean (6,523). The delay calculator covers the 2,000-year round trip.
 - Additions:
   - (a) "First contact age" (12,000 years) and "same stage" (0.5 %) shown as Lem-reported values, with no recomputation unless von Hoerner's method is sourced.
-  - (b) ⭐ "Letter to the stars": send a ✉️ question and watch a 1,000-year trip there and 1,000 back, while a family-tree strip shows about 80 generations passing on Earth.
+  - (b) ⭐ "Letter to the stars" (built with 0.1.31): send a question and watch a 1,000-year trip there and 1,000 back, while a strip shows about 80 generations passing on Earth. One generation is 25 years, our choice. The years come from the light-time core.
 
 **III-07 · Statystyka · l. 177 · LEM-T (cites Shklovsky) · planned (0.1.33)**
 - *„podobieństwo takiego procesu do lawinowego rozmnożenia organizmów”*. Shklovsky compares the spread of a long-lived civilisation to the avalanche growth of organisms, and Lem asks why such expansion is not seen.
@@ -503,7 +503,7 @@ Order: **Chapter III first**, since Robert asked for the scientists' calculation
 | **0.1.28** | **Ten sixes, made plain**: expected winners, a crowd of equal pictures, and ladder steps | III-11 | N×6⁻¹⁰ at 333 million players ≈ 5.5; geometric draws are reproducible; Calm shows the throw count without animation. |
 | **0.1.29** | **Ten-sixes wording fix**: highlighted explanation, and Lem's own words | III-11 | Amber says he paraphrases Baumsztejn and that a billion players make the chance far greater; 0.9999999343 is labelled our calculation; the egg certainty stays amber only as his own words. |
 | **0.1.30** | **Ten sixes, without the Calm button**: this card only | III-11 | No Calm control on Ten sixes / cod eggs; Play/Pause stays; reduced motion still starts paused and shows the roll-until count at once; other cards keep Calm; Baumsztejn stays unlinked with no spelling note. |
-| **0.1.31** | **Can we hear them?** (Drake, Cocconi, Morrison) plus a "Letter to the stars" add-on to delay | III-04, III-06b, III-01 | 10 ly at reference power; 100× distance → 10,000× power; 1,000 ly → 2,000-y round trip (reuses delay core); antenna MODERN note. |
+| **0.1.31** | **Can we hear them?** (Drake, Cocconi, Morrison) plus a "Letter to the stars" add-on to delay | III-04, III-06b, III-01 | 10 ly at reference power; 100× distance → 10,000× power; beacon gain stays audible at that distance; 1,000 ly → 1,000 y out and 2,000 y round trip, 80 generations of 25 y (reuses delay core); antenna MODERN note keeps Lem's 27 m. |
 | **0.1.32** | **Energy staircase**: Dyson sphere, Kardashev types, Shklovsky's 10²¹ stars | III-03, III-16, III-15, III-02 | (1.00333…)^2500 ≈ 4.1×10³ is shown beside Lem's stated 10¹⁰ with neutral wording; rate for 10¹⁰ ≈ 0.925 %/yr; Kardashev units note (erg/s vs "roczne"); Sun 4×10³³ erg/s. |
 | **0.1.33** | **The stubborn thousand and the spreading colony** (von Hoerner 65:35, Shklovsky avalanche) | III-08, III-07, III-14 | 990 M / 1 B short-lived; survivor choices 10⁵ / 10³ / 1 drive coexisting count via the 0.1.24 core; spread rules labelled OURS; histogram people vs civilisations. |
 | **0.1.34** | **Racing rocket rainbow**: Doppler shift on the existing spectrum strip (Shklovsky, Doppler) | III-10 | v=0 → no shift; relativistic factor √((1+β)/(1−β)) verified against fixtures; lines leaving the strip are labelled "now radio"; reuses spectrum Ada core. |
