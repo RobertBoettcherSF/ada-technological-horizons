@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.31 can we hear them
+
+Formulating the Method shows a radio dish and a star. Ada computes the power an Earth-like transmitter needs as the square of the distance over ten light-years. At ten light-years that factor is 1. At a thousand light-years, a hundred times farther, it is 10,000. The rings follow that inverse-square fade. The beacon uses a gentler decibel curve, also computed in Ada, and stays a quiet ping: at a thousand light-years the loudness is about 6 percent of the reference. It is muted until the visitor taps the speaker. Calm and reduced motion keep it muted. The letter reuses the light-time core: 1,000 years out, 2,000 years there and back, and 80 generations of 25 years. Lem's antenna stays 27 metres. The Ozma dish is 85 feet, which Ada converts to 25.908 metres.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/cb1de05f842b1b798ecf99b5bfaa27f91bc99d00/dist/index.html
+
+The page showed release `0.1.31`, commit `cb1de05f842b1b798ecf99b5bfaa27f91bc99d00`, and `application/wasm`. At ten light-years the power read **1 times** and the beacon **100 percent**. At a thousand light-years the power read **10000 times** and the beacon **6 percent**. The letter strip had 80 marks. The beacon button started unpressed. This card has Calm. The ten-sixes card does not. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (163844 bytes, SHA-256 `c2c376528bf2127af56b78c7e6d5f5ee1dcd128f8e979baf2d2ae4604a16fa4d`, `access-control-allow-origin: *`).
+
 ## v0.1.30 ten sixes without Calm
 
 The Ten sixes card no longer has a Calm button, and the amber note no longer says that Baumsztejn has no Wikipedia link. He stays unlinked. Play and Pause remain. Other cards still have Calm. With reduced motion the card starts paused, and Roll until ten sixes shows the finished count at once.
