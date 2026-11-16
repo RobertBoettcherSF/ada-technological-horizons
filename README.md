@@ -179,6 +179,10 @@ Verified v0.1.18 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/b92d72bb5fa653c3a4d2499105a9a0c57233d1a8/dist/index.html
 
+Verified v0.1.29 snapshot:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c06dc834d163a31214e65d26eb0bf9d9729e4765/dist/index.html
+
 Verified v0.1.28 snapshot:
 
 https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/5edc17248fa665ecc16b5193171691070820f8f7/dist/index.html

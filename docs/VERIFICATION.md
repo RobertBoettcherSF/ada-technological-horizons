@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.29 ten-sixes wording
+
+The explanation sits in a highlighted box at the top of the Ten dice tab, and the egg tab has the same kind of box. The amber note says Lem paraphrases Baumsztejn's argument and that a billion players make the chance far greater. He does not say almost sure. He does call at least one or two fish from about three million eggs a certainty, and he does not give a per-egg chance. The figure 0.9999999343 is in the dashed note and is labelled our calculation.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/c06dc834d163a31214e65d26eb0bf9d9729e4765/dist/index.html
+
+The page showed release `0.1.29`, commit `c06dc834d163a31214e65d26eb0bf9d9729e4765`, and `application/wasm`. The heading read “When does a rare throw become likely?” The highlighted box read “One throw almost never gives ten sixes. But with enough players, someone almost surely does. Pick how many people throw. Gold means someone in that group got ten sixes.” A billion players still showed chance **0.9999999343** and about **16.5** expected winners. At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (158798 bytes, SHA-256 `ce72d46131391440379a5d5744419c81d26be57007e888589eb8227b41466f6b`, `access-control-allow-origin: *`).
+
 ## v0.1.28 ten sixes, made plain
 
 The dice tab now says how many players get ten sixes. Ada multiplies the number of players by 6⁻¹⁰. One billion players expect about 16.5 winners, and the chance that someone does it stays about 0.9999999343. Five ladder steps lead: 1, 1,000, 1 million, 60 million, and 1 billion. Each bar fills with that chance and a plain word. Forty-eight equal pictures share the players. A gold picture is a group that includes a ten-sixes throw, and adding players only adds gold marks. Roll until ten sixes draws a seeded geometric count, typically tens of millions of throws. Calm shows that count without animation. Baumsztejn stays unlinked. Lem's objection stays in the amber note.
