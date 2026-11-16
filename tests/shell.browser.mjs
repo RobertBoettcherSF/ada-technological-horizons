@@ -200,9 +200,10 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.29/);
+  assert.match(report, /Release: 0\.1\.30/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
+  assert.doesNotMatch(report.split("Ten sixes")[1].split("Lifetime")[0], /Calm:/);
   assert.match(report, /Galaxy\nLifetime years:/);
   assert.match(report, /Drawn dots: \d+/);
   assert.match(report, /Play: (playing|paused)/);
@@ -874,7 +875,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.29");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.30");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -1276,7 +1277,10 @@ async function exercise(page, label) {
   const lemNote = await page.locator("#sixes-lem").textContent();
   assert.match(lemNote, /^Lem paraphrases Baumsztejn's argument/);
   assert.match(lemNote, /far greater/);
-  assert.doesNotMatch(lemNote, /almost sure|almost certain|reports Baumsztejn/i);
+  assert.doesNotMatch(lemNote, /almost sure|almost certain|reports Baumsztejn|Wikipedia/i);
+  assert.equal(await page.locator("#sixes-calm").count(), 0);
+  assert.equal(await page.locator("#sixes-play").count(), 1);
+  assert.equal(await page.locator("#galaxy-calm").count(), 1);
   assert.match(await page.locator("#sixes-ours").textContent(), /Our calculation/);
   assert.match(await page.locator("#sixes-ours").textContent(), /0\.9999999343/);
   const explainBox = page.locator("#sixes-explain");

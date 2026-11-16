@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.29">
+  <meta name="ath-release" content="0.1.30">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.29</p>
+        <p class="release-pill" id="header-version">0.1.30</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -213,7 +213,7 @@
     <section id="sixes-card" class="lifetime-card" aria-labelledby="sixes-title">
       <p class="kicker" data-i18n="sixes.path">Cosmic Civilisations · Human Uniqueness</p>
       <h2 id="sixes-title" data-i18n="sixes.title">When does a rare throw become likely?</h2>
-      <p id="sixes-lem" class="lem-note" data-i18n="sixes.lem">Lem paraphrases Baumsztejn's argument. He does not quote the calculations. One player throwing ten sixes is extremely unlikely. A billion players at once make that chance far greater. About three million cod eggs in one spawning yield one adult fish, and he calls the chance of at least one or two fish a certainty. Baumsztejn has no Wikipedia link here: the spelling was not checked in print.</p>
+      <p id="sixes-lem" class="lem-note" data-i18n="sixes.lem">Lem paraphrases Baumsztejn's argument. He does not quote the calculations. One player throwing ten sixes is extremely unlikely. A billion players at once make that chance far greater. About three million cod eggs in one spawning yield one adult fish, and he calls the chance of at least one or two fish a certainty.</p>
       <p id="sixes-ours" class="ours-note" data-i18n="sixes.ours">Our calculation: a billion players give a chance of about 0.9999999343, which in this picture is almost certain. The rolls, the curve, the crowd and the per-egg chance are our illustration, not Lem's model. One egg in three million is our reading of one fish from three million eggs. That reading is not the certainty he names for one or two fish.</p>
       <div class="button-row" role="tablist">
         <button type="button" id="sixes-tab-dice" role="tab" aria-selected="true" data-i18n="sixes.tab.dice">Ten dice</button>
@@ -272,9 +272,6 @@
         </ul>
       </div>
       <p class="lem-note" data-i18n="sixes.objection">Lem's objection: an egg that never becomes a fish is destroyed. A line of animals that never becomes human can still lead to minds another way. Evolution is not a dice game that only wins or loses.</p>
-      <div class="button-row">
-        <button type="button" id="sixes-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
-      </div>
       <details id="sixes-sources">
         <summary data-i18n="sixes.details">Technical details</summary>
         <p class="note" data-i18n="sixes.tech">The chance one player throws ten sixes is 6 to the power −10. The chance at least one of N players does it is one minus the quantity (1 − that chance) to the power N, computed as −expm1(N · log1p(−p)) so a tiny chance does not vanish. The egg chance per egg is one divided by three million, our reading of “one fish from three million eggs”. The rolls use a seeded sequence in Ada, so the same roll number always shows the same faces.</p>

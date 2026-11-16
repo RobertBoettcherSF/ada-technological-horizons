@@ -2353,7 +2353,6 @@ function debugReport() {
     `Ladder: ${sixes.report ? sixes.report.ladder : "(not ready)"}`,
     `Until: ${sixes.report?.until == null ? "(not drawn)" : formatCanonical(sixes.report.until)}`,
     `Play: ${sixes.report ? sixes.report.play : "(not ready)"}`,
-    `Calm: ${sixes.report ? sixes.report.calm : "(not ready)"}`,
     "",
     "Lifetime",
     `Probabilities: ${[1, 2, 3, 4].map((index) => valueOf(`prob-${index}`)).join(", ")}`,
@@ -3075,15 +3074,6 @@ function bind() {
     showUntil(callSixesUntil(session, sixes.untilDraw), true);
     renderSixes();
   });
-  document.getElementById("sixes-calm")?.addEventListener("click", () => {
-    sixes.calm = !sixes.calm;
-    document.getElementById("sixes-calm").setAttribute("aria-pressed", sixes.calm ? "true" : "false");
-    if (sixes.calm) {
-      stopSixesPlay();
-      if (sixes.untilTarget != null) showUntil(sixes.untilTarget, false);
-      renderSixes();
-    }
-  });
   document.getElementById("sixes-card")?.addEventListener("keydown", (event) => {
     if (event.target instanceof HTMLInputElement && event.target.type === "text") return;
     if (event.key === " " && !(event.target instanceof HTMLButtonElement)) {
@@ -3556,7 +3546,6 @@ const sixes = {
   untilTarget: null,
   untilFrame: 0,
   playing: false,
-  calm: false,
   timer: 0,
   faces: [],
   sixCount: 0,
@@ -3589,14 +3578,11 @@ function rollSixes(setIndex) {
 function startSixesPlay() {
   if (!session.exports) return;
   sixes.playing = true;
-  sixes.calm = false;
   if (sixes.timer) clearInterval(sixes.timer);
   sixes.timer = setInterval(() => {
     rollSixes(sixes.setIndex + 1);
     renderSixes();
   }, 1200);
-  const calmButton = document.getElementById("sixes-calm");
-  if (calmButton) calmButton.setAttribute("aria-pressed", "false");
   renderSixes();
 }
 
@@ -3676,7 +3662,7 @@ function showUntil(target, animate) {
       note.textContent = t(state.lang, "sixes.untilNote").replace("{n}", formatReadable(Math.round(value), state.lang));
     }
   };
-  if (!animate || sixes.calm || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (!animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     write(target);
     return;
   }
@@ -3761,7 +3747,6 @@ function renderSixes() {
     ladder: sixes.ladder,
     until: sixes.untilTarget,
     play: sixes.playing ? "playing" : "paused",
-    calm: sixes.calm ? "on" : "off",
   };
 }
 
@@ -3778,12 +3763,9 @@ function fillSixesTable(samples) {
 function bootSixes() {
   if (!session.exports) return;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  sixes.calm = reduce;
   sixes.players = session.exports.ath_sixes_players_of(1);
   sixes.eggs = session.exports.ath_sixes_egg_count();
   rollSixes(1);
-  const calmButton = document.getElementById("sixes-calm");
-  if (calmButton) calmButton.setAttribute("aria-pressed", reduce ? "true" : "false");
   if (reduce) {
     stopSixesPlay();
     renderSixes();
