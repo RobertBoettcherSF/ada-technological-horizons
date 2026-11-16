@@ -113,6 +113,10 @@ gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/energy_tests" \
   "$ROOT/tests/native/energy_tests.adb" \
   -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
 "$ROOT/build/native/energy_tests" | tee "$ROOT/build/native/energy-fixtures.txt"
+gnatmake -D "$ROOT/build/native" -o "$ROOT/build/native/colony_tests" \
+  "$ROOT/tests/native/colony_tests.adb" \
+  -I"$ROOT/ada/core" -I"$ROOT/ada/browser"
+"$ROOT/build/native/colony_tests" | tee "$ROOT/build/native/colony-fixtures.txt"
 
 compile_wasm() {
   local Source="$1"
@@ -134,6 +138,7 @@ compile_wasm "$ROOT/ada/core/ath_galaxy.adb" ath_galaxy.o
 compile_wasm "$ROOT/ada/core/ath_sixes.adb" ath_sixes.o
 compile_wasm "$ROOT/ada/core/ath_hear.adb" ath_hear.o
 compile_wasm "$ROOT/ada/core/ath_energy.adb" ath_energy.o
+compile_wasm "$ROOT/ada/core/ath_colony.adb" ath_colony.o
 compile_wasm "$ROOT/ada/browser/ath_addition_exports.adb" ath_addition_exports.o
 compile_wasm "$ROOT/ada/browser/ath_lifetime_exports.adb" ath_lifetime_exports.o
 compile_wasm "$ROOT/ada/browser/ath_growth_exports.adb" ath_growth_exports.o
@@ -147,6 +152,7 @@ compile_wasm "$ROOT/ada/browser/ath_galaxy_exports.adb" ath_galaxy_exports.o
 compile_wasm "$ROOT/ada/browser/ath_sixes_exports.adb" ath_sixes_exports.o
 compile_wasm "$ROOT/ada/browser/ath_hear_exports.adb" ath_hear_exports.o
 compile_wasm "$ROOT/ada/browser/ath_energy_exports.adb" ath_energy_exports.o
+compile_wasm "$ROOT/ada/browser/ath_colony_exports.adb" ath_colony_exports.o
 compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
 (
   cd "$ROOT/build/wasm"
@@ -156,8 +162,8 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     --target=wasm32 -gnatA -I"$ROOT/ada/core" -I"$ROOT/ada/browser" \
     -o b~ath_browser.o
   "$TOOLCHAIN/bin/llvm-gcc" --target=wasm32 -o ath_addition.wasm \
-    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o ath_lottery.o ath_research.o ath_spectrum.o ath_galaxy.o ath_sixes.o ath_hear.o ath_energy.o \
-    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o ath_lottery_exports.o ath_research_exports.o ath_spectrum_exports.o ath_galaxy_exports.o ath_sixes_exports.o ath_hear_exports.o ath_energy_exports.o \
+    ath_addition.o ath_lifetime.o ath_growth.o ath_delay.o ath_throughput.o ath_choice.o ath_lottery.o ath_research.o ath_spectrum.o ath_galaxy.o ath_sixes.o ath_hear.o ath_energy.o ath_colony.o \
+    ath_addition_exports.o ath_lifetime_exports.o ath_growth_exports.o ath_delay_exports.o ath_throughput_exports.o ath_choice_exports.o ath_lottery_exports.o ath_research_exports.o ath_spectrum_exports.o ath_galaxy_exports.o ath_sixes_exports.o ath_hear_exports.o ath_energy_exports.o ath_colony_exports.o \
     ath_browser.o b~ath_browser.o \
     -L"$TOOLCHAIN/lib/rts-native/adalib" -lgnat \
     -nostdlib \
@@ -412,6 +418,37 @@ compile_wasm "$ROOT/ada/browser/ath_browser.ads" ath_browser.o
     -Wl,--export=ath_energy_horizon \
     -Wl,--export=ath_energy_sample_count \
     -Wl,--export=ath_energy_sample_years \
+    -Wl,--export=ath_colony_left \
+    -Wl,--export=ath_colony_self \
+    -Wl,--export=ath_colony_other \
+    -Wl,--export=ath_colony_escapers \
+    -Wl,--export=ath_colony_survivors \
+    -Wl,--export=ath_colony_alive \
+    -Wl,--export=ath_colony_distance \
+    -Wl,--export=ath_colony_life_of \
+    -Wl,--export=ath_colony_slider_of \
+    -Wl,--export=ath_colony_cell_count \
+    -Wl,--export=ath_colony_cell_role \
+    -Wl,--export=ath_colony_fill \
+    -Wl,--export=ath_colony_hops \
+    -Wl,--export=ath_colony_fill_years \
+    -Wl,--export=ath_colony_times \
+    -Wl,--export=ath_colony_star_count \
+    -Wl,--export=ath_colony_star_x \
+    -Wl,--export=ath_colony_star_y \
+    -Wl,--export=ath_colony_generation \
+    -Wl,--export=ath_colony_sample_count \
+    -Wl,--export=ath_colony_sample_years \
+    -Wl,--export=ath_colony_window \
+    -Wl,--export=ath_colony_radius \
+    -Wl,--export=ath_colony_life_min \
+    -Wl,--export=ath_colony_life_max \
+    -Wl,--export=ath_colony_hop_min \
+    -Wl,--export=ath_colony_hop_max \
+    -Wl,--export=ath_colony_time_min \
+    -Wl,--export=ath_colony_time_max \
+    -Wl,--export=ath_colony_hop_of \
+    -Wl,--export=ath_colony_time_of \
     -Wl,--export-memory
 )
 
@@ -429,7 +466,7 @@ NATIVE_VERSION="$(gnatmake --version | head -n 1)"
 
 cat > "$ROOT/dist/js/build-info.js" <<EOF
 export const buildInfo = {
-  version: "0.1.34",
+  version: "0.1.35",
   builtFrom: "${BUILT_FROM}",
   wasmSha256: "${WASM_SHA}",
   toolchain: "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",
@@ -440,7 +477,7 @@ EOF
 cat > "$ROOT/dist/version.json" <<EOF
 {
   "name": "ada-technological-horizons",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "builtFrom": "${BUILT_FROM}",
   "wasmSha256": "${WASM_SHA}",
   "toolchain": "AdaWebPack 24.0.0 / GNAT-LLVM (llvm-gcc 14) / LLD 16.0.6",

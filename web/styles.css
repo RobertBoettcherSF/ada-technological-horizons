@@ -1076,6 +1076,8 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 .swatch.shared { background: #d7e7ff; }
 .swatch.tc { background: #f0b429; }
+.swatch.self { background: #c45c26; }
+.swatch.other { background: #6e7c8a; }
 
 .tc-stars li { margin: 0.85rem 0; }
 
@@ -1200,6 +1202,36 @@ footer { padding: 0 0 2.5rem; color: var(--muted); }
 
 .galaxy-sky circle.star,
 .galaxy-sky circle.glow { transition: opacity 0.45s linear; }
+
+#colony-field { max-width: 40rem; }
+.colony-sieve {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0.4rem 0 0.6rem;
+}
+.colony-sieve span {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  min-width: 0;
+}
+.colony-sieve span.is-self { background: #c45c26; }
+.colony-sieve span.is-other { background: #6e7c8a; }
+.colony-sieve span.is-survivor {
+  background: #f0b429;
+  box-shadow: 0 0 0 2px #f0b429;
+}
+.colony-sieve span.is-gone { opacity: 0.55; }
+.colony-sky { max-width: 22rem; margin: 0.4rem auto; }
+.colony-sky svg { width: 100%; height: auto; display: block; }
+.colony-sky [role="button"] { cursor: pointer; }
+.colony-sky [role="button"]:focus { outline: 2px solid #8fd0de; }
+#colony-card input[type="number"],
+#colony-card input[type="range"] { width: 100%; max-width: 100%; min-width: 0; }
+#colony-card .galaxy-chart svg,
+#colony-card .colony-sky svg { max-width: 100%; }
 
 .lem-note, .ours-note {
   margin: 0.45rem 0;

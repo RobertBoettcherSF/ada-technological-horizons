@@ -71,6 +71,13 @@ package Ath_Galaxy is
       Upper    : out Pin_Flags;
       Slider   : out Pin_Values);
 
+   --  The same share used for the blinking galaxy: min(L / 15 billion years, 1).
+   function Coexisting (Population, Years : Long_Float) return Long_Float;
+
+   --  Half of one over the square root of the surface density on the
+   --  declared 50,000 light-year disc. Zero when the count is not positive.
+   function Neighbour_Of (Count : Long_Float) return Long_Float;
+
    function Slider_Of (Years : Long_Float) return Long_Float;
    function Years_Of (Slider : Long_Float) return Long_Float;
    function Distance_Pos (Distance : Long_Float) return Long_Float;

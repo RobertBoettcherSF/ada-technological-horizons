@@ -158,11 +158,12 @@ test("clear filters restores reading order", () => {
 
 test("planned entries are never counted as working calculators", () => {
   assert.equal(countWorkingCalculators(fixture), 2);
-  assert.equal(countWorkingCalculators(entries), 8);
+  assert.equal(countWorkingCalculators(entries), 9);
   const calculators = entries.filter((entry) => entry.type === "calculator" && entry.availability === "available").map((entry) => entry.id);
   assert.deepEqual(calculators, [
     "cosmic-civilisations/formulating-the-method",
     "cosmic-civilisations/statistics-of-cosmic-civilisations",
+    "cosmic-civilisations/cosmic-catastrophism",
     "cosmic-civilisations/human-uniqueness",
     "intellectronics/return-to-earth",
     "intellectronics/the-megabit-bomb",
@@ -206,5 +207,5 @@ test("production catalogue keeps eight book chapters and stable English ids", ()
     }
   }
   assert.equal(sections.length, 73);
-  assert.equal(entries.filter((entry) => entry.type === "calculator").length, 8);
+  assert.equal(entries.filter((entry) => entry.type === "calculator").length, 9);
 });

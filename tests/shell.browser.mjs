@@ -200,13 +200,15 @@ async function exercise(page, label) {
     page.click("#debug-save"),
   ]);
   const report = fs.readFileSync(await download.path(), "utf8");
-  assert.match(report, /Release: 0\.1\.34/);
+  assert.match(report, /Release: 0\.1\.35/);
   assert.match(report, /Energy\nYears:/);
   assert.match(report, /Stage: (city|earth|sun)/);
   assert.match(report, /Hear them\nDistance ly:/);
   assert.match(report, /Expected winners:/);
   assert.match(report, /Ten sixes\nPlayers:/);
   assert.doesNotMatch(report.split("Ten sixes")[1].split("Lifetime")[0], /Calm:/);
+  assert.match(report, /Stubborn thousand\nEscapers:/);
+  assert.match(report, /Spreading colony\nHop ly:/);
   assert.match(report, /Galaxy\nLifetime years:/);
   assert.match(report, /Drawn dots: \d+/);
   assert.match(report, /Play: (playing|paused)/);
@@ -881,7 +883,7 @@ async function exercise(page, label) {
   await page.locator("#technical-details summary").focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("#technical-details").open === false);
-  assert.equal(await page.locator("#diag-version").textContent(), "0.1.34");
+  assert.equal(await page.locator("#diag-version").textContent(), "0.1.35");
   assert.equal(await page.locator("#diag-execution").getAttribute("data-execution"), "ready");
   assert.match(await page.locator("#diag-mime").textContent(), /wasm|octet-stream/);
   const calls = Number(await page.locator("#diag-calls").textContent());
@@ -938,7 +940,7 @@ async function exercise(page, label) {
   await page.locator('input[data-filter-category="type"][value="planned"]').check();
   await page.waitForFunction(() => document.querySelector("#result-count")?.textContent === "3");
   assert.equal(await page.locator("#active-count").textContent(), "2");
-  assert.equal(await page.locator("#working-count").textContent(), "11");
+  assert.equal(await page.locator("#working-count").textContent(), "12");
 
   await page.locator('input[data-filter-category="type"][value="planned"]').uncheck();
   await page.locator('input[data-filter-category="type"][value="calculator"]').check();
@@ -955,7 +957,7 @@ async function exercise(page, label) {
   assert.equal(await page.locator("#sort").inputValue(), "reading");
   assert.equal(await page.locator("#search").inputValue(), "");
   assert.equal(await page.locator("#active-count").textContent(), "0");
-  assert.equal(await page.locator("#working-count").textContent(), "11");
+  assert.equal(await page.locator("#working-count").textContent(), "12");
 
   const cardVisible = async (id) => page.locator(id).isVisible();
   assert.equal(await cardVisible("#lifetime-card"), true);
@@ -1455,6 +1457,37 @@ async function exercise(page, label) {
   assert.ok((await overflow(page)) <= 1, "narrow energy");
   await shotElement(page, label, "energy-sun-narrow.png", "#energy-picture");
   await shotElement(page, label, "energy-narrow.png", "#energy-card");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.click("#show-all");
+  await page.waitForFunction(() => location.hash === "" && !document.querySelector("#colony-card").hidden);
+  await page.locator("#colony-card").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector("#colony-alive")?.textContent === "666.67" && document.querySelector("#colony-left")?.textContent === "10000000" && document.querySelector("#colony-fill")?.textContent === "500000 years" && document.querySelector("#colony-status")?.dataset.status === "0");
+  assert.equal(await page.locator("#colony-self").textContent(), "643500000");
+  assert.equal(await page.locator("#colony-other").textContent(), "346500000");
+  assert.equal(await page.locator("#colony-hops").textContent(), "50");
+  assert.equal(await page.locator("#colony-sieve span.is-survivor").count(), 8);
+  assert.match(await page.locator("#colony-card .lem-note").first().textContent(), /paraphrases/);
+  assert.match(await page.locator("#colony-card .explain-box").textContent(), /fill the sky/);
+  assert.match(await page.locator("#colony-chart").textContent(), /Lifetime \(years\)/);
+  assert.match(await page.locator("#colony-chart").textContent(), /Alive now \(count\)/);
+  assert.equal(await page.locator("#colony-calm").count(), 1);
+  await page.locator("#colony-sky [data-star='4']").click();
+  await page.waitForFunction(() => document.querySelector("#colony-sky-note")?.textContent?.includes("Star 4"));
+  await page.locator("#colony-time-exact").fill("0");
+  await page.waitForFunction(() => document.querySelector("#colony-status")?.dataset.status === "2");
+  assert.match(await page.locator("#colony-status").textContent(), /above zero/);
+  assert.equal(await page.locator("#colony-fill").textContent(), "");
+  await page.locator("#colony-time-exact").fill("10000");
+  await page.waitForFunction(() => document.querySelector("#colony-fill")?.textContent === "500000 years" && document.querySelector("#colony-status")?.dataset.status === "0");
+  await page.locator("#colony-play").click();
+  await page.waitForFunction(() => document.querySelectorAll("#colony-sky circle.star[fill='#f0b429']").length > 3);
+  await shotElement(page, label, "colony-sieve-desktop.png", "#colony-field");
+  await shotElement(page, label, "colony-spread-desktop.png", "#colony-sky");
+  await page.setViewportSize({ width: 320, height: 800 });
+  assert.ok((await overflow(page)) <= 1, "narrow colony");
+  await shotElement(page, label, "colony-sieve-narrow.png", "#colony-field");
+  await shotElement(page, label, "colony-spread-narrow.png", "#colony-sky");
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.click("#hear-send");
   await page.waitForFunction(() => document.querySelector("#hear-letter-note")?.textContent?.includes("on its way"));
   await page.click("#show-all");

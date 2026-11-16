@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { callAddition, callChoice, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callGrowth, callHear, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
+import { callAddition, callChoice, callColony, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callGrowth, callHear, callLifetime, callLottery, callRebalance, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callTarget, callThroughput, createSession, loadAdditionModule } from "../web/js/wasm-loader.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wasmPath = path.join(root, "dist", "ath_addition.wasm");
@@ -687,4 +687,36 @@ test("a failed module load does not invent a sum", async () => {
   );
   assert.equal(session.exports, null);
   assert.throws(() => callAddition(session, 2, 3), /not loaded/);
+});
+
+test("colony survivors and fill time match Ada", async (t) => {
+  if (!fs.existsSync(wasmPath)) {
+    t.skip("run tools/build.sh before the parity test");
+    return;
+  }
+  const bytes = fs.readFileSync(wasmPath);
+  const session = createSession();
+  const loaded = await loadAdditionModule({
+    url: "http://fixture.invalid/ath_addition.wasm",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "application/wasm" },
+      arrayBuffer: async () => bytes,
+    }),
+  });
+  session.exports = loaded.exports;
+  const model = callColony(session, 1, 1e8, 1000, 10000, 1);
+  assert.equal(model.left, 10_000_000);
+  assert.equal(model.self + model.other, 990_000_000);
+  assert.equal(model.survivorStatus, 0);
+  assert.equal(model.fillStatus, 0);
+  assert.equal(model.hops, 50);
+  assert.equal(model.fillYears, 500_000);
+  assert.equal(model.times, 200);
+  assert.ok(Math.abs(model.alive - 100_000 / 150) < 1e-6);
+  const refused = callColony(session, 1, 1e8, 1000, 0, 1);
+  assert.equal(refused.fillStatus, 2);
+  assert.equal(refused.fillYears, 0);
+  assert.equal(refused.hops, 0);
 });
