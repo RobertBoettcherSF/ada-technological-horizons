@@ -85,6 +85,9 @@ export async function loadAdditionModule(options = {}) {
   if (typeof instance.exports.ath_energy_stated !== "function") {
     throw new Error("Ada module is missing ath_energy_stated");
   }
+  if (typeof instance.exports.ath_colony_left !== "function") {
+    throw new Error("Ada module is missing ath_colony_left");
+  }
   instance.exports.adainit();
   return {
     mime,
@@ -711,6 +714,55 @@ export function callEnergy(session, years) {
     stars: session.exports.ath_energy_stars(),
     horizon: session.exports.ath_energy_horizon(),
     samples,
+  };
+}
+
+export function callColony(session, choice, years, hopLy, hopYears, origin) {
+  if (!session.exports) throw new Error("Ada module is not loaded");
+  session.invocations += 1;
+  const cellCount = session.exports.ath_colony_cell_count();
+  const cells = [];
+  for (let index = 1; index <= cellCount; index += 1) {
+    cells.push(session.exports.ath_colony_cell_role(index, choice));
+  }
+  const starCount = session.exports.ath_colony_star_count();
+  const stars = [];
+  for (let index = 1; index <= starCount; index += 1) {
+    stars.push({
+      x: session.exports.ath_colony_star_x(index),
+      y: session.exports.ath_colony_star_y(index),
+      generation: session.exports.ath_colony_generation(index, origin, hopLy),
+    });
+  }
+  const sampleCount = session.exports.ath_colony_sample_count();
+  const samples = [];
+  for (let index = 1; index <= sampleCount; index += 1) {
+    const sampleYears = session.exports.ath_colony_sample_years(index);
+    session.exports.ath_colony_survivors(choice, sampleYears);
+    samples.push({ years: sampleYears, alive: session.exports.ath_colony_alive() });
+  }
+  const survivorStatus = session.exports.ath_colony_survivors(choice, years);
+  const fillStatus = session.exports.ath_colony_fill(hopLy, hopYears);
+  const fillYears = session.exports.ath_colony_fill_years();
+  return {
+    survivorStatus,
+    fillStatus,
+    left: session.exports.ath_colony_left(),
+    self: session.exports.ath_colony_self(),
+    other: session.exports.ath_colony_other(),
+    escapers: session.exports.ath_colony_escapers(choice),
+    alive: session.exports.ath_colony_alive(),
+    distance: session.exports.ath_colony_distance(),
+    hops: session.exports.ath_colony_hops(),
+    fillYears,
+    times: session.exports.ath_colony_times(years, fillYears),
+    cells,
+    stars,
+    samples,
+    windowYears: session.exports.ath_colony_window(),
+    radius: session.exports.ath_colony_radius(),
+    lifeMin: session.exports.ath_colony_life_min(),
+    lifeMax: session.exports.ath_colony_life_max(),
   };
 }
 

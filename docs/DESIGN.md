@@ -158,15 +158,17 @@ Little quantitative content. It is mostly forecasting history.
   - (a) "First contact age" (12,000 years) and "same stage" (0.5 %) shown as Lem-reported values, with no recomputation unless von Hoerner's method is sourced.
   - (b) ⭐ "Letter to the stars" (built with 0.1.31): send a question and watch a 1,000-year trip there and 1,000 back, while a strip shows about 80 generations passing on Earth. One generation is 25 years, our choice. The years come from the light-time core.
 
-**III-07 · Statystyka · l. 177 · LEM-T (cites Shklovsky) · planned (0.1.35)**
+**III-07 · Statystyka · l. 177 · LEM-T (cites Shklovsky) · BUILT (0.1.35)**
 - *„podobieństwo takiego procesu do lawinowego rozmnożenia organizmów”*. Shklovsky compares the spread of a long-lived civilisation to the avalanche growth of organisms, and Lem asks why such expansion is not seen.
 - Interactive ⭐ "Spreading colony": tap one star and it seeds neighbours, which seed theirs. The child slides a "hop time" and watches the galaxy fill in a few million years.
 - Spread rules are **OURS**. Lem only states the analogy and the puzzle.
+- 0.1.35 crosses a modern disc about 100,000 light-years across. The years to fill it are the hops times the hop time. A hop time of zero is refused with a plain sentence. Star positions are seeded.
 
-**III-08 · Katastrofizm kosmiczny · l. 182–184 · LEM-Q · planned (0.1.35)**
+**III-08 · Katastrofizm kosmiczny · l. 182–184 · LEM-Q · BUILT (0.1.35)**
 - *„Niech 990 milionów planet na ich galaktyczny miliard … tylko sto tysięcy, albo zaledwie jeden tysiąc”*. Von Hoerner gives self-destruction 65 chances in 100 and the other causes 35. Lem replies: even if 990 million of a billion are short-lived and only 1,000 escape, those 1,000 would last hundreds of millions of years and should be visible.
 - Interactive ⭐ "The stubborn thousand": a field of a billion dots (shown as a zoomable 1,000 × 1,000,000 grid) where nearly all blink out quickly. The child picks how many "escape" (100,000, 1,000 or 1). An odometer shows how many long-lived ones would be **alive now** and how close the nearest would be (reusing the III-05 core).
 - The arithmetic is Lem's, and occupancy reuses the III-05 model (OURS).
+- 0.1.35 shows the billion as 100 dots, each standing for 10 million planets, with the real counts beside them. The lifetime slider runs from 100 million to 1 billion years. The histogram in III-14 is still ahead.
 
 **III-09 · Metateoria cudów · l. 191 · LEM-Q · BUILT (0.1.23)**
 - Technetium lines as a possible "miracle", and "kilku milionów ton" (a few million tonnes) suffices for a visible line.
@@ -508,7 +510,7 @@ Order: **Chapter III first**, since Robert asked for the scientists' calculation
 | **0.1.32** | **Energy staircase**: Dyson sphere, Kardashev types, Shklovsky's 10²¹ stars | III-03, III-16, III-15, III-02 | (1.00333…)^2500 ≈ 4.1×10³ is shown beside Lem's stated 10¹⁰ with neutral wording; rate for 10¹⁰ ≈ 0.925 %/yr; Kardashev units note (erg/s vs "roczne"); Sun 4×10³³ erg/s. |
 | **0.1.33** | **Energy picture**: city skyline, Earth glow, Sun shell inside the frame | III-03 | Numbers unchanged; glow ring is outside the globe; shell and Earth dot stay inside the picture at 320 px. |
 | **0.1.34** | **Lottery sliders and a growing city and Earth** | III-03, IV-02 | Log sliders stay in step with the three counts; prizes and tickets bought never exceed the lottery; city buildings and the Earth ring grow with log10 of the energy factor. |
-| **0.1.35** | **The stubborn thousand and the spreading colony** (von Hoerner 65:35, Shklovsky avalanche) | III-08, III-07, III-14 | 990 M / 1 B short-lived; survivor choices 10⁵ / 10³ / 1 drive coexisting count via the 0.1.24 core; spread rules labelled OURS; histogram people vs civilisations. |
+| **0.1.35** | **The stubborn thousand and the spreading colony** (von Hoerner 65:35, Shklovsky avalanche) | III-08, III-07 | 1e9 − 990e6 = 10e6; alive now reuses the 0.1.24 share and disc; hop time 0 is refused; fill time is hops times hop time. The people-versus-civilisations histogram (III-14) is still ahead. |
 | **0.1.36** | **Racing rocket rainbow**: Doppler shift on the existing spectrum strip (Shklovsky, Doppler) | III-10 | v=0 → no shift; relativistic factor √((1+β)/(1−β)) verified against fixtures; lines leaving the strip are labelled "now radio"; reuses spectrum Ada core. |
 | **0.1.37** | **Drive the Moon robot** (teletaxy; Minsky link) | VI-04, P-01 | Moon round trip ≈ 2.56 s from the mean distance (labelled); 15,000 km → ≈ 0.1 s; commands queued in Ada with a deterministic tick; keyboard arrows work; calm mode steps. |
 | **0.1.38** | **Guess the card**: ESP and chance (Rhine, Soal, Spencer-Brown, Zener) | VIII-10 | Binomial(25, 0.2): P(X ≥ 8) ≈ 0.1091; mean 5; 1,000-run seeded histogram reproducible; sceptical framing matches Lem. |

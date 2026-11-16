@@ -163,6 +163,25 @@ package body Ath_Galaxy is
       end loop;
    end Pins;
 
+   function Coexisting (Population, Years : Long_Float) return Long_Float is
+   begin
+      if not Is_Finite (Population) or else not Is_Finite (Years) then
+         return 0.0;
+      end if;
+      if Population <= 0.0 or else Years < 0.0 then
+         return 0.0;
+      end if;
+      return Population * Share_Of (Years);
+   end Coexisting;
+
+   function Neighbour_Of (Count : Long_Float) return Long_Float is
+   begin
+      if not Is_Finite (Count) or else Count <= 0.0 then
+         return 0.0;
+      end if;
+      return Neighbour (Count);
+   end Neighbour_Of;
+
    function Slider_Of (Years : Long_Float) return Long_Float is
    begin
       if not Is_Finite (Years) or else Years <= Slider_Min then

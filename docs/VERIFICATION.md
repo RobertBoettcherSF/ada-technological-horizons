@@ -1,5 +1,15 @@
 # Verification
 
+## v0.1.35 the stubborn thousand and the spreading colony
+
+A billion planets leave 10 million after 990 million die young. Self-liquidation is 643,500,000 and the other causes are 346,500,000. With 100,000 escapers and a life of 100 million years, about 666.67 are alive now on the same disc as the blinking galaxy. Crossing that disc in hops of 1,000 light-years and 10,000 years takes 50 hops and 500,000 years, so one such life could fill the galaxy 200 times over. A hop time of zero is refused with a plain sentence. The sieve is 100 dots for the billion, coloured about 65 to 35, and the gold dots stay. The colony picture is seeded: tapping a star lights its neighbours.
+
+Verified in a browser on 16 November 2026:
+
+https://rawcdn.githack.com/RobertBoettcherSF/ada-technological-horizons/790b358e02338d7dc79cccda15f90037543d7148/dist/index.html
+
+The page showed release `0.1.35`, commit `790b358e02338d7dc79cccda15f90037543d7148`, and `application/wasm`. The alive-now readout was `666.67`, the remainder `10000000`, and the fill time `500000 years`. Typing a hop time of 0 showed: "A hop needs a distance and a time above zero. Nothing spreads until both are set." At 320px, `scrollWidth - clientWidth` was 0. `curl` received `text/html` and `application/wasm` (177221 bytes, SHA-256 `985b4418ee85c65dc36c4f70b7ad49b26d9573cb3c91e77ad347c524eb309648`, `access-control-allow-origin: *`). The local suite also loaded the module as `application/octet-stream`.
+
 ## v0.1.34 lottery sliders and a growing picture
 
 Each lottery count has a logarithmic slider from 1 to 1,000,000, or up to the number of tickets for prizes and tickets bought. The box and the slider stay in step. A typed count above the lottery size is brought down, and a short note says so. The chart dot follows the buy slider. The city grows from 3 buildings to 9 as energy rises by powers of ten, with more windows and a wider glow. The Earth ring starts thin and faint and becomes thicker and brighter, and city lights spread over the land. The ring stays outside the globe and smaller than the Sun shell.

@@ -45,7 +45,7 @@ import {
   setQuery,
   setSort,
 } from "./state.js";
-import { callAddition, callChoice, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callHear, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
+import { callAddition, callChoice, callColony, callDelay, callEggs, callEnergy, callExplore, callGalaxy, callHear, callLottery, callResearch, callSixes, callSixesRoll, callSixesUntil, callSpectrum, callThroughput, delayPreset, callLifetime, callRebalance, callTarget, createSession, loadAdditionModule, throughputPreset } from "./wasm-loader.js";
 
 const session = createSession();
 let state = createState();
@@ -150,6 +150,7 @@ const CALCULATOR_CARDS = [
   { cardId: "energy-card", sectionId: "cosmic-civilisations/formulating-the-method" },
   { cardId: "hear-card", sectionId: "cosmic-civilisations/formulating-the-method" },
   { cardId: "galaxy-card", sectionId: "cosmic-civilisations/statistics-of-cosmic-civilisations" },
+  { cardId: "colony-card", sectionId: "cosmic-civilisations/cosmic-catastrophism" },
   { cardId: "spectrum-card", sectionId: "cosmic-civilisations/a-metatheory-of-miracles" },
   { cardId: "sixes-card", sectionId: "cosmic-civilisations/human-uniqueness" },
   { cardId: "growth-card", sectionId: "intellectronics/return-to-earth" },
@@ -434,6 +435,9 @@ function renderCard(entry) {
   body.append(summary, topic);
   if (entry.id === "cosmic-civilisations/statistics-of-cosmic-civilisations") {
     body.append(h("p", {}, [h("a", { href: "#lifetime-card", dataset: { i18n: "lifetime.open" } })]));
+  }
+  if (entry.id === "cosmic-civilisations/cosmic-catastrophism") {
+    body.append(h("p", {}, [h("a", { href: "#colony-card", dataset: { i18n: "colony.open" } })]));
   }
   if (entry.id === "intellectronics/the-megabit-bomb") {
     body.append(h("p", {}, [h("a", { href: "#research-card", dataset: { i18n: "research.open" } })]));
@@ -2414,6 +2418,25 @@ function debugReport() {
     `Muted: ${hear.report ? hear.report.muted : "(not ready)"}`,
     `Letter: ${hear.report ? hear.report.letter : "(not ready)"}`,
     "",
+    "Stubborn thousand",
+    `Escapers: ${colony.report ? formatCanonical(colony.report.escapers) : "(not ready)"}`,
+    `Lifetime years: ${colony.report ? formatCanonical(colony.report.years) : "(not ready)"}`,
+    `Alive now: ${colony.report ? formatCanonical(colony.report.alive) : "(not ready)"}`,
+    `Nearest ly: ${colony.report ? formatCanonical(colony.report.distance) : "(not ready)"}`,
+    `Self deaths: ${colony.report ? formatCanonical(colony.report.self) : "(not ready)"}`,
+    `Other deaths: ${colony.report ? formatCanonical(colony.report.other) : "(not ready)"}`,
+    `Play: ${colony.report ? colony.report.play : "(not ready)"}`,
+    `Calm: ${colony.report ? colony.report.calm : "(not ready)"}`,
+    "",
+    "Spreading colony",
+    `Hop ly: ${colony.report ? formatCanonical(colony.report.hopLy) : "(not ready)"}`,
+    `Hop years: ${colony.report ? formatCanonical(colony.report.hopYears) : "(not ready)"}`,
+    `Hops: ${colony.report ? formatCanonical(colony.report.hops) : "(not ready)"}`,
+    `Fill years: ${colony.report ? formatCanonical(colony.report.fillYears) : "(not ready)"}`,
+    `Times over: ${colony.report ? formatCanonical(colony.report.times) : "(not ready)"}`,
+    `Origin: ${colony.report ? String(colony.report.origin) : "(not ready)"}`,
+    `Status: ${colony.report ? String(colony.report.status) : "(not ready)"}`,
+    "",
     "Galaxy",
     `Lifetime years: ${galaxy.report ? formatCanonical(galaxy.report.years) : "(not ready)"}`,
     `Count: ${galaxy.report ? formatCanonical(galaxy.report.count) : "(not ready)"}`,
@@ -2613,6 +2636,7 @@ async function boot() {
   updateResearch();
   renderSpectrum();
   bootGalaxy();
+  bootColony();
   bootEnergy();
   bootHear();
   bootSixes();
@@ -3105,6 +3129,70 @@ function bind() {
   document.getElementById("galaxy-modern")?.addEventListener("change", (event) => {
     galaxy.modern = event.target instanceof HTMLInputElement && event.target.checked;
     renderGalaxy();
+  });
+  document.getElementById("colony-life")?.addEventListener("input", () => {
+    if (!session.exports || colonySetting) return;
+    colony.years = session.exports.ath_colony_life_of(Number(document.getElementById("colony-life").value) / 1000);
+    renderColony();
+  });
+  document.getElementById("colony-hop")?.addEventListener("input", () => {
+    if (!session.exports || colonySetting) return;
+    colony.hopLy = session.exports.ath_colony_hop_of(Number(document.getElementById("colony-hop").value) / 1000);
+    renderColony();
+  });
+  document.getElementById("colony-time")?.addEventListener("input", () => {
+    if (!session.exports || colonySetting) return;
+    colony.hopYears = session.exports.ath_colony_time_of(Number(document.getElementById("colony-time").value) / 1000);
+    const exact = document.getElementById("colony-time-exact");
+    if (exact && document.activeElement !== exact) exact.value = String(Math.round(colony.hopYears));
+    renderColony();
+  });
+  document.getElementById("colony-time-exact")?.addEventListener("input", () => {
+    const raw = document.getElementById("colony-time-exact").value.trim();
+    colony.hopYears = raw === "" ? Number.NaN : Number(raw);
+    renderColony();
+  });
+  document.getElementById("colony-choices")?.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest("[data-colony-choice]") : null;
+    if (!(button instanceof HTMLButtonElement)) return;
+    colony.choice = Number(button.dataset.colonyChoice);
+    renderColony();
+  });
+  document.getElementById("colony-play")?.addEventListener("click", () => {
+    if (!session.exports) return;
+    if (colony.playing) {
+      stopColonyPlay();
+      renderColony();
+      return;
+    }
+    if (colony.calm) {
+      colony.calm = false;
+      document.getElementById("colony-calm")?.setAttribute("aria-pressed", "false");
+    }
+    startColonyPlay();
+  });
+  document.getElementById("colony-restart")?.addEventListener("click", () => {
+    colony.sieve = 0;
+    colony.generation = 0;
+    if (colony.playing) colony.stamp = performance.now();
+    renderColony();
+  });
+  document.getElementById("colony-calm")?.addEventListener("click", () => {
+    colony.calm = !colony.calm;
+    document.getElementById("colony-calm")?.setAttribute("aria-pressed", colony.calm ? "true" : "false");
+    if (colony.calm) stopColonyPlay();
+    renderColony();
+  });
+  document.getElementById("colony-sky")?.addEventListener("click", (event) => {
+    const star = event.target instanceof Element ? event.target.closest("[data-star]") : null;
+    if (!star) return;
+    chooseColonyStar(Number(star.dataset.star));
+  });
+  document.getElementById("colony-sky")?.addEventListener("keydown", (event) => {
+    const star = event.target instanceof Element ? event.target.closest("[data-star]") : null;
+    if (!star || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    chooseColonyStar(Number(star.dataset.star));
   });
   document.getElementById("sixes-roll")?.addEventListener("click", () => {
     if (!session.exports) return;
@@ -4498,6 +4586,335 @@ function bootHear() {
   renderHear();
 }
 
+const colony = {
+  choice: 1,
+  years: null,
+  hopLy: 1000,
+  hopYears: 10000,
+  origin: 1,
+  calm: false,
+  playing: false,
+  sievePlaying: false,
+  sieve: 0,
+  sieveStamp: 0,
+  sieveFrame: 0,
+  generation: 0,
+  stamp: 0,
+  frame: 0,
+  report: null,
+};
+
+let colonySetting = false;
+
+function stopColonyPlay() {
+  colony.playing = false;
+  colony.sievePlaying = false;
+  if (colony.frame) cancelAnimationFrame(colony.frame);
+  if (colony.sieveFrame) cancelAnimationFrame(colony.sieveFrame);
+  colony.frame = 0;
+  colony.sieveFrame = 0;
+}
+
+function stepSieve(now) {
+  if (!colony.sievePlaying) return;
+  if (!colony.sieveStamp) colony.sieveStamp = now;
+  colony.sieve = Math.min(1, (now - colony.sieveStamp) / 1600);
+  renderColony();
+  if (colony.sieve >= 1) {
+    colony.sievePlaying = false;
+    renderColony();
+    return;
+  }
+  colony.sieveFrame = requestAnimationFrame(stepSieve);
+}
+
+function stepColony(now) {
+  if (!colony.playing) return;
+  if (!colony.stamp) colony.stamp = now;
+  colony.generation = Math.floor((now - colony.stamp) / 220);
+  renderColony();
+  if (colony.generation >= (colony.maxGeneration ?? 0)) {
+    colony.playing = false;
+    if (colony.frame) cancelAnimationFrame(colony.frame);
+    colony.frame = 0;
+    renderColony();
+    return;
+  }
+  colony.frame = requestAnimationFrame(stepColony);
+}
+
+function startColonyPlay() {
+  if (!session.exports || colony.report?.status) return;
+  if (motionReduced()) {
+    colony.sieve = 1;
+    colony.generation = 1_000_000;
+    stopColonyPlay();
+    renderColony();
+    return;
+  }
+  colony.playing = true;
+  colony.stamp = performance.now();
+  colony.generation = 0;
+  if (colony.frame) cancelAnimationFrame(colony.frame);
+  colony.frame = requestAnimationFrame(stepColony);
+  renderColony();
+}
+
+function chooseColonyStar(index) {
+  if (!Number.isInteger(index) || index < 1) return;
+  colony.origin = index;
+  colony.generation = 0;
+  colony.stamp = 0;
+  if (colony.calm || motionReduced()) {
+    stopColonyPlay();
+    renderColony();
+    return;
+  }
+  startColonyPlay();
+}
+
+function formatColonyTimes(value, lang) {
+  if (Math.abs(value - Math.round(value)) < 1e-4) return formatReadable(Math.round(value), lang);
+  return formatGalaxyCount(value, lang);
+}
+
+function colonyLog(value, low, high) {
+  if (value <= low) return 0;
+  if (value >= high) return 1;
+  return Math.log(value / low) / Math.log(high / low);
+}
+
+function bootColony() {
+  if (!session.exports) return;
+  const reduce = motionReduced();
+  colony.calm = reduce;
+  colony.choice = 1;
+  colony.years = session.exports.ath_colony_life_min();
+  colony.hopLy = 1000;
+  colony.hopYears = 10000;
+  colony.origin = 1;
+  colony.sieve = reduce ? 1 : 0;
+  colony.generation = reduce ? 1_000_000 : 0;
+  document.getElementById("colony-calm")?.setAttribute("aria-pressed", colony.calm ? "true" : "false");
+  const exact = document.getElementById("colony-time-exact");
+  if (exact) exact.value = "10000";
+  stopColonyPlay();
+  renderColony();
+  if (!reduce) {
+    colony.sievePlaying = true;
+    colony.sieveStamp = performance.now();
+    colony.sieveFrame = requestAnimationFrame(stepSieve);
+  }
+}
+
+function renderColony() {
+  const sieve = document.getElementById("colony-sieve");
+  if (!sieve || !session.exports || colony.years == null) return;
+  const model = callColony(session, colony.choice, colony.years, colony.hopLy, colony.hopYears, colony.origin);
+  const gone = colony.sieve >= 1 || colony.calm;
+  const signature = `${state.lang}|${colony.choice}`;
+  if (sieve.dataset.signature !== signature) {
+    sieve.dataset.signature = signature;
+    sieve.replaceChildren(...model.cells.map((role) => h("span", {
+      class: role === 2 ? "is-survivor" : role === 1 ? "is-other" : "is-self",
+    })));
+    sieve.setAttribute("aria-label", t(state.lang, "colony.sieveLabel"));
+    document.getElementById("colony-sieve-legend")?.replaceChildren(
+      h("li", {}, [h("span", { class: "swatch self" }), document.createTextNode(t(state.lang, "colony.legend.self"))]),
+      h("li", {}, [h("span", { class: "swatch other" }), document.createTextNode(t(state.lang, "colony.legend.other"))]),
+      h("li", {}, [h("span", { class: "swatch tc" }), document.createTextNode(t(state.lang, "colony.legend.survivor"))]),
+    );
+  }
+  sieve.querySelectorAll("span").forEach((node) => {
+    node.classList.toggle("is-gone", gone && !node.classList.contains("is-survivor"));
+  });
+  const caption = document.getElementById("colony-sieve-caption");
+  if (caption) {
+    caption.textContent = t(state.lang, "colony.sieveCaption")
+      .replace("{escapers}", formatReadable(model.escapers, state.lang));
+  }
+  const setText = (id, text) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = text;
+  };
+  setText("colony-left", formatReadable(model.left, state.lang));
+  setText("colony-self", formatReadable(model.self, state.lang));
+  setText("colony-other", formatReadable(model.other, state.lang));
+  setText("colony-alive", formatGalaxyCount(model.alive, state.lang));
+  setText("colony-distance", formatGalaxyDistance(model.distance, state.lang));
+  setText("colony-life-readout", formatGalaxySpan(colony.years, state.lang));
+  setText("colony-hop-readout", formatGalaxyDistance(colony.hopLy, state.lang));
+  for (const button of document.querySelectorAll("[data-colony-choice]")) {
+    const chosen = Number(button.dataset.colonyChoice) === colony.choice;
+    button.setAttribute("aria-pressed", chosen ? "true" : "false");
+    const count = session.exports.ath_colony_escapers(Number(button.dataset.colonyChoice));
+    button.textContent = formatReadable(count, state.lang);
+  }
+  colonySetting = true;
+  const life = document.getElementById("colony-life");
+  if (life && document.activeElement !== life) {
+    life.value = String(Math.round(session.exports.ath_colony_slider_of(colony.years) * 1000));
+  }
+  const hop = document.getElementById("colony-hop");
+  if (hop && document.activeElement !== hop && colony.hopLy > 0) {
+    const phase = colonyLog(colony.hopLy, session.exports.ath_colony_hop_min(), session.exports.ath_colony_hop_max());
+    hop.value = String(Math.round(phase * 1000));
+  }
+  const time = document.getElementById("colony-time");
+  if (time && document.activeElement !== time && colony.hopYears > 0) {
+    const phase = colonyLog(colony.hopYears, session.exports.ath_colony_time_min(), session.exports.ath_colony_time_max());
+    time.value = String(Math.round(phase * 1000));
+  }
+  colonySetting = false;
+  const status = document.getElementById("colony-status");
+  const fillOk = model.fillStatus === 0;
+  if (!fillOk && colony.playing) {
+    colony.playing = false;
+    if (colony.frame) cancelAnimationFrame(colony.frame);
+    colony.frame = 0;
+  }
+  if (status) {
+    status.dataset.status = String(model.fillStatus);
+    status.textContent = fillOk ? "" : t(state.lang, model.fillStatus === 2 ? "colony.status.2" : "colony.status.1");
+  }
+  setText("colony-hops", fillOk ? formatReadable(model.hops, state.lang) : "");
+  setText("colony-fill", fillOk ? t(state.lang, "galaxy.years").replace("{n}", formatReadable(Math.round(model.fillYears), state.lang, "year")) : "");
+  const punch = document.getElementById("colony-punch");
+  if (punch) {
+    punch.textContent = fillOk
+      ? t(state.lang, "colony.punch")
+        .replace("{life}", formatGalaxySpan(colony.years, state.lang))
+        .replace("{times}", formatColonyTimes(model.times, state.lang))
+      : "";
+  }
+  const sky = document.getElementById("colony-sky");
+  const skyKey = `${state.lang}|${colony.origin}`;
+  if (sky && sky.dataset.signature !== skyKey) {
+    sky.dataset.signature = skyKey;
+    sky.replaceChildren(svgEl("svg", {
+      viewBox: "0 0 200 200",
+      role: "img",
+      "aria-label": t(state.lang, "colony.sky"),
+    }, [
+      svgEl("rect", { x: 0, y: 0, width: 200, height: 200, rx: 12, fill: "#101820" }),
+      svgEl("circle", { cx: 100, cy: 100, r: 82, fill: "none", stroke: "#314863", "stroke-dasharray": "3 2" }),
+      ...model.stars.map((star, index) => svgEl("g", {
+        role: "button",
+        tabindex: "0",
+        "data-star": String(index + 1),
+        "aria-label": t(state.lang, "colony.star").replace("{n}", String(index + 1)),
+      }, [
+        svgEl("circle", { class: "glow", cx: 100 + star.x * 82, cy: 100 - star.y * 82, r: 5, fill: "#f0b429" }),
+        svgEl("circle", { class: "star", cx: 100 + star.x * 82, cy: 100 - star.y * 82, r: 3.2, fill: "#8fb4d4" }),
+      ])),
+    ]));
+  }
+  const reached = colony.generation;
+  sky?.querySelectorAll("[data-star]").forEach((node, index) => {
+    const star = model.stars[index];
+    const lit = star && star.generation >= 0 && star.generation <= reached;
+    const dot = node.querySelector("circle.star");
+    const glow = node.querySelector("circle.glow");
+    if (dot) dot.setAttribute("fill", lit ? "#f0b429" : "#8fb4d4");
+    if (glow) glow.style.opacity = lit ? "0.55" : "0";
+    const origin = Number(node.dataset.star) === colony.origin;
+    node.setAttribute("aria-pressed", origin ? "true" : "false");
+    if (dot && origin) dot.setAttribute("stroke", "#c8f25a");
+    if (dot && origin) dot.setAttribute("stroke-width", "1.2");
+    if (dot && !origin) dot.setAttribute("stroke", "none");
+  });
+  const note = document.getElementById("colony-sky-note");
+  if (note) note.textContent = t(state.lang, "colony.skyNote").replace("{n}", String(colony.origin));
+  const maxGeneration = model.stars.reduce((max, star) => Math.max(max, star.generation), 0);
+  colony.maxGeneration = maxGeneration;
+  const chart = document.getElementById("colony-chart");
+  const chartKey = `${state.lang}|${colony.choice}`;
+  if (chart && chart.dataset.signature !== chartKey) {
+    chart.dataset.signature = chartKey;
+    const left = 72;
+    const top = 22;
+    const width = 540;
+    const height = 140;
+    const low = model.samples[0].years;
+    const high = model.samples.at(-1).years;
+    const aliveValues = model.samples.map((sample) => sample.alive);
+    const yLow = Math.min(...aliveValues);
+    const yHigh = Math.max(...aliveValues);
+    const yPos = (value) => {
+      const span = Math.log(yHigh / yLow);
+      if (!Number.isFinite(span) || span === 0) return 0.5;
+      return Math.log(value / yLow) / span;
+    };
+    const points = model.samples.map((sample) => {
+      const x = left + colonyLog(sample.years, low, high) * width;
+      const y = top + (1 - yPos(sample.alive)) * height;
+      return `${x},${y}`;
+    }).join(" ");
+    chart.replaceChildren(svgEl("svg", {
+      viewBox: "0 0 640 210",
+      role: "img",
+      "aria-label": t(state.lang, "colony.axis.y"),
+    }, [
+      svgEl("text", { x: left, y: 14, fill: "#9fb0c3", "font-size": 12, text: t(state.lang, "colony.axis.y") }),
+      svgEl("polyline", { points, fill: "none", stroke: "#d7e7ff", "stroke-width": 2 }),
+      svgEl("circle", { id: "colony-now", r: 6, fill: "#c8f25a" }),
+      svgEl("text", { x: left, y: 186, fill: "#d7e2ee", "font-size": 12, text: formatGalaxySpan(low, state.lang) }),
+      svgEl("text", { x: left + width, y: 186, fill: "#d7e2ee", "font-size": 12, "text-anchor": "end", text: formatGalaxySpan(high, state.lang) }),
+      svgEl("text", { x: 320, y: 204, fill: "#9fb0c3", "font-size": 12, "text-anchor": "middle", text: t(state.lang, "colony.axis.x") }),
+      svgEl("text", { x: 8, y: top + 8, fill: "#d7e2ee", "font-size": 11, text: formatGalaxyCount(yHigh, state.lang) }),
+      svgEl("text", { x: 8, y: top + height, fill: "#d7e2ee", "font-size": 11, text: formatGalaxyCount(yLow, state.lang) }),
+    ]));
+    document.getElementById("colony-chart-legend")?.replaceChildren(
+      h("li", {}, [h("span", { class: "swatch shared" }), document.createTextNode(t(state.lang, "colony.legend.curve"))]),
+    );
+    chart.dataset.yLow = String(yLow);
+    chart.dataset.yHigh = String(yHigh);
+  }
+  const now = chart?.querySelector("#colony-now");
+  if (now && chart?.dataset.yLow) {
+    const yLow = Number(chart.dataset.yLow);
+    const yHigh = Number(chart.dataset.yHigh);
+    const span = Math.log(yHigh / yLow);
+    const yPos = !Number.isFinite(span) || span === 0 ? 0.5 : Math.log(model.alive / yLow) / span;
+    now.setAttribute("cx", String(72 + colonyLog(colony.years, model.lifeMin, model.lifeMax) * 540));
+    now.setAttribute("cy", String(22 + (1 - yPos) * 140));
+  }
+  const play = document.getElementById("colony-play");
+  if (play) {
+    play.dataset.state = colony.playing ? "playing" : "paused";
+    play.textContent = t(state.lang, colony.playing ? "galaxy.pause" : "galaxy.play");
+    play.setAttribute("aria-pressed", colony.playing ? "true" : "false");
+  }
+  const playing = document.getElementById("colony-playing");
+  if (playing) playing.hidden = !colony.playing;
+  const tech = document.getElementById("colony-tech");
+  if (tech) {
+    tech.textContent = t(state.lang, "colony.tech")
+      .replace("{left}", formatReadable(model.left, state.lang))
+      .replace("{self}", formatReadable(model.self, state.lang))
+      .replace("{other}", formatReadable(model.other, state.lang))
+      .replace("{window}", formatReadable(model.windowYears, state.lang, "year"))
+      .replace("{radius}", formatReadable(model.radius, state.lang, "year"));
+  }
+  colony.report = {
+    escapers: model.escapers,
+    years: colony.years,
+    alive: model.alive,
+    distance: model.distance,
+    self: model.self,
+    other: model.other,
+    play: colony.playing ? "playing" : "paused",
+    calm: colony.calm ? "on" : "off",
+    hopLy: colony.hopLy,
+    hopYears: colony.hopYears,
+    hops: fillOk ? model.hops : 0,
+    fillYears: fillOk ? model.fillYears : 0,
+    times: fillOk ? model.times : 0,
+    origin: colony.origin,
+    status: model.fillStatus,
+  };
+}
+
 function refresh() {
   applyI18n();
   renderChapterNav();
@@ -4506,6 +4923,7 @@ function refresh() {
   renderReading(routeFromHash());
   renderSpectrum();
   renderGalaxy();
+  renderColony();
   renderEnergy();
   renderHear();
   renderSixes();

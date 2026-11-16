@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="ath-release" content="0.1.34">
+  <meta name="ath-release" content="0.1.35">
   <title>Ada Technological Horizons</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,7 +16,7 @@
   <header class="site-header wrap">
     <div class="header-row">
       <div class="identity">
-        <p class="release-pill" id="header-version">0.1.34</p>
+        <p class="release-pill" id="header-version">0.1.35</p>
         <h1 data-i18n="app.title">Ada Technological Horizons</h1>
         <p class="credit" data-i18n="app.credit">An independent interactive exploration inspired by Stanisław Lem’s Summa Technologiae.</p>
         <p data-i18n="app.disclaimer">This is original educational software, not an official edition or an endorsed adaptation.</p>
@@ -269,6 +269,73 @@
         <summary data-i18n="galaxy.details">What Lem says, and the technical details</summary>
         <p class="note" data-i18n="galaxy.lem">Lem's report</p>
         <p id="galaxy-tech" class="note"></p>
+      </details>
+    </section>
+
+    <section id="colony-card" class="lifetime-card" aria-labelledby="colony-title">
+      <p class="kicker" data-i18n="colony.path">Cosmic Civilisations · Cosmic Catastrophism</p>
+      <h2 id="colony-title" data-i18n="colony.title">The stubborn thousand and the spreading colony</h2>
+      <div id="colony-explain" class="explain-box">
+        <p data-i18n="colony.explain">Even if almost every civilisation dies young, a few survivors would last so long that they should fill the sky. So why do we not see them?</p>
+      </div>
+      <p id="colony-lem" class="lem-note" data-i18n="colony.lem">Lem paraphrases von Hörner.</p>
+      <div id="colony-field">
+      <p id="colony-sieve-caption" class="galaxy-caption"></p>
+      <div id="colony-sieve" class="colony-sieve" role="img"></div>
+      <ul id="colony-sieve-legend" class="spectrum-legend"></ul>
+      </div>
+      <div class="button-row" role="radiogroup" id="colony-choices" aria-labelledby="colony-choice-label">
+        <span id="colony-choice-label" data-i18n="colony.escapers">How many escape?</span>
+        <button type="button" data-colony-choice="1" aria-pressed="true">100,000</button>
+        <button type="button" data-colony-choice="2" aria-pressed="false">1,000</button>
+        <button type="button" data-colony-choice="3" aria-pressed="false">1</button>
+      </div>
+      <div class="galaxy-readout">
+        <p><span data-i18n="colony.left">Left after the short lives</span> <output id="colony-left"></output></p>
+        <p><span data-i18n="colony.self">Self-liquidation</span> <output id="colony-self"></output></p>
+        <p><span data-i18n="colony.other">Other causes</span> <output id="colony-other"></output></p>
+        <p><span data-i18n="colony.alive">Alive right now</span> <output id="colony-alive"></output></p>
+        <p><span data-i18n="colony.nearest">Nearest neighbour</span> <output id="colony-distance"></output></p>
+      </div>
+      <p class="ours-note" data-i18n="colony.ours">Our picture of who is alive now.</p>
+      <div class="galaxy-control">
+        <label id="colony-life-label" for="colony-life" data-i18n="colony.lifeLabel">How long do the stubborn ones last?</label>
+        <input id="colony-life" type="range" min="0" max="1000" step="1" value="0" aria-describedby="colony-life-readout">
+        <p><output id="colony-life-readout"></output></p>
+      </div>
+      <div id="colony-chart" class="galaxy-chart"></div>
+      <ul id="colony-chart-legend" class="spectrum-legend"></ul>
+      <div id="colony-spread">
+      <h3 data-i18n="colony.spreadTitle">Spreading colony</h3>
+      <p class="ours-note" data-i18n="colony.spreadOurs">The hop rules and the 100,000-light-year galaxy are ours.</p>
+      <div id="colony-sky" class="colony-sky"></div>
+      <p id="colony-sky-note" class="note"></p>
+      <div class="galaxy-control">
+        <label for="colony-hop" data-i18n="colony.hopLabel">Hop distance</label>
+        <input id="colony-hop" type="range" min="0" max="1000" step="1" value="500">
+        <p><output id="colony-hop-readout"></output></p>
+        <label for="colony-time" data-i18n="colony.timeLabel">Hop time</label>
+        <input id="colony-time" type="range" min="0" max="1000" step="1" value="333">
+        <label for="colony-time-exact" data-i18n="colony.timeExact">Or type the hop time in years</label>
+        <input id="colony-time-exact" type="number" inputmode="numeric" min="0" step="1" value="10000">
+      </div>
+      <p id="colony-status" class="note" data-status="0"></p>
+      <div class="galaxy-readout">
+        <p><span data-i18n="colony.hops">Hops across the disc</span> <output id="colony-hops"></output></p>
+        <p><span data-i18n="colony.fill">Years to fill the galaxy</span> <output id="colony-fill"></output></p>
+      </div>
+      <p id="colony-punch" class="galaxy-caption"></p>
+      <p id="colony-question" class="lem-note" data-i18n="colony.question">Lem's question.</p>
+      </div>
+      <div class="button-row galaxy-transport">
+        <button type="button" id="colony-play" data-state="paused" data-i18n="galaxy.play">Play</button>
+        <button type="button" id="colony-restart" data-i18n="galaxy.restart">Restart</button>
+        <button type="button" id="colony-calm" class="secondary" aria-pressed="false" data-i18n="galaxy.calm">Calm</button>
+      </div>
+      <p id="colony-playing" class="note" hidden data-i18n="colony.playing">The colony is spreading.</p>
+      <details id="colony-sources">
+        <summary data-i18n="colony.details">What Lem says, and the technical details</summary>
+        <p id="colony-tech" class="note"></p>
       </details>
     </section>
 
